@@ -1,5 +1,5 @@
 {
-    "name": "markocupic/test-bundle",
+    "name": "markocupic/import-from-csv-bundle",
     "type": "symfony-bundle",
     "description": "Import-From-Csv Bundle for Contao 4",
     "license": "LGPL-3.0+",
