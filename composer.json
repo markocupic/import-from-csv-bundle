@@ -1,0 +1,27 @@
+{
+    "name": "markocupic/test-bundle",
+    "type": "symfony-bundle",
+    "description": "Import-From-Csv Bundle for Contao 4",
+    "license": "LGPL-3.0+",
+    "authors": [
+        {
+            "name": "Marko Cupic",
+            "homepage": "https://github.com/markocupic"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "symfony/framework-bundle": "~2.7",
+        "contao/core-bundle": "~4.0"
+    },   
+    "autoload": {
+        "psr-4": {
+            "Markocupic\\ImportFromCsvBundle\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-develop": "1.0.0-dev" 
+        }
+    }
+}

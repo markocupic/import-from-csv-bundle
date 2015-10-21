@@ -1,0 +1,40 @@
+
+.importButton {
+    color: #fff;
+    background: 0;
+    background-color: #006699;
+    text-shadow: 0 0 #fff;
+}
+
+#reportTable {
+    width: 100%;
+}
+
+#reportTable td.tdTitle {
+    font-weight: bold;
+}
+
+#reportTable td {
+    border: 1px solid #ccc;
+    padding: 4px;
+    font-size: 10px;
+}
+
+#reportTable .allOk td,
+#summary .allOk {
+    color: #008000 !important;
+}
+
+#reportTable .error td,
+#summary .error {
+    color: red !important;
+}
+
+#reportTable .error td .errMsg {
+    font-weight: bold;
+}
+
+#reportTable .delim td {
+    border-left-width: 0;
+    border-right-width: 0;
+}
