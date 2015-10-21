@@ -206,10 +206,10 @@ class tl_import_from_csv extends Backend
         return '
 <div class="manual">
     <label><h2>Erklärungen</h2></label>
-    <figure class="image_container"><img src="../system/modules/import_from_csv/assets/manual.jpg" title="ms-excel" style="width:100%" alt="manual"></figure>
+    <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual.jpg" title="ms-excel" style="width:100%" alt="manual"></figure>
     <p class="tl_help">CSV erstellt mit Tabellenkalkulationsprogramm (MS-Excel o.ä.)</p>
 <br>
-    <figure class="image_container"><img src="../system/modules/import_from_csv/assets/manual2.jpg" title="text-editor" style="width:100%" alt="manual"></figure>
+    <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual2.jpg" title="text-editor" style="width:100%" alt="manual"></figure>
     <p class="tl_help">CSV erstellt mit einfachem Texteditor</p>
 <br>
     <p class="tl_help">Legen Sie mit Excel oder einem Texteditor ihrer Wahl eine Kommaseparierte Textdatei an (csv). In die erste Zeile schreiben Sie die korrekten Feldnamen. Die einzelnen Felder sollten durch ein Trennzeichen, üblicherweise das Semikolon ";", abgegrenzt werden. Feldinhalt, der in der Datenbank als serialisiertes Array abgelegt wird (z.B. Gruppenzugehörigkeiten), muss durch zwei aufeinanderfolgende pipe-Zeichen abgegrenzt werden "||". Feldbegrenzer und Feldtrennzeichen können individuell festgelegt werden. Wichtig! Beginnen Sie jeden Datensatz mit einer neuen Zeile. Keine Zeilenumbrüche im Datensatz.<br>Laden Sie die erstellte csv-Datei auf den Server. Anschliessend starten Sie den Importvorgang mit einem Klick auf den grossen Button.</p>
