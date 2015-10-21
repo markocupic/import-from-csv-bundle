@@ -22,12 +22,62 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="config.php" pinned="false" current-in-tab="true">
+      <file leaf-file-name="config.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Resources/contao/config/config.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.2560241">
+            <state vertical-scroll-proportion="-6.5384617">
               <caret line="17" column="52" selection-start-line="17" selection-start-column="52" selection-end-line="17" selection-end-column="52" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="config.php" pinned="false" current-in-tab="false">
+        <entry file="file://C:/xampp/htdocs/contao4.0.4/vendor/markocupic/import-from-csv-bundle/src/Resources/contao/config/config.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="import_from_csv.css" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Resources/public/import_from_csv.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="import_from_csv.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Resources/public/import_from_csv.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="tl_import_from_csv.php" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/Resources/contao/dca/tl_import_from_csv.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.46614173">
+              <caret line="211" column="77" selection-start-line="211" selection-start-column="77" selection-end-line="211" selection-end-column="77" />
+              <folding>
+                <element signature="e#6#347#0#PHP" expanded="true" />
+                <marker date="1445458880578" expanded="true" signature="7685:9402" placeholder="..." />
+                <marker date="1445458880578" expanded="false" signature="7841:7851" placeholder="..." />
+                <marker date="1445458880578" expanded="false" signature="8088:8098" placeholder="..." />
+                <marker date="1445458880578" expanded="true" signature="9606:9655" placeholder="SELECT fileS..tl_import_from_csv..." />
+                <marker date="1445458880578" expanded="true" signature="10196:10435" placeholder="..." />
+                <marker date="1445458880578" expanded="true" signature="10331:10428" placeholder="..." />
+                <marker date="1445458880578" expanded="true" signature="10351:10414" placeholder="..." />
+                <marker date="1445458880578" expanded="true" signature="12051:12096" placeholder="SELECT * FRO..tl_import_from_csv..." />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -42,6 +92,7 @@
       <list>
         <option value="C:/xampp/htdocs/contao4.0.3/app/AppKernel.php" />
         <option value="$PROJECT_DIR$/src/Resources/contao/config/config.php" />
+        <option value="$PROJECT_DIR$/src/Resources/contao/dca/tl_import_from_csv.php" />
       </list>
     </option>
   </component>
@@ -181,7 +232,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="config" />
+              <option name="myItemId" value="dca" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -246,9 +297,51 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Resources/contao/config/config.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.2560241">
+        <state vertical-scroll-proportion="-6.5384617">
           <caret line="17" column="52" selection-start-line="17" selection-start-column="52" selection-end-line="17" selection-end-column="52" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/xampp/htdocs/contao4.0.4/vendor/markocupic/import-from-csv-bundle/src/Resources/contao/config/config.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Resources/public/import_from_csv.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Resources/public/import_from_csv.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Resources/contao/dca/tl_import_from_csv.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.46614173">
+          <caret line="211" column="77" selection-start-line="211" selection-start-column="77" selection-end-line="211" selection-end-column="77" />
+          <folding>
+            <element signature="e#6#347#0#PHP" expanded="true" />
+            <marker date="1445458880578" expanded="true" signature="7685:9402" placeholder="..." />
+            <marker date="1445458880578" expanded="false" signature="7841:7851" placeholder="..." />
+            <marker date="1445458880578" expanded="false" signature="8088:8098" placeholder="..." />
+            <marker date="1445458880578" expanded="true" signature="9606:9655" placeholder="SELECT fileS..tl_import_from_csv..." />
+            <marker date="1445458880578" expanded="true" signature="10196:10435" placeholder="..." />
+            <marker date="1445458880578" expanded="true" signature="10331:10428" placeholder="..." />
+            <marker date="1445458880578" expanded="true" signature="10351:10414" placeholder="..." />
+            <marker date="1445458880578" expanded="true" signature="12051:12096" placeholder="SELECT * FRO..tl_import_from_csv..." />
+          </folding>
         </state>
       </provider>
     </entry>
