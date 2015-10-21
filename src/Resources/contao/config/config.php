@@ -15,7 +15,7 @@
 if (TL_MODE == 'BE')
 {
     $GLOBALS['BE_MOD']['system']['import_from_csv'] = array(
-        'icon'   => 'system/modules/import_from_csv/assets/file-import-icon-16.png',
+        'icon'   => 'bundles/markocupicimportfromcsv/file-import-icon-16.png',
         'tables' => array('tl_import_from_csv')
     );
 }
