@@ -15,7 +15,7 @@
 if (TL_MODE == 'BE')
 {
     $GLOBALS['BE_MOD']['system']['import_from_csv'] = array(
-        'icon'   => 'bundles/markocupicimportfromcsv/file-import-icon-16.png',
+        'icon'   => 'bundles/markocupicimportfromcsvbundle/file-import-icon-16.png',
         'tables' => array('tl_import_from_csv')
     );
 }
@@ -23,8 +23,8 @@ if (TL_MODE == 'BE')
 
 if (TL_MODE == 'BE' && $_GET['do'] == 'import_from_csv')
 {
-    $GLOBALS['TL_JAVASCRIPT'][] = 'system/modules/import_from_csv/assets/import_from_csv.js';
-    $GLOBALS['TL_CSS'][] = 'system/modules/import_from_csv/assets/import_from_csv.css';
+    $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicimportfromcsvbundle/import_from_csv.js';
+    $GLOBALS['TL_CSS'][] = 'bundles/markocupicimportfromcsvbundle/import_from_csv.css';
     $GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = array('tl_import_from_csv', 'parseBackendTemplate');
 }
 /**

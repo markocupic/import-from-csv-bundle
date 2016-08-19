@@ -13,7 +13,7 @@
 /**
  * Run in a custom namespace, so the class can be replaced
  */
-namespace Markocupic\ImportFromCsv;
+namespace MCupic\ImportFromCsv;
 
 /**
  * Class ImportFromCsv
@@ -35,7 +35,7 @@ class ImportFromCsv extends \Backend
 
 
     /**
-     * @param $objCsvFile
+     * @param \File $objCsvFile
      * @param $strTable
      * @param $strImportMode
      * @param null $arrSelectedFields
@@ -44,7 +44,7 @@ class ImportFromCsv extends \Backend
      * @param string $strPrimaryKey
      * @param string $arrDelim
      */
-    public function importCsv($objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $strPrimaryKey = 'id', $arrDelim = '||')
+    public function importCsv(\File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $strPrimaryKey = 'id', $arrDelim = '||')
     {
         // store sucess or failure message in the session
         $_SESSION['import_from_csv']['report'] = array();
@@ -57,7 +57,7 @@ class ImportFromCsv extends \Backend
 
         // store the options in $this->arrData
         $this->arrData = array(
-            'tablename'      => $strTable, 'primaryKey' => $strPrimaryKey, 'importMode' => $strImportMode,
+            'tablename' => $strTable, 'primaryKey' => $strPrimaryKey, 'importMode' => $strImportMode,
             'selectedFields' => is_array($arrSelectedFields) ? $arrSelectedFields : array(),
             'fieldSeparator' => $strFieldseparator, 'fieldEnclosure' => $strFieldenclosure,
         );
@@ -132,8 +132,6 @@ class ImportFromCsv extends \Backend
                 $fieldValue = $arrLine[$k];
 
 
-
-
                 // trim quotes
                 $fieldValue = $this->myTrim($fieldValue);
 
@@ -148,7 +146,6 @@ class ImportFromCsv extends \Backend
                 $inputType = $arrDCA['inputType'] != '' ? $arrDCA['inputType'] : 'text';
 
 
-
                 // Map checkboxWizards to regular checkbox widgets
                 if ($inputType == 'checkboxWizard')
                 {
@@ -160,25 +157,25 @@ class ImportFromCsv extends \Backend
                 if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && is_array($GLOBALS['TL_HOOKS']['importFromCsv']))
                 {
                     $arrCustomValidation = array(
-                        'strTable'              => $strTable,
-                        'arrDCA'                => $arrDCA,
-                        'fieldname'             => $fieldname,
-                        'value'                 => $fieldValue,
-                        'arrayLine'             => $assocArrayLine,
-                        'line'                  => $line,
-                        'objCsvFile'            => $objCsvFile,
-                        'skipWidgetValidation'  => false,
-                        'hasErrors'             => false,
-                        'errorMsg'              => null,
-                        'doNotSave'             => false,
+                        'strTable' => $strTable,
+                        'arrDCA' => $arrDCA,
+                        'fieldname' => $fieldname,
+                        'value' => $fieldValue,
+                        'arrayLine' => $assocArrayLine,
+                        'line' => $line,
+                        'objCsvFile' => $objCsvFile,
+                        'skipWidgetValidation' => false,
+                        'hasErrors' => false,
+                        'errorMsg' => null,
+                        'doNotSave' => false,
                     );
 
                     $blnCustomValidation = false;
                     foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback)
                     {
                         $this->import($callback[0]);
-                        $arrCustomValidation = $this->$callback[0]->$callback[1]($arrCustomValidation, $this);
-                        if(!is_array($arrCustomValidation))
+                        $arrCustomValidation = $this->{$callback[0]}->{$callback[1]($arrCustomValidation, $this)};
+                        if (!is_array($arrCustomValidation))
                         {
                             die('Als Rückgabewert wird ein Array erwartet. Fehler in ' . __FILE__ . ' in Zeile ' . __LINE__ . '.');
                         }
@@ -191,12 +188,12 @@ class ImportFromCsv extends \Backend
                         }
                     }
 
-                    if($arrCustomValidation['errorMsg'] != '')
+                    if ($arrCustomValidation['errorMsg'] != '')
                     {
                         $fieldValue = sprintf('<span class="errMsg">%s</span>', $arrCustomValidation['errorMsg']);
                     }
 
-                    if($arrCustomValidation['doNotSave'])
+                    if ($arrCustomValidation['doNotSave'])
                     {
                         $doNotSave = true;
                     }
@@ -224,11 +221,11 @@ class ImportFromCsv extends \Backend
                             // Security issues in Contao #6695
                             if (version_compare(VERSION . BUILD, '3.2.5', '>='))
                             {
-                                $fieldValue = explode($arrDelim, $fieldValue);
+                                $fieldValue = $fieldValue != '' ? explode($arrDelim, $fieldValue) : null;
                             }
                             else
                             {
-                                $fieldValue = serialize(explode($arrDelim, $fieldValue));
+                                $fieldValue = $fieldValue != '' ? serialize(explode($arrDelim, $fieldValue)) : null;
                             }
 
                             \Input::setPost($fieldname, $fieldValue);
@@ -250,13 +247,12 @@ class ImportFromCsv extends \Backend
                             $strTimeFormat = $GLOBALS['TL_CONFIG'][$rgxp . 'Format'];
                             $objDate = new \Date($fieldValue, $strTimeFormat);
                             $fieldValue = $objDate->tstamp;
-                        }
-                        catch (\OutOfBoundsException $e)
+                        } catch (\OutOfBoundsException $e)
                         {
                             $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['invalidDate'], $fieldValue));
                         }
                     }
-
+ 
                     // Make sure that unique fields are unique
                     if ($arrDCA['eval']['unique'] && $fieldValue != '' && !$this->Database->isUniqueValue($strTable, $fieldname, $fieldValue, null))
                     {
@@ -307,13 +303,13 @@ class ImportFromCsv extends \Backend
                 // add new member to newsletter recipient list
                 if ($strTable == 'tl_member' && $set['email'] != '' && $set['newsletter'] != '')
                 {
-                    foreach (deserialize($set['newsletter']) as $newsletterId)
+                    foreach (deserialize($set['newsletter'], true) as $newsletterId)
                     {
                         // check for unique email-address
-                        $objRecipient = $this->Database->prepare("SELECT COUNT(*) AS count FROM tl_newsletter_recipients WHERE email=? AND pid=(SELECT pid FROM tl_newsletter_recipients WHERE id=?) AND id!=?")
+                        $objRecipient = $this->Database->prepare("SELECT * FROM tl_newsletter_recipients WHERE email=? AND pid=(SELECT pid FROM tl_newsletter_recipients WHERE id=?) AND id!=?")
                             ->execute($set['email'], $newsletterId, $newsletterId);
 
-                        if (!$objRecipient->count)
+                        if (!$objRecipient->numRows)
                         {
                             $arrRecipient = array();
                             $arrRecipient['tstamp'] = time();
@@ -329,8 +325,7 @@ class ImportFromCsv extends \Backend
                 {
                     // insert entry into database
                     $this->Database->prepare('INSERT INTO ' . $strTable . ' %s')->set($set)->execute();
-                }
-                catch (Exception $e)
+                } catch (\Exception $e)
                 {
                     $set['insertError'] = $e->getMessage();
                     $doNotSave = true;
@@ -359,7 +354,7 @@ class ImportFromCsv extends \Backend
                 {
                     $v = serialize($v);
                 }
-                $htmlReport .= sprintf('<tr class="%s"><td>%s</td><td>%s</td></tr>', $cssClass, \String::substr($k, 30), \String::substrHtml($v, 90));
+                $htmlReport .= sprintf('<tr class="%s"><td>%s</td><td>%s</td></tr>', $cssClass, \StringUtil::substr($k, 30), \StringUtil::substrHtml($v, 90));
             }
 
 
@@ -368,9 +363,9 @@ class ImportFromCsv extends \Backend
         }
 
         $_SESSION['import_from_csv']['status'] = array(
-            'rows'    => $rows,
+            'rows' => $rows,
             'success' => $rows - $insertError,
-            'errors'  => $insertError
+            'errors' => $insertError
         );
     }
 

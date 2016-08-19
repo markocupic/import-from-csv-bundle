@@ -1,0 +1,4 @@
+firstname;lastname;dateOfBirth;gender;company;street;postal;city;state;country;phone;mobile;fax;email;website;language;login;username;password;groups;geolocation
+Hans;Meier;1878-05-29;male;Webdesign AG;Surenweidstrasse 2;6208;Oberkirch;Kanton Luzern;ch;041 921 99 99;079 620 99 91;045 789 56 89;h-meier@me.ch;www.hans-meier.ch;de;1;hansmeier;topsecret;3||4;
+Fritz;Nimmersatt;1878-05-29;male;Webdesign AG;Surenweidstrasse 10;6208;Oberkirch;Kanton Luzern;ch;041 921 99 99;079 620 99 91;046 789 56 89;f-nimmersatt@me.ch;www.fritz-nimmersatt.ch;de;1;fritznimmer;topsecret2;3||4;
+Annina;Meile;1878-05-29;female;Webdesign AG;Surenweidstrasse 2;6208;Oberkirch;Kanton Luzern;ch;043 921 99 99;079 620 99 91;047 789 56 89;a-meile@me.ch;www.annina-meile.ch;de;1;anninameile;topsecret3;4;

@@ -12,7 +12,7 @@
 /**
  * Run in a custom namespace, so the class can be replaced
  */
-namespace Markocupic\ImportFromCsv;
+namespace MCupic\ImportFromCsv;
 
 /**
  * Class ImportFromCsvHookExample

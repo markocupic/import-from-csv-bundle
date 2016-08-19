@@ -1,7 +1,8 @@
 {
-    "name": "markocupic/import-from-csv-bundle",
-    "type": "symfony-bundle",
-    "description": "Import-From-Csv Bundle for Contao 4",
+    "name":"markocupic/import-from-csv-bundle",
+    "description":"Import datarecords from csv-textfile. Backend extension for the Contao Open Source CMS",
+    "keywords":["contao", "Import from csv"],
+    "type":"contao-module",
     "license": "LGPL-3.0+",
     "authors": [
         {
@@ -10,18 +11,21 @@
         }
     ],
     "require": {
-        "php": ">=5.4.0",
-        "symfony/framework-bundle": "~2.7",
-        "contao/core-bundle": "~4.0"
-    },   
+        "php": ">=5.5.0",
+        "contao/core-bundle": ">4.2"
+    },
     "autoload": {
         "psr-4": {
-            "Markocupic\\ImportFromCsvBundle\\": "src/"
-        }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-develop": "1.0.0-dev" 
-        }
+            "Markocupic\\ImportFromCsvBundle\\": ""
+        },
+        "classmap": [
+            "Resources/contao"
+        ],
+        "exclude-from-classmap": [
+            "Resources/contao/config",
+            "Resources/contao/dca",
+            "Resources/contao/languages",
+            "Resources/contao/manual"
+        ]
     }
 }
