@@ -174,7 +174,7 @@ class ImportFromCsv extends \Backend
                     foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback)
                     {
                         $this->import($callback[0]);
-                        $arrCustomValidation = $this->{$callback[0]}->{$callback[1]($arrCustomValidation, $this)};
+                        $arrCustomValidation = $this->{$callback[0]}->{$callback[1]}($arrCustomValidation, $this);
                         if (!is_array($arrCustomValidation))
                         {
                             die('Als Rückgabewert wird ein Array erwartet. Fehler in ' . __FILE__ . ' in Zeile ' . __LINE__ . '.');
