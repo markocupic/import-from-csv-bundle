@@ -125,7 +125,7 @@ class ImportFromCsvHookExample extends \System
          * 'hasErrors'              => 'Should be set to true if custom validation fails. (default is set to false)',
          * 'errorMsg'               => 'Define a custom text message if custom validation fails.',
          * 'doNotSave'              => 'Set this item to true if you don't want to save the datarecord into the database. (default is set to false)',
-         * 'blnTestMode'              => 'If set to 'true' the import runs in test mode, and there will be no inserts. (default is set to false)',
+         * 'blnTestMode'            => 'If set to 'true' the import runs in test mode, and there will be no inserts. (default is set to false)',
          * );
          */
 
