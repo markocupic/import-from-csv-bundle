@@ -1,6 +1,6 @@
 # Import from CSV
 
-Backend Modul für Contao 3
+Backend Modul für Contao 4
 
 Mit dem Modul lassen sich in einem Rutsch über eine csv-Datei massenhaft Datensätze importieren. Sehr praktisch, wenn z.B. sehr viele Benutzer oder Mitglieder generiert werden müssen.
 Die csv-Datei wird am besten in einem Tabellenkalkulationsprogramm  (excel o.ä.) erstellt und dann als Kommaseparierte Datei (csv) abgespeichert.
@@ -8,7 +8,7 @@ Ein Beispiel für diese Datei findet sich im Verzeichnis import_from_csv/csv/exa
 
 ## Warnung!
 
-Achtung! Das Modul bietet einen grossen Nutzen. Der Anwender sollte aber wissen, was er tut, da bei falscher Anwendung Datenbanktabellen "zerschossen" werden können und Contao danach nicht mehr funktionstüchtig ist.
+Achtung! Das Modul bietet einen grossen Nutzen. Der Anwender sollte aber wissen, was er tut, da bei falscher Anwendung Datensätze gelöscht oder unbrauchbar gemacht werden können und Contao danach nicht mehr funktionstüchtig ist.
 
 ## Einstellungen
 
@@ -125,6 +125,7 @@ class ImportFromCsvHookExample extends \System
          * 'hasErrors'              => 'Should be set to true if custom validation fails. (default is set to false)',
          * 'errorMsg'               => 'Define a custom text message if custom validation fails.',
          * 'doNotSave'              => 'Set this item to true if you don't want to save the datarecord into the database. (default is set to false)',
+         * 'blnTestMode'              => 'If set to 'true' the import runs in test mode, and there will be no inserts. (default is set to false)',
          * );
          */
 
