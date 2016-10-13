@@ -29,6 +29,8 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['append_entries'] = array('only append
 $GLOBALS['TL_LANG']['tl_import_from_csv']['new'][0] = 'Add new import';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['new'][1] = 'Add a new import';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['launchImportButton'] = 'Launch import process';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['testRunImportButton'] = 'Launch  import in test mode';
+
 
 // messages
 $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'] = 'Datarecords';

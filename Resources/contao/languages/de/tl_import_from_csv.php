@@ -33,6 +33,7 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['append_entries']['0'] = "Datensätze 
 $GLOBALS['TL_LANG']['tl_import_from_csv']['new']['0'] = "Neuen Importdatensatz anlegen";
 $GLOBALS['TL_LANG']['tl_import_from_csv']['new']['1'] = "Einen neuen Importdatensatz anlegen";
 $GLOBALS['TL_LANG']['tl_import_from_csv']['launchImportButton'] = "Importvorgang starten";
+$GLOBALS['TL_LANG']['tl_import_from_csv']['testRunImportButton'] = "Importvorgang im Testmodus starten";
 $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'] = "Anzahl Datensätze";
 $GLOBALS['TL_LANG']['tl_import_from_csv']['successful_inserts'] = "Erfolgreiche inserts";
 $GLOBALS['TL_LANG']['tl_import_from_csv']['failed_inserts'] = "Missglückte inserts";

@@ -12,13 +12,11 @@
 /**
  * Back end modules
  */
-if (TL_MODE == 'BE')
-{
-    $GLOBALS['BE_MOD']['system']['import_from_csv'] = array(
-        'icon'   => 'bundles/markocupicimportfromcsvbundle/file-import-icon-16.png',
-        'tables' => array('tl_import_from_csv')
-    );
-}
+
+$GLOBALS['BE_MOD']['system']['import_from_csv'] = array(
+    'icon' => 'bundles/markocupicimportfromcsvbundle/file-import-icon-16.png',
+    'tables' => array('tl_import_from_csv')
+);
 
 
 if (TL_MODE == 'BE' && $_GET['do'] == 'import_from_csv')

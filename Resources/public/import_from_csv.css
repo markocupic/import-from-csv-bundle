@@ -1,9 +1,22 @@
 
-.importButton {
+.tl_formbody_submit .tl_submit.importButton {
     color: #fff;
-    background: 0;
-    background-color: #006699;
+    background: #ff0000;
     text-shadow: 0 0 #fff;
+}
+
+.tl_formbody_submit .tl_submit.importButton:hover {
+    background: #cc0000;
+}
+
+.tl_formbody_submit .tl_submit.testButton {
+    color: #fff;
+    background: #006600;
+    text-shadow: 0 0 #fff;
+}
+
+.tl_formbody_submit .tl_submit.testButton:hover {
+    background: #003300;
 }
 
 #reportTable {
