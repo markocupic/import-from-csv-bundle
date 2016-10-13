@@ -3,8 +3,8 @@
 Backend Modul für Contao 4
 
 Mit dem Modul lassen sich in einem Rutsch über eine csv-Datei massenhaft Datensätze importieren. Sehr praktisch, wenn z.B. sehr viele Benutzer oder Mitglieder generiert werden müssen.
-Die csv-Datei wird am besten in einem Tabellenkalkulationsprogramm  (excel o.ä.) erstellt und dann als Kommaseparierte Datei (csv) abgespeichert.
-Ein Beispiel für diese Datei findet sich im Verzeichnis import_from_csv/csv/example_csv.csv.
+Die csv-Datei wird am besten in einem Tabellenkalkulationsprogramm  (excel o.ä.) erstellt und dann als kommaseparierte Datei (csv) abgespeichert.
+Ein Beispiel für diese Datei findet sich im Verzeichnis vendor/markocupic/import-from-csv-bundle/Resources/contao/manual/example.csv.
 
 ## Warnung!
 
@@ -221,7 +221,18 @@ class ImportFromCsvHookExample extends \System
 
 ```
 
-Damit Contao weiss, wo die Klasse zu finden ist, sollte zum Schluss im Backend für das neu erstellte Modul der Autoload-Creator gestartet werden. Dieser füllt die autoload-Dateien mit dem nötigen Code.
-Et voilà!
-Viel Spass!!!
+
+Am Ende sollte das neu erstellte Modul noch in app/AppKernel.php registriert werden:
+```php
+public function registerBundles()
+    {
+        $bundles = [
+            // ..... andere bundles/module
+            // ......
+            new Contao\CoreBundle\HttpKernel\Bundle\ContaoModuleBundle(('my_import_from_csv_hook'), $this->getRootDir()),
+            // .....
+
+```
+
+Viel Spass mit "Import From CSV"!!!
 
