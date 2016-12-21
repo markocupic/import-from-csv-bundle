@@ -12,20 +12,20 @@
     ],
     "require": {
         "php": ">=5.5.0",
-        "contao/core-bundle": ">4.2"
+        "contao/core-bundle": "~4.3"
     },
     "autoload": {
         "psr-4": {
-            "Markocupic\\ImportFromCsvBundle\\": ""
+            "Markocupic\\ImportFromCsvBundle\\": "src/"
         },
         "classmap": [
-            "Resources/contao"
+            "src/Resources/contao"
         ],
         "exclude-from-classmap": [
-            "Resources/contao/config",
-            "Resources/contao/dca",
-            "Resources/contao/languages",
-            "Resources/contao/manual"
+            "src/Resources/contao/config",
+            "src/Resources/contao/dca",
+            "src/Resources/contao/languages",
+            "src/Resources/contao/manual"
         ]
     }
 }
