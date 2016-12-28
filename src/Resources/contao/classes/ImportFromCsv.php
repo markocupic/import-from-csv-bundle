@@ -186,7 +186,7 @@ class ImportFromCsv extends \Backend
                         $fieldValue = $arrCustomValidation['value'];
 
                         // Check if widget-validation should be skipped
-                        if ($blnCustomValidation['skipWidgetValidation'] === true)
+                        if ($arrCustomValidation['skipWidgetValidation'] === true)
                         {
                             $blnCustomValidation = true;
                         }
