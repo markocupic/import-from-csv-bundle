@@ -188,13 +188,14 @@ class ImportFromCsv extends \Backend
                         // Check if widget-validation should be skipped
                         if ($arrCustomValidation['skipWidgetValidation'] === true)
                         {
-                            $blnCustomValidation = true;
+                            $blnCustomValidation = true; 
                         }
                     }
 
                     if ($arrCustomValidation['errorMsg'] != '')
                     {
-                        $fieldValue = sprintf('<span class="errMsg">%s</span>', $arrCustomValidation['errorMsg']);
+                        $fieldValue = $arrCustomValidation['errorMsg'];
+                        $doNotSave = true;
                     }
 
                     if ($arrCustomValidation['doNotSave'])
