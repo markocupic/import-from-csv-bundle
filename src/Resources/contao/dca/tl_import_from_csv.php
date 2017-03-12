@@ -283,7 +283,8 @@ class tl_import_from_csv extends Backend
         $rows = $_SESSION['import_from_csv']['status']['rows'];
         $success = $_SESSION['import_from_csv']['status']['success'];
         $errors = $_SESSION['import_from_csv']['status']['errors'];
-        if($_SESSION['import_from_csv']['status']['blnTestMode'] > 0){
+        if ($_SESSION['import_from_csv']['status']['blnTestMode'] > 0)
+        {
             $html .= '<h3>Testmode: ON</h3><br>';
         }
 
@@ -371,7 +372,6 @@ class tl_import_from_csv extends Backend
             // Rename saveNcreate button
             // Contao 4
             $strContent = preg_replace('/<button type=\"submit\" name=\"saveNcreate\"((\r|\n|.)+?)button>/', '<button type="submit" name="saveNcreate" id="saveNcreate" class="tl_submit importButton" accesskey="n">' . $GLOBALS['TL_LANG']['tl_import_from_csv']['launchImportButton'] . '</button>', $strContent);
-
 
 
             // Remove buttons in reportTable view
