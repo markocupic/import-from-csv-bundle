@@ -16,14 +16,14 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
         'sql'             => array(
             'keys' => array(
                 'id' => 'primary',
-            )
+            ),
         ),
         'onload_callback' => array(
             array(
                 'tl_import_from_csv',
-                'setPalettes'
-            )
-        )
+                'setPalettes',
+            ),
+        ),
     ),
     // List
     'list'     => array(
@@ -32,27 +32,27 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
         ),
         'label'             => array(
             'fields' => array('import_table'),
-            'format' => '%s'
+            'format' => '%s',
         ),
         'global_operations' => array(),
         'operations'        => array(
             'edit'   => array(
                 'label' => &$GLOBALS['TL_LANG']['MSC']['edit'],
                 'href'  => 'act=edit',
-                'icon'  => 'edit.gif'
+                'icon'  => 'edit.gif',
             ),
             'delete' => array(
                 'label'      => &$GLOBALS['TL_LANG']['MSC']['delete'],
                 'href'       => 'act=delete',
                 'icon'       => 'delete.gif',
-                'attributes' => 'onclick="if (!confirm(\'' . $GLOBALS['TL_LANG']['MSC']['deleteConfirm'] . '\')) return false; Backend.getScrollOffset();"'
+                'attributes' => 'onclick="if (!confirm(\'' . $GLOBALS['TL_LANG']['MSC']['deleteConfirm'] . '\')) return false; Backend.getScrollOffset();"',
             ),
             'show'   => array(
                 'label' => &$GLOBALS['TL_LANG']['MSC']['show'],
                 'href'  => 'act=show',
-                'icon'  => 'show.gif'
-            )
-        )
+                'icon'  => 'show.gif',
+            ),
+        ),
     ),
     // Palettes
     'palettes' => array(
@@ -64,23 +64,23 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
         'id'              => array(
             'label'  => array('ID'),
             'search' => true,
-            'sql'    => "int(10) unsigned NOT NULL auto_increment"
+            'sql'    => "int(10) unsigned NOT NULL auto_increment",
         ),
         'tstamp'          => array(
-            'sql' => "int(10) unsigned NOT NULL default '0'"
+            'sql' => "int(10) unsigned NOT NULL default '0'",
         ),
         'explanation'     => array(
             'input_field_callback' => array(
                 'tl_import_from_csv',
-                'generateExplanationMarkup'
+                'generateExplanationMarkup',
             ),
-            'eval'                 => array('tl_class' => 'clr', 'doNotShow' => true)
+            'eval'                 => array('tl_class' => 'clr', 'doNotShow' => true),
 
         ),
         'report'          => array(
             'label'                => &$GLOBALS['TL_LANG']['tl_import_from_csv']['report'],
             'input_field_callback' => array('tl_import_from_csv', 'generateReportMarkup'),
-            'eval'                 => array('tl_class' => 'clr', 'doNotShow' => true)
+            'eval'                 => array('tl_class' => 'clr', 'doNotShow' => true),
 
         ),
         'import_table'    => array(
@@ -88,20 +88,20 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
             'inputType'        => 'select',
             'options_callback' => array('tl_import_from_csv', 'optionsCbGetTables'),
             'eval'             => array('multiple' => false, 'mandatory' => true, 'includeBlankOption' => true, 'submitOnChange' => true,),
-            'sql'              => "varchar(255) NOT NULL default ''"
+            'sql'              => "varchar(255) NOT NULL default ''",
         ),
         'field_separator' => array(
             'label'     => &$GLOBALS['TL_LANG']['tl_import_from_csv']['field_separator'],
             'inputType' => 'text',
             'default'   => ';',
             'eval'      => array('mandatory' => true,),
-            'sql'       => "varchar(255) NOT NULL default ''"
+            'sql'       => "varchar(255) NOT NULL default ''",
         ),
         'field_enclosure' => array(
             'label'     => &$GLOBALS['TL_LANG']['tl_import_from_csv']['field_enclosure'],
             'inputType' => 'text',
             'eval'      => array('mandatory' => false,),
-            'sql'       => "varchar(255) NOT NULL default ''"
+            'sql'       => "varchar(255) NOT NULL default ''",
         ),
         'import_mode'     => array(
             'label'     => &$GLOBALS['TL_LANG']['tl_import_from_csv']['import_mode'],
@@ -109,7 +109,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
             'options'   => array('append_entries', 'truncate_table'),
             'reference' => $GLOBALS['TL_LANG']['tl_import_from_csv'],
             'eval'      => array('multiple' => false, 'mandatory' => true,),
-            'sql'       => "varchar(255) NOT NULL default ''"
+            'sql'       => "varchar(255) NOT NULL default ''",
 
         ),
         'selected_fields' => array(
@@ -117,21 +117,21 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
             'inputType'        => 'checkbox',
             'options_callback' => array('tl_import_from_csv', 'optionsCbSelectedFields'),
             'eval'             => array('multiple' => true, 'mandatory' => true),
-            'sql'              => "varchar(1024) NOT NULL default ''"
+            'sql'              => "varchar(1024) NOT NULL default ''",
 
         ),
         'fileSRC'         => array(
             'label'     => &$GLOBALS['TL_LANG']['tl_import_from_csv']['fileSRC'],
             'inputType' => 'fileTree',
             'eval'      => array('multiple' => false, 'fieldType' => 'radio', 'files' => true, 'filesOnly' => true, 'mandatory' => true, 'extensions' => 'csv', 'submitOnChange' => true,),
-            'sql'       => "binary(16) NULL"
+            'sql'       => "binary(16) NULL",
         ),
         'listLines'       => array(
             'input_field_callback' => array('tl_import_from_csv', 'generateFileContent'),
-            'eval'                 => array('tl_class' => 'clr', 'doNotShow' => true)
+            'eval'                 => array('tl_class' => 'clr', 'doNotShow' => true),
 
-        )
-    )
+        ),
+    ),
 );
 
 /**
@@ -155,12 +155,12 @@ class tl_import_from_csv extends Backend
         {
 
             $blnTestMode = false;
-            if(isset($_POST['saveNcreate']))
+            if (isset($_POST['saveNcreate']))
             {
                 unset($_POST['saveNcreate']);
             }
 
-            if(isset($_POST['saveNclose']))
+            if (isset($_POST['saveNclose']))
             {
 
                 $blnTestMode = true;
@@ -218,7 +218,7 @@ class tl_import_from_csv extends Backend
     {
 
         return '
-<div class="manual">
+<div class="widget manual">
     <label><h2>Erklärungen</h2></label>
     <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual.jpg" title="ms-excel" style="width:100%" alt="manual"></figure>
     <p class="tl_help">CSV erstellt mit Tabellenkalkulationsprogramm (MS-Excel o.ä.)</p>
@@ -260,7 +260,8 @@ class tl_import_from_csv extends Backend
         }
 
         return '
-<div class="parsedFile">
+<div class="widget parsedFile">
+       <br>
        <label><h2>' . $GLOBALS['TL_LANG']['tl_import_from_csv']['fileContent'][0] . '</h2></label>
        <div class="fileContentBox">
               <div>
@@ -278,12 +279,13 @@ class tl_import_from_csv extends Backend
      */
     public function generateReportMarkup()
     {
-        $html = '<h2>Import&uuml;bersicht:</h2>';
+        $html = '<div class="widget"><h2>Import&uuml;bersicht:</h2>';
         $rows = $_SESSION['import_from_csv']['status']['rows'];
         $success = $_SESSION['import_from_csv']['status']['success'];
         $errors = $_SESSION['import_from_csv']['status']['errors'];
-        $strTestMode = $_SESSION['import_from_csv']['status']['blnTestMode'] ? 'ON' : 'OFF';
-        $html .= $strTestMode == '0N' ? sprintf('<h3>Testmode: %s</h3><br>', $strTestMode) : '';
+        if($_SESSION['import_from_csv']['status']['blnTestMode'] > 0){
+            $html .= '<h3>Testmode: ON</h3><br>';
+        }
 
         $html .= sprintf('<p id="summary"><span>%s: %s</span><br><span class="allOk">%s: %s</span><br><span class="error">%s: %s</span></p>', $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'], $rows, $GLOBALS['TL_LANG']['tl_import_from_csv']['successful_inserts'], $success, $GLOBALS['TL_LANG']['tl_import_from_csv']['failed_inserts'], $errors);
 
@@ -297,7 +299,7 @@ class tl_import_from_csv extends Backend
         }
         unset($_SESSION['import_from_csv']);
 
-        $html .= '</table>';
+        $html .= '</table></div>';
         return $html;
 
     }
@@ -361,25 +363,25 @@ class tl_import_from_csv extends Backend
 
         if (Input::get('act') == 'edit')
         {
-            // Remove saveNClose button
+            // Remove saveNClose and saveNduplicate button
             // Contao 4
             $strContent = preg_replace('/<button type=\"submit\" name=\"saveNclose\"((\r|\n|.)+?)>((\r|\n|.)+?)button>/', '<button type="submit" name="saveNclose" id="saveNclose" class="tl_submit testButton" accesskey="n">' . $GLOBALS['TL_LANG']['tl_import_from_csv']['testRunImportButton'] . '</button>', $strContent);
-
+            $strContent = preg_replace('/<button type=\"submit\" name=\"saveNduplicate\"((\r|\n|.)+?)>((\r|\n|.)+?)button>/', '', $strContent);
 
             // Rename saveNcreate button
             // Contao 4
             $strContent = preg_replace('/<button type=\"submit\" name=\"saveNcreate\"((\r|\n|.)+?)button>/', '<button type="submit" name="saveNcreate" id="saveNcreate" class="tl_submit importButton" accesskey="n">' . $GLOBALS['TL_LANG']['tl_import_from_csv']['launchImportButton'] . '</button>', $strContent);
 
+
+
             // Remove buttons in reportTable view
             if (strstr($strContent, 'reportTable'))
             {
                 // Contao 4
+                $strContent = preg_replace('/<div class=\"split-button\">((\r|\n|.)+?)<\/div>/', '<br>', $strContent);
                 $strContent = preg_replace('/<button type=\"submit\" name=\"save\"((\r|\n|.)+?)button>/', '', $strContent);
-                $strContent = preg_replace('/<button type=\"submit\" name=\"saveNcreate\"((\r|\n|.)+?)button>/', '', $strContent);
-                $strContent = preg_replace('/<button type=\"submit\" name=\"saveNclose\"((\r|\n|.)+?)button>/', '', $strContent);
             }
         }
-
         return $strContent;
     }
 }           

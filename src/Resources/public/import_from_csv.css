@@ -44,7 +44,8 @@
 }
 
 #reportTable .error td .errMsg {
-    font-weight: bold;
+    font-weight: normal !important;
+    font-size: 10px !important;
 }
 
 #reportTable .delim td {

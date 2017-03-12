@@ -382,7 +382,7 @@ class ImportFromCsv extends \Backend
         }
 
         $_SESSION['import_from_csv']['status'] = array(
-            'blnTestMode' => $blnTestMode,
+            'blnTestMode' => $blnTestMode ? true : false,
             'rows'    => $rows,
             'success' => $rows - $insertError,
             'errors'  => $insertError
