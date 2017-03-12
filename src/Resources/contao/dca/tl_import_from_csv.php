@@ -143,14 +143,17 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
  */
 class tl_import_from_csv extends Backend
 {
-
+    /**
+     *
+     */
     public function __construct()
     {
 
         parent::__construct();
 
-        if ((isset($_POST['saveNcreate']) || isset($_POST['saveNclose'])) && $this->Input->post('FORM_SUBMIT') && $this->Input->post('SUBMIT_TYPE') != 'auto' && !$_SESSION['import_from_csv'])
+        if ((isset($_POST['saveNcreate']) || isset($_POST['saveNclose'])) && $this->Input->post('FORM_SUBMIT') == 'tl_import_from_csv' && $this->Input->post('SUBMIT_TYPE') != 'auto' && !$_SESSION['import_from_csv'])
         {
+
             $blnTestMode = false;
             if(isset($_POST['saveNcreate']))
             {
@@ -159,9 +162,9 @@ class tl_import_from_csv extends Backend
 
             if(isset($_POST['saveNclose']))
             {
+
                 $blnTestMode = true;
                 unset($_POST['saveNclose']);
-                //die(print_r($_POST,true));
             }
             $this->initImport($blnTestMode);
         }
@@ -201,7 +204,7 @@ class tl_import_from_csv extends Backend
             if (strtolower($objFile->extension) == 'csv')
             {
                 $objImport = new MCupic\ImportFromCsv\ImportFromCsv;
-                $objImport->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strFieldseparator, $strFieldenclosure, 'id', '||', $blnTestMode);
+                $objImport->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strFieldseparator, $strFieldenclosure, '||', $blnTestMode);
             }
         }
     }
@@ -275,13 +278,12 @@ class tl_import_from_csv extends Backend
      */
     public function generateReportMarkup()
     {
-
         $html = '<h2>Import&uuml;bersicht:</h2>';
         $rows = $_SESSION['import_from_csv']['status']['rows'];
         $success = $_SESSION['import_from_csv']['status']['success'];
         $errors = $_SESSION['import_from_csv']['status']['errors'];
         $strTestMode = $_SESSION['import_from_csv']['status']['blnTestMode'] ? 'ON' : 'OFF';
-        $html .= sprintf('<h3>Testmodus: %s</h3><br>', $strTestMode);
+        $html .= $strTestMode == '0N' ? sprintf('<h3>Testmode: %s</h3><br>', $strTestMode) : '';
 
         $html .= sprintf('<p id="summary"><span>%s: %s</span><br><span class="allOk">%s: %s</span><br><span class="error">%s: %s</span></p>', $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'], $rows, $GLOBALS['TL_LANG']['tl_import_from_csv']['successful_inserts'], $success, $GLOBALS['TL_LANG']['tl_import_from_csv']['failed_inserts'], $errors);
 
