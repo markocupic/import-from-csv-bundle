@@ -11,7 +11,7 @@
     }
   ],
   "require": {
-    "contao/contao": ">=4.3,<5"
+    "contao/installation-bundle": ">=4.3,<5"
   },
   "autoload": {
     "psr-4": {
