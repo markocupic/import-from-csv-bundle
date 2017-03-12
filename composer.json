@@ -11,8 +11,7 @@
         }
     ],
     "require": {
-        "php": ">=5.5.0",
-        "contao/core-bundle": "~4.3"
+        "contao/contao": ">=4.3,<5",
     },
     "autoload": {
         "psr-4": {
