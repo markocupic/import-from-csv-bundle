@@ -1,30 +1,30 @@
 {
-    "name":"markocupic/import-from-csv-bundle",
-    "description":"Import datarecords from csv-textfile. Backend extension for the Contao Open Source CMS",
-    "keywords":["contao", "Import from csv"],
-    "type":"contao-module",
-    "license": "LGPL-3.0+",
-    "authors": [
-        {
-            "name": "Marko Cupic",
-            "homepage": "https://github.com/markocupic"
-        }
-    ],
-    "require": {
-        "contao/contao": ">=4.3,<5",
-    },
-    "autoload": {
-        "psr-4": {
-            "Markocupic\\ImportFromCsvBundle\\": "src/"
-        },
-        "classmap": [
-            "src/Resources/contao"
-        ],
-        "exclude-from-classmap": [
-            "src/Resources/contao/config",
-            "src/Resources/contao/dca",
-            "src/Resources/contao/languages",
-            "src/Resources/contao/manual"
-        ]
+  "name":"markocupic/import-from-csv-bundle",
+  "description":"Import datarecords from csv-textfile. Backend extension for the Contao Open Source CMS",
+  "keywords":["contao", "Import from csv"],
+  "type":"contao-module",
+  "license": "LGPL-3.0+",
+  "authors": [
+    {
+      "name": "Marko Cupic",
+      "homepage": "https://github.com/markocupic"
     }
+  ],
+  "require": {
+    "contao/contao": ">=4.3,<5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Markocupic\\ImportFromCsvBundle\\": "src/"
+    },
+    "classmap": [
+      "src/Resources/contao"
+    ],
+    "exclude-from-classmap": [
+      "src/Resources/contao/config",
+      "src/Resources/contao/dca",
+      "src/Resources/contao/languages",
+      "src/Resources/contao/manual"
+    ]
+  }
 }
