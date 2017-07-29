@@ -1,8 +1,8 @@
 {
   "name":"markocupic/import-from-csv-bundle",
   "description":"Import datarecords from csv-textfile. Backend extension for the Contao Open Source CMS",
-  "keywords":["contao", "Import from csv"],
-  "type":"contao-module",
+  "keywords":["contao", "import from csv"],
+  "type":"contao-bundle",
   "license": "LGPL-3.0+",
   "authors": [
     {
@@ -11,7 +11,7 @@
     }
   ],
   "require": {
-    "contao/core-bundle": ">=4.3"
+    "contao/core-bundle": ">=4.4,<5"
   },
   "autoload": {
     "psr-4": {
@@ -26,5 +26,8 @@
       "src/Resources/contao/languages",
       "src/Resources/contao/manual"
     ]
+  },
+  "extra": {
+    "contao-manager-plugin": "Markocupic\\ImportFromCsvBundle\\ContaoManager\\Plugin"
   }
 }
