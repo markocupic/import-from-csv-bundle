@@ -23,7 +23,6 @@ if (TL_MODE == 'BE' && $_GET['do'] == 'import_from_csv')
 {
     $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicimportfromcsv/import_from_csv.js';
     $GLOBALS['TL_CSS'][] = 'bundles/markocupicimportfromcsv/import_from_csv.css';
-    $GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = array('tl_import_from_csv', 'parseBackendTemplate');
 }
 /**
  * HOOKS

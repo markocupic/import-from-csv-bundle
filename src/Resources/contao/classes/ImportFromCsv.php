@@ -13,7 +13,7 @@
 /**
  * Run in a custom namespace, so the class can be replaced
  */
-namespace MCupic\ImportFromCsv;
+namespace Markocupic\ImportFromCsv;
 
 /**
  * Class ImportFromCsv
@@ -221,8 +221,12 @@ class ImportFromCsv extends \Backend
 
                     // Set post var, so the content can be validated
                     \Input::setPost($fieldname, $fieldValue);
-                    if ($fieldname == 'password')
+
+                    // Special treatment for password
+                    if ($objWidget instanceof \FormPassword)
                     {
+                        // @see Contao\FormPassword::construct() Line 66
+                        $objWidget->useRawRequestData = false;
                         \Input::setPost('password_confirm', $fieldValue);
                     }
 
