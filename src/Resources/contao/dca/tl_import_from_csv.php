@@ -132,9 +132,8 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
             'sql' => "binary(16) NULL",
         ),
         'listLines' => array(
-            'input_field_callback' => array('tl_import_from_csv', 'generateFileContent'),
+            'input_field_callback' => array('tl_import_from_csv', 'generateFileContentMarkup'),
             'eval' => array('tl_class' => 'clr', 'doNotShow' => true),
-
         ),
     ),
 );

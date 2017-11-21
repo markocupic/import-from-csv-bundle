@@ -24,12 +24,14 @@ if (TL_MODE == 'BE' && $_GET['do'] == 'import_from_csv')
     $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicimportfromcsv/import_from_csv.js';
     $GLOBALS['TL_CSS'][] = 'bundles/markocupicimportfromcsv/import_from_csv.css';
 }
+
+
 /**
  * HOOKS
  */
 if (TL_MODE == 'BE' && \Input::get('do') == 'import_from_csv')
 {
     // disable Hook (example)
-    // $GLOBALS['TL_HOOKS']['importFromCsv'][] = array('MCupic\ImportFromCsv\ImportFromCsvHookExample', 'addGeolocation');
+    // $GLOBALS['TL_HOOKS']['importFromCsv'][] = array('Markocupic\ImportFromCsv\ImportFromCsvHookExample', 'addGeolocation');
 }
 

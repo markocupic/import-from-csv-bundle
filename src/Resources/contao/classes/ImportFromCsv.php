@@ -82,6 +82,7 @@ class ImportFromCsv extends \Backend
         {
             return;
         }
+        ini_set("auto_detect_line_endings", true);
 
         // Get content as array
         $arrFileContent = $objCsvFile->getContentAsArray();

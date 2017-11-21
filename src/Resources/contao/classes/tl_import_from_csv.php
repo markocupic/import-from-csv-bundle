@@ -51,6 +51,9 @@ class tl_import_from_csv extends Backend
 
         if ($_SESSION['import_from_csv'] && !$this->Input->post('FORM_SUBMIT'))
         {
+            // Set  $this->reportTableMode to true. This is used in the buttonsCallback
+            $this->reportTableMode = true;
+
             $GLOBALS['TL_DCA']['tl_import_from_csv']['palettes']['default'] = 'report;';
         }
     }
@@ -91,16 +94,16 @@ class tl_import_from_csv extends Backend
 
         return '
 <div class="widget manual">
-    <label><h2>Erklärungen</h2></label>
+    <label><h2>Erkl&auml;rungen</h2></label>
     <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual.jpg" title="ms-excel" style="width:100%" alt="manual"></figure>
-    <p class="tl_help">CSV erstellt mit Tabellenkalkulationsprogramm (MS-Excel o.ä.)</p>
+    <p class="tl_help">CSV erstellt mit Tabellenkalkulationsprogramm (MS-Excel o.&auml;.)</p>
 <br>
     <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual2.jpg" title="text-editor" style="width:100%" alt="manual"></figure>
     <p class="tl_help">CSV erstellt mit einfachem Texteditor</p>
 <br>
-    <p class="tl_help">Legen Sie mit Excel oder einem Texteditor Ihrer Wahl eine kommaseparierte Textdatei an (csv). In die erste Zeile schreiben Sie die korrekten Feldnamen. Die einzelnen Felder sollten durch ein Trennzeichen, üblicherweise das Semikolon ";", abgegrenzt werden. Feldinhalt, der in der Datenbank als serialisiertes Array abgelegt wird (z.B. Gruppenzugehörigkeiten), muss durch zwei aufeinanderfolgende pipe-Zeichen abgegrenzt werden z.B. "2||5". Feldbegrenzer und Feldtrennzeichen können individuell festgelegt werden. Wichtig! Beginnen Sie jeden Datensatz mit einer neuen Zeile. Keine Zeilenumbrüche im Datensatz.<br>Laden Sie die erstellte csv-Datei auf den Server. Anschliessend starten Sie den Importvorgang mit einem Klick auf den grossen Button.</p>
-    <p class="tl_help">Beim Importvorgang werden die Inhalte auf Gültigkeit überprüft.</p>
-    <p class="tl_help">Achtung! Nutzen Sie das Modul nur, wenn Sie sich ihrer Sache sicher sind. Gelöschte Daten können nur wiederhergestellt werden, wenn Sie vorher ein Backup gemacht haben.</p>
+    <p class="tl_help">Mit MS-Excel oder einem Texteditor l&auml;sst sich eine kommaseparierte Textdatei anlegen (csv). In die erste Zeile geh&ouml;ren die Feldnamen. Die einzelnen Felder sollten durch ein Trennzeichen (&uuml;blicherweise das Semikolon ";") abgegrenzt werden. Feldinhalt, der in der Datenbank als serialisiertes Array abgelegt wird (z.B. Gruppenzugeh&ouml;rigkeiten), muss durch zwei aufeinanderfolgende pipe-Zeichen abgegrenzt werden z.B. "2||5". Feldbegrenzer und Feldtrennzeichen k&ouml;nnen individuell festgelegt werden. Wichtig! Jeder Datensatz geh&ouml;rt auf eine neue Zeile. Zeilenumbr&uuml;che im Datensatz verunm&ouml;glichen den Import.<br>Die erstellte csv-Datei muss &uuml;ber die Daeiverwaltung auf den Webserver geladen werden. Anschliessend kann der Importvorgang unter dem Splitbutton gestartet werden.</p>
+    <p class="tl_help">Beim Importvorgang werden die Inhalte auf G&uuml;ltigkeit &uuml;berpr&uuml;ft.</p>
+    <p class="tl_help">Achtung! Das Modul sollte nur genutzt werden, wenn man sich seiner Sache sehr sicher ist. Gel&ouml;schte Daten k&ouml;nnen nur wiederhergestellt werden, wenn vorher ein Datenbankbackup erstellt worden ist.</p>
 
     <p><br>Weitere Hilfe gibt es unter: <a href="https://github.com/markocupic/import-from-csv-bundle">https://github.com/markocupic/import-from-csv-bundle</a></p>
 </div>
@@ -112,11 +115,12 @@ class tl_import_from_csv extends Backend
      * field_callback generateExplanationMarkup
      * @return string
      */
-    public function generateFileContent()
+    public function generateFileContentMarkup()
     {
 
         $objDb = $this->Database->prepare('SELECT fileSRC FROM tl_import_from_csv WHERE id=?')->execute(Input::get('id'));
         $objFile = FilesModel::findByUuid($objDb->fileSRC);
+
         // call the import class if file exists
         if (!is_file(TL_ROOT . '/' . $objFile->path))
         {
@@ -151,9 +155,6 @@ class tl_import_from_csv extends Backend
      */
     public function generateReportMarkup()
     {
-        // Set  $this->reportTableMode to true. This is used in the buttonsCallback
-        $this->reportTableMode = true;
-
         // Html
         $html = '<div class="widget"><h2>Import&uuml;bersicht:</h2>';
         $rows = $_SESSION['import_from_csv']['status']['rows'];

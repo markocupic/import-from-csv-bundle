@@ -88,7 +88,7 @@ In die ValidateImportFromCsv.php schreiben Sie folgendes. In die addGeolocation(
 /**
  * Run in a custom namespace, so the class can be replaced
  */
-namespace MCupic\ImportFromCsv;
+namespace Markocupic\ImportFromCsv;
 
 /**
  * Class ImportFromCsvHookExample
