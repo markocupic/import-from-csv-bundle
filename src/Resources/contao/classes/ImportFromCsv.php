@@ -82,6 +82,8 @@ class ImportFromCsv extends \Backend
         {
             return;
         }
+
+        // Auto detect line endings https://stackoverflow.com/questions/31331110/auto-detect-line-endings-are-there-side-effects
         ini_set("auto_detect_line_endings", true);
 
         // Get content as array
