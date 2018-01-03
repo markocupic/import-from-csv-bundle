@@ -70,6 +70,7 @@ class tl_import_from_csv extends Backend
         $arrSelectedFields = $this->Input->post('selected_fields');
         $strFieldseparator = $this->Input->post('field_separator');
         $strFieldenclosure = $this->Input->post('field_enclosure');
+        $arrSkipValidationFields = $this->Input->post('skipValidationFields');
 
         $objFile = FilesModel::findByUuid($this->Input->post('fileSRC'));
         // call the import class if file exists
@@ -79,7 +80,7 @@ class tl_import_from_csv extends Backend
             if (strtolower($objFile->extension) == 'csv')
             {
                 $objImport = new Markocupic\ImportFromCsv\ImportFromCsv;
-                $objImport->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strFieldseparator, $strFieldenclosure, '||', $blnTestMode);
+                $objImport->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strFieldseparator, $strFieldenclosure, '||', $blnTestMode, $arrSkipValidationFields);
             }
         }
     }

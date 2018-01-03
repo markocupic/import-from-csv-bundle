@@ -61,7 +61,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
     ),
     // Palettes
     'palettes' => array(
-        'default' => '{manual},explanation;{settings},import_table,selected_fields,field_separator,field_enclosure,import_mode,fileSRC,listLines',
+        'default' => '{manual},explanation;{settings},import_table,selected_fields,field_separator,field_enclosure,import_mode,fileSRC,skipValidationFields,listLines',
     ),
     // Fields
     'fields' => array(
@@ -124,6 +124,13 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
             'eval' => array('multiple' => true, 'mandatory' => true),
             'sql' => "varchar(1024) NOT NULL default ''",
 
+        ),
+        'skipValidationFields' => array(
+            'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['skipValidationFields'],
+            'inputType' => 'select',
+            'options_callback' => array('tl_import_from_csv', 'optionsCbSelectedFields'),
+            'eval' => array('multiple' => true, 'chosen' => true, 'mandatory' => false),
+            'sql' => "varchar(1024) NOT NULL default ''",
         ),
         'fileSRC' => array(
             'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['fileSRC'],

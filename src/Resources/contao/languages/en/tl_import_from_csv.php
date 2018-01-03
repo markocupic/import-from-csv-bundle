@@ -20,7 +20,7 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['field_separator'] = array('Field sepa
 $GLOBALS['TL_LANG']['tl_import_from_csv']['selected_fields'] = array('Select the fields for the import');
 $GLOBALS['TL_LANG']['tl_import_from_csv']['fileSRC'] = array('Select a csv-file for the import');
 $GLOBALS['TL_LANG']['tl_import_from_csv']['fileContent'] = array('File content');
-
+$GLOBALS['TL_LANG']['tl_import_from_csv']['skipValidationFields'] = array("Skip validation for these fields", "Select field that will not be validated.");
 //references
 $GLOBALS['TL_LANG']['tl_import_from_csv']['truncate_table'] = array('truncate the target table before importing data');
 $GLOBALS['TL_LANG']['tl_import_from_csv']['append_entries'] = array('only append data into the target table');

@@ -37,5 +37,7 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['testRunImportButton'] = "Importvorgan
 $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'] = "Anzahl Datensätze";
 $GLOBALS['TL_LANG']['tl_import_from_csv']['successful_inserts'] = "Erfolgreiche inserts";
 $GLOBALS['TL_LANG']['tl_import_from_csv']['failed_inserts'] = "Missglückte inserts";
- 
+$GLOBALS['TL_LANG']['tl_import_from_csv']['skipValidationFields'][0] = "Validierung für diese Felder überspringen";
+$GLOBALS['TL_LANG']['tl_import_from_csv']['skipValidationFields'][1] = "Geben Sie an für welche Felder die Validierung übersprungen werden soll.";
+
 ?>

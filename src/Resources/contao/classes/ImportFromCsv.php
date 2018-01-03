@@ -13,6 +13,7 @@
 /**
  * Run in a custom namespace, so the class can be replaced
  */
+
 namespace Markocupic\ImportFromCsv;
 
 /**
@@ -44,7 +45,7 @@ class ImportFromCsv extends \Backend
      * @param string $arrDelim
      * @throws \Exception
      */
-    public function importCsv(\File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $arrDelim = '||', $blnTestMode = false)
+    public function importCsv(\File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $arrDelim = '||', $blnTestMode = false, $arrSkipValidationFields)
     {
         // Get the primary key
         $strPrimaryKey = $this->getPrimaryKey($strTable);
@@ -64,16 +65,16 @@ class ImportFromCsv extends \Backend
 
         // Store the options in $this->arrData
         $this->arrData = array(
-            'tablename'      => $strTable,
-            'primaryKey'     => $strPrimaryKey,
-            'importMode'     => $strImportMode,
+            'tablename' => $strTable,
+            'primaryKey' => $strPrimaryKey,
+            'importMode' => $strImportMode,
             'selectedFields' => is_array($arrSelectedFields) ? $arrSelectedFields : array(),
             'fieldSeparator' => $strFieldseparator,
             'fieldEnclosure' => $strFieldenclosure,
         );
 
         // Truncate table
-        if ($this->arrData['importMode'] == 'truncate_table')
+        if ($this->arrData['importMode'] == 'truncate_table' && $blnTestMode === false)
         {
             $this->Database->execute('TRUNCATE TABLE `' . $strTable . '`');
         }
@@ -91,8 +92,7 @@ class ImportFromCsv extends \Backend
         $arrFieldnames = explode($this->arrData['fieldSeparator'], $arrFileContent[0]);
 
         // Trim quotes in the first line and get the fieldnames
-        $arrFieldnames = array_map(function ($strFieldname)
-        {
+        $arrFieldnames = array_map(function ($strFieldname) {
             return trim($strFieldname, $this->arrData['fieldEnclosure']);
         }, $arrFieldnames);
 
@@ -172,17 +172,17 @@ class ImportFromCsv extends \Backend
                 if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && is_array($GLOBALS['TL_HOOKS']['importFromCsv']))
                 {
                     $arrCustomValidation = array(
-                        'strTable'             => $strTable,
-                        'arrDCA'               => $arrDCA,
-                        'fieldname'            => $fieldname,
-                        'value'                => $fieldValue,
-                        'arrayLine'            => $assocArrayLine,
-                        'line'                 => $line,
-                        'objCsvFile'           => $objCsvFile,
+                        'strTable' => $strTable,
+                        'arrDCA' => $arrDCA,
+                        'fieldname' => $fieldname,
+                        'value' => $fieldValue,
+                        'arrayLine' => $assocArrayLine,
+                        'line' => $line,
+                        'objCsvFile' => $objCsvFile,
                         'skipWidgetValidation' => false,
-                        'hasErrors'            => false,
-                        'errorMsg'             => null,
-                        'doNotSave'            => false,
+                        'hasErrors' => false,
+                        'errorMsg' => null,
+                        'doNotSave' => false,
                     );
 
                     $blnCustomValidation = false;
@@ -253,8 +253,13 @@ class ImportFromCsv extends \Backend
                         }
                     }
 
-                    // Validate input
-                    $objWidget->validate();
+
+                    // !!! SECURITY !!! SKIP VALIDATION FOR SELECTED FIELDS
+                    if (!in_array($fieldname, $arrSkipValidationFields))
+                    {
+                        // Validate input
+                        $objWidget->validate();
+                    }
 
 
                     $fieldValue = $objWidget->value;
@@ -268,16 +273,22 @@ class ImportFromCsv extends \Backend
                             $strTimeFormat = $GLOBALS['TL_CONFIG'][$rgxp . 'Format'];
                             $objDate = new \Date($fieldValue, $strTimeFormat);
                             $fieldValue = $objDate->tstamp;
-                        } catch (\OutOfBoundsException $e)
+                        }
+                        catch (\OutOfBoundsException $e)
                         {
                             $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['invalidDate'], $fieldValue));
                         }
                     }
 
-                    // Make sure that unique fields are unique
-                    if ($arrDCA['eval']['unique'] && $fieldValue != '' && !$this->Database->isUniqueValue($strTable, $fieldname, $fieldValue, null))
+
+                    // !!! SECURITY !!! SKIP UNIQUE VALIDATION FOR SELECTED FIELDS
+                    if (!in_array($fieldname, $arrSkipValidationFields))
                     {
-                        $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['unique'], $arrDCA['label'][0] ?: $fieldname));
+                        // Make sure that unique fields are unique
+                        if ($arrDCA['eval']['unique'] && $fieldValue != '' && !$this->Database->isUniqueValue($strTable, $fieldname, $fieldValue, null))
+                        {
+                            $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['unique'], $arrDCA['label'][0] ?: $fieldname));
+                        }
                     }
 
                     // Do not save the field if there are errors
@@ -292,6 +303,25 @@ class ImportFromCsv extends \Backend
                         if ($fieldValue === '')
                         {
                             $fieldValue = $objWidget->getEmptyValue();
+                            // Set the correct empty value
+                            if ($fieldValue === '')
+                            {
+                                /**
+                                 * Hack Because Contao doesn't handle correct empty string input f.ex username
+                                 * @see https://github.com/contao/core-bundle/blob/master/src/Resources/contao/library/Contao/Widget.php#L1526-1527
+                                 */
+                                if (isset($GLOBALS['TL_DCA'][$strTable]['fields'][$fieldname]['sql']))
+                                {
+                                    $sql = $GLOBALS['TL_DCA'][$strTable]['fields'][$fieldname]['sql'];
+                                    if (strpos($sql, 'NOT NULL') === false)
+                                    {
+                                        if (strpos($sql, 'NULL') !== false)
+                                        {
+                                            $fieldValue = NULL;
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -351,7 +381,8 @@ class ImportFromCsv extends \Backend
                         // Insert entry into database
                         $this->Database->prepare('INSERT INTO ' . $strTable . ' %s')->set($set)->execute();
                     }
-                } catch (\Exception $e)
+                }
+                catch (\Exception $e)
                 {
                     $set['insertError'] = $e->getMessage();
                     $doNotSave = true;
@@ -390,9 +421,9 @@ class ImportFromCsv extends \Backend
 
         $_SESSION['import_from_csv']['status'] = array(
             'blnTestMode' => $blnTestMode ? true : false,
-            'rows'        => $rows,
-            'success'     => $rows - $insertError,
-            'errors'      => $insertError,
+            'rows' => $rows,
+            'success' => $rows - $insertError,
+            'errors' => $insertError,
         );
     }
 
