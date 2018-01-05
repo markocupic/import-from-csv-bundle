@@ -50,7 +50,7 @@ class tl_import_from_csv extends Backend
 
         $strTable = Input::post('import_table');
         $importMode = Input::post('import_mode');
-        $arrSelectedFields = is_array(Input::post('selected_fields')) ?: array();
+        $arrSelectedFields = Input::post('selected_fields');
         $strFieldseparator = Input::post('field_separator');
         $strFieldenclosure = Input::post('field_enclosure');
         $arrSkipValidationFields = is_array(Input::post('skipValidationFields')) ?: array();
@@ -67,6 +67,7 @@ class tl_import_from_csv extends Backend
             }
         }
     }
+
 
     /**
      * onload_callback setPalettes

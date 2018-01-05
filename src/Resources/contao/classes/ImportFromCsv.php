@@ -45,7 +45,7 @@ class ImportFromCsv extends \Backend
      * @param string $arrDelim
      * @throws \Exception
      */
-    public function importCsv(\File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $arrDelim = '||', $blnTestMode = false, $arrSkipValidationFields=array())
+    public function importCsv(\File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $arrDelim = '||', $blnTestMode = false, $arrSkipValidationFields = array())
     {
         // Get the primary key
         $strPrimaryKey = $this->getPrimaryKey($strTable);
@@ -237,11 +237,20 @@ class ImportFromCsv extends \Backend
                     // Add option values in the csv like this: value1||value2||value3
                     if ($arrDCA['eval']['multiple'])
                     {
-                        $fieldValue = $fieldValue != '' ? explode($arrDelim, $fieldValue) : null;
                         // Convert CSV fields
-                        if (isset($arrDCA['eval']['csv']) && is_array($fieldValue))
+                        if (isset($arrDCA['eval']['csv']))
                         {
-                            $fieldValue = implode($arrDCA['eval']['csv'], $fieldValue);
+                            $fieldValue = explode($arrDCA['eval']['csv'], $fieldValue);
+                        }
+                        elseif (!empty($fieldValue) && is_array(\StringUtil::deserialize($fieldValue)))
+                        {
+                            // The value is serialized array
+                            $fieldValue = \StringUtil::deserialize($fieldValue);
+                        }
+                        else
+                        {
+                            // Add option values in the csv like this: value1||value2||value3
+                            $fieldValue = $fieldValue != '' ? \StringUtil::trimSplit($arrDelim, $fieldValue) : array();
                         }
 
                         \Input::setPost($fieldname, $fieldValue);
@@ -321,7 +330,20 @@ class ImportFromCsv extends \Backend
                     }
                 }
 
-                $set[$fieldname] = is_array($fieldValue) ? serialize($fieldValue) : $fieldValue;
+                // Convert arrays to CSV or serialized strings
+                if (is_array($fieldValue))
+                {
+                    if (isset($arrDCA['eval']['csv']))
+                    {
+                        $fieldValue = implode($arrDCA['eval']['csv'], $fieldValue);
+                    }
+                    else
+                    {
+                        $fieldValue = serialize($fieldValue);
+                    }
+                }
+
+                $set[$fieldname] = $fieldValue;
             }
 
 
