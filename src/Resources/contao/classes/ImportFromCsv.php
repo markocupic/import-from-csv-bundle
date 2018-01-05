@@ -65,9 +65,9 @@ class ImportFromCsv extends \Backend
 
         // Store the options in $this->arrData
         $this->arrData = array(
-            'tablename' => $strTable,
-            'primaryKey' => $strPrimaryKey,
-            'importMode' => $strImportMode,
+            'tablename'      => $strTable,
+            'primaryKey'     => $strPrimaryKey,
+            'importMode'     => $strImportMode,
             'selectedFields' => is_array($arrSelectedFields) ? $arrSelectedFields : array(),
             'fieldSeparator' => $strFieldseparator,
             'fieldEnclosure' => $strFieldenclosure,
@@ -172,17 +172,17 @@ class ImportFromCsv extends \Backend
                 if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && is_array($GLOBALS['TL_HOOKS']['importFromCsv']))
                 {
                     $arrCustomValidation = array(
-                        'strTable' => $strTable,
-                        'arrDCA' => $arrDCA,
-                        'fieldname' => $fieldname,
-                        'value' => $fieldValue,
-                        'arrayLine' => $assocArrayLine,
-                        'line' => $line,
-                        'objCsvFile' => $objCsvFile,
+                        'strTable'             => $strTable,
+                        'arrDCA'               => $arrDCA,
+                        'fieldname'            => $fieldname,
+                        'value'                => $fieldValue,
+                        'arrayLine'            => $assocArrayLine,
+                        'line'                 => $line,
+                        'objCsvFile'           => $objCsvFile,
                         'skipWidgetValidation' => false,
-                        'hasErrors' => false,
-                        'errorMsg' => null,
-                        'doNotSave' => false,
+                        'hasErrors'            => false,
+                        'errorMsg'             => null,
+                        'doNotSave'            => false,
                     );
 
                     $blnCustomValidation = false;
@@ -233,15 +233,19 @@ class ImportFromCsv extends \Backend
                         \Input::setPost('password_confirm', $fieldValue);
                     }
 
+
                     // Add option values in the csv like this: value1||value2||value3
-                    if ($inputType == 'radio' || $inputType == 'checkbox' || $inputType == 'checkboxWizard' || $inputType == 'select')
+                    if ($arrDCA['eval']['multiple'])
                     {
-                        if ($arrDCA['eval']['multiple'] === true)
+                        $fieldValue = $fieldValue != '' ? explode($arrDelim, $fieldValue) : null;
+                        // Convert CSV fields
+                        if (isset($arrDCA['eval']['csv']) && is_array($fieldValue))
                         {
-                            $fieldValue = $fieldValue != '' ? explode($arrDelim, $fieldValue) : null;
-                            \Input::setPost($fieldname, $fieldValue);
-                            $objWidget->value = $fieldValue;
+                            $fieldValue = implode($arrDCA['eval']['csv'], $fieldValue);
                         }
+
+                        \Input::setPost($fieldname, $fieldValue);
+                        $objWidget->value = $fieldValue;
                     }
 
 
@@ -321,119 +325,119 @@ class ImportFromCsv extends \Backend
             }
 
 
-        // Insert data record
-        if (!$doNotSave)
-        {
-            // Insert tstamp
-            if ($this->Database->fieldExists('tstamp', $strTable))
+            // Insert data record
+            if (!$doNotSave)
             {
-                if (!$set['tstamp'] > 0)
+                // Insert tstamp
+                if ($this->Database->fieldExists('tstamp', $strTable))
                 {
-                    $set['tstamp'] = time();
-                }
-            }
-
-            // Insert dateAdded (tl_member)
-            if ($this->Database->fieldExists('dateAdded', $strTable))
-            {
-                if (!$set['dateAdded'] > 0)
-                {
-                    $set['dateAdded'] = time();
-                }
-            }
-
-            // Add new member to newsletter recipient list
-            if ($strTable == 'tl_member' && $set['email'] != '' && $set['newsletter'] != '')
-            {
-                foreach (deserialize($set['newsletter'], true) as $newsletterId)
-                {
-                    // Check for unique email-address
-                    $objRecipient = $this->Database->prepare("SELECT * FROM tl_newsletter_recipients WHERE email=? AND pid=(SELECT pid FROM tl_newsletter_recipients WHERE id=?) AND id!=?")->execute($set['email'], $newsletterId, $newsletterId);
-
-                    if (!$objRecipient->numRows)
+                    if (!$set['tstamp'] > 0)
                     {
-                        $arrRecipient = array();
-                        $arrRecipient['tstamp'] = time();
-                        $arrRecipient['pid'] = $newsletterId;
-                        $arrRecipient['email'] = $set['email'];
-                        $arrRecipient['active'] = '1';
-                        if ($blnTestMode !== true)
+                        $set['tstamp'] = time();
+                    }
+                }
+
+                // Insert dateAdded (tl_member)
+                if ($this->Database->fieldExists('dateAdded', $strTable))
+                {
+                    if (!$set['dateAdded'] > 0)
+                    {
+                        $set['dateAdded'] = time();
+                    }
+                }
+
+                // Add new member to newsletter recipient list
+                if ($strTable == 'tl_member' && $set['email'] != '' && $set['newsletter'] != '')
+                {
+                    foreach (deserialize($set['newsletter'], true) as $newsletterId)
+                    {
+                        // Check for unique email-address
+                        $objRecipient = $this->Database->prepare("SELECT * FROM tl_newsletter_recipients WHERE email=? AND pid=(SELECT pid FROM tl_newsletter_recipients WHERE id=?) AND id!=?")->execute($set['email'], $newsletterId, $newsletterId);
+
+                        if (!$objRecipient->numRows)
                         {
-                            $this->Database->prepare('INSERT INTO tl_newsletter_recipients %s')->set($arrRecipient)->execute();
+                            $arrRecipient = array();
+                            $arrRecipient['tstamp'] = time();
+                            $arrRecipient['pid'] = $newsletterId;
+                            $arrRecipient['email'] = $set['email'];
+                            $arrRecipient['active'] = '1';
+                            if ($blnTestMode !== true)
+                            {
+                                $this->Database->prepare('INSERT INTO tl_newsletter_recipients %s')->set($arrRecipient)->execute();
+                            }
                         }
                     }
                 }
-            }
 
-            try
-            {
-                if ($blnTestMode !== true)
+                try
                 {
-                    // Insert entry into database
-                    $this->Database->prepare('INSERT INTO ' . $strTable . ' %s')->set($set)->execute();
+                    if ($blnTestMode !== true)
+                    {
+                        // Insert entry into database
+                        $this->Database->prepare('INSERT INTO ' . $strTable . ' %s')->set($set)->execute();
+                    }
+                }
+                catch (\Exception $e)
+                {
+                    $set['insertError'] = $e->getMessage();
+                    $doNotSave = true;
                 }
             }
-            catch (\Exception $e)
+
+            // Generate html markup for the import report table
+            $htmlReport = '';
+            $cssClass = 'allOk';
+            if ($doNotSave)
             {
-                $set['insertError'] = $e->getMessage();
-                $doNotSave = true;
+                $cssClass = 'error';
+                $htmlReport .= sprintf('<tr class="%s"><td class="tdTitle" colspan="2">#%s Datensatz konnte nicht angelegt werden!</td></tr>', $cssClass, $line);
+
+                // Increment error counter if necessary
+                $insertError++;
             }
-        }
-
-        // Generate html markup for the import report table
-        $htmlReport = '';
-        $cssClass = 'allOk';
-        if ($doNotSave)
-        {
-            $cssClass = 'error';
-            $htmlReport .= sprintf('<tr class="%s"><td class="tdTitle" colspan="2">#%s Datensatz konnte nicht angelegt werden!</td></tr>', $cssClass, $line);
-
-            // Increment error counter if necessary
-            $insertError++;
-        }
-        else
-        {
-            $htmlReport .= sprintf('<tr class="%s"><td class="tdTitle" colspan="2">#%s Datensatz erfolgreich angelegt!</td></tr>', $cssClass, $line);
-        }
-
-        foreach ($set as $k => $v)
-        {
-            if (is_array($v))
+            else
             {
-                $v = serialize($v);
+                $htmlReport .= sprintf('<tr class="%s"><td class="tdTitle" colspan="2">#%s Datensatz erfolgreich angelegt!</td></tr>', $cssClass, $line);
             }
-            $htmlReport .= sprintf('<tr class="%s"><td>%s</td><td>%s</td></tr>', $cssClass, \StringUtil::substr($k, 30), \StringUtil::substrHtml($v, 90));
+
+            foreach ($set as $k => $v)
+            {
+                if (is_array($v))
+                {
+                    $v = serialize($v);
+                }
+                $htmlReport .= sprintf('<tr class="%s"><td>%s</td><td>%s</td></tr>', $cssClass, \StringUtil::substr($k, 30), \StringUtil::substrHtml($v, 90));
+            }
+
+
+            $htmlReport .= '<tr class="delim"><td>&nbsp;</td><td>&nbsp;</td></tr>';
+            $_SESSION['import_from_csv']['report'][] = $htmlReport;
         }
 
-
-        $htmlReport .= '<tr class="delim"><td>&nbsp;</td><td>&nbsp;</td></tr>';
-        $_SESSION['import_from_csv']['report'][] = $htmlReport;
+        $_SESSION['import_from_csv']['status'] = array(
+            'blnTestMode' => $blnTestMode ? true : false,
+            'rows'        => $rows,
+            'success'     => $rows - $insertError,
+            'errors'      => $insertError,
+        );
     }
 
-$_SESSION['import_from_csv']['status'] = array(
-'blnTestMode' => $blnTestMode ? true : false,
-'rows' => $rows,
-'success' => $rows - $insertError,
-'errors' => $insertError,
-);
-}
 
-
-/**
- * @param $strTable
- * @return mixed|null
- */
-private
-function getPrimaryKey($strTable)
-{
-    $objDb = \Database::getInstance()->execute("SHOW INDEX FROM " . $strTable . " WHERE Key_name = 'PRIMARY'");
-    if ($objDb->numRows)
+    /**
+     * @param $strTable
+     * @return mixed|null
+     */
+    private
+    function getPrimaryKey($strTable)
     {
-        if ($objDb->Column_name != '')
+        $objDb = \Database::getInstance()->execute("SHOW INDEX FROM " . $strTable . " WHERE Key_name = 'PRIMARY'");
+        if ($objDb->numRows)
         {
-            return $objDb->Column_name;
+            if ($objDb->Column_name != '')
+            {
+                return $objDb->Column_name;
+            }
         }
+        return null;
     }
-    return null;
-}
 }
