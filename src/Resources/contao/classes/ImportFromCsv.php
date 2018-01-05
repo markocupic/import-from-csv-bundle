@@ -45,7 +45,7 @@ class ImportFromCsv extends \Backend
      * @param string $arrDelim
      * @throws \Exception
      */
-    public function importCsv(\File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $arrDelim = '||', $blnTestMode = false, $arrSkipValidationFields)
+    public function importCsv(\File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $arrDelim = '||', $blnTestMode = false, $arrSkipValidationFields=array())
     {
         // Get the primary key
         $strPrimaryKey = $this->getPrimaryKey($strTable);

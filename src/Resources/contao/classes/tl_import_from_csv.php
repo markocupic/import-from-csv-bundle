@@ -23,7 +23,7 @@ class tl_import_from_csv extends Backend
 
         parent::__construct();
 
-        if ((isset($_POST['saveNcreate']) || isset($_POST['saveNclose'])) && $this->Input->post('FORM_SUBMIT') == 'tl_import_from_csv' && $this->Input->post('SUBMIT_TYPE') != 'auto' && !$_SESSION['import_from_csv'])
+        if ((isset($_POST['saveNcreate']) || isset($_POST['saveNclose'])) && Input::post('FORM_SUBMIT') == 'tl_import_from_csv' && Input::post('SUBMIT_TYPE') != 'auto' && !$_SESSION['import_from_csv'])
         {
 
             $blnTestMode = false;
@@ -42,37 +42,20 @@ class tl_import_from_csv extends Backend
         }
     }
 
-
-    /**
-     * onload_callback setPalettes
-     */
-    public function setPalettes()
-    {
-
-        if ($_SESSION['import_from_csv'] && !$this->Input->post('FORM_SUBMIT'))
-        {
-            // Set  $this->reportTableMode to true. This is used in the buttonsCallback
-            $this->reportTableMode = true;
-
-            $GLOBALS['TL_DCA']['tl_import_from_csv']['palettes']['default'] = 'report;';
-        }
-    }
-
-
     /**
      * @param $blnTestMode
      */
     private function initImport($blnTestMode)
     {
 
-        $strTable = $this->Input->post('import_table');
-        $importMode = $this->Input->post('import_mode');
-        $arrSelectedFields = $this->Input->post('selected_fields');
-        $strFieldseparator = $this->Input->post('field_separator');
-        $strFieldenclosure = $this->Input->post('field_enclosure');
-        $arrSkipValidationFields = $this->Input->post('skipValidationFields');
+        $strTable = Input::post('import_table');
+        $importMode = Input::post('import_mode');
+        $arrSelectedFields = is_array(Input::post('selected_fields')) ?: array();
+        $strFieldseparator = Input::post('field_separator');
+        $strFieldenclosure = Input::post('field_enclosure');
+        $arrSkipValidationFields = is_array(Input::post('skipValidationFields')) ?: array();
 
-        $objFile = FilesModel::findByUuid($this->Input->post('fileSRC'));
+        $objFile = FilesModel::findByUuid(Input::post('fileSRC'));
         // call the import class if file exists
         if (is_file(TL_ROOT . '/' . $objFile->path))
         {
@@ -85,6 +68,20 @@ class tl_import_from_csv extends Backend
         }
     }
 
+    /**
+     * onload_callback setPalettes
+     */
+    public function setPalettes()
+    {
+
+        if ($_SESSION['import_from_csv'] && !Input::post('FORM_SUBMIT'))
+        {
+            // Set  $this->reportTableMode to true. This is used in the buttonsCallback
+            $this->reportTableMode = true;
+
+            $GLOBALS['TL_DCA']['tl_import_from_csv']['palettes']['default'] = 'report;';
+        }
+    }
 
     /**
      * field_callback generateExplanationMarkup
@@ -208,7 +205,7 @@ class tl_import_from_csv extends Backend
     public function optionsCbSelectedFields()
     {
 
-        $objDb = $this->Database->prepare('SELECT * FROM tl_import_from_csv WHERE id = ?')->execute($this->Input->get('id'));
+        $objDb = $this->Database->prepare('SELECT * FROM tl_import_from_csv WHERE id = ?')->execute(Input::get('id'));
         if ($objDb->import_table == '')
         {
             return;
