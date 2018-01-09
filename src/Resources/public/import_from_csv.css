@@ -41,6 +41,7 @@
 #reportTable .error td,
 #summary .error {
     color: red !important;
+    background-color: rgba(205, 92, 92, 0.26);
 }
 
 #reportTable .error td .errMsg {
