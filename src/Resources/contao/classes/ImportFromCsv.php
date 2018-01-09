@@ -237,20 +237,25 @@ class ImportFromCsv extends \Backend
                     // Add option values in the csv like this: value1||value2||value3
                     if ($arrDCA['eval']['multiple'])
                     {
-                        // Convert CSV fields
                         if (isset($arrDCA['eval']['csv']))
                         {
+                            // Convert CSV fields
                             $fieldValue = explode($arrDCA['eval']['csv'], $fieldValue);
+                        }
+                        elseif (!empty($fieldValue) && strpos($fieldValue, $arrDelim) !== false)
+                        {
+                            // Add option values in the csv like this: value1||value2||value3
+                            $fieldValue = explode($arrDelim, $fieldValue);
+
                         }
                         elseif (!empty($fieldValue) && is_array(\StringUtil::deserialize($fieldValue)))
                         {
-                            // The value is serialized array
+                            // The value is a serialized array
                             $fieldValue = \StringUtil::deserialize($fieldValue);
                         }
                         else
                         {
-                            // Add option values in the csv like this: value1||value2||value3
-                            $fieldValue = $fieldValue != '' ? \StringUtil::trimSplit($arrDelim, $fieldValue) : array();
+                            $fieldValue = array($fieldValue);
                         }
 
                         \Input::setPost($fieldname, $fieldValue);
