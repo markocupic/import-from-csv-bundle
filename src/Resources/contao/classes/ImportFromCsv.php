@@ -254,7 +254,7 @@ class ImportFromCsv extends \Backend
                         else
                         {
                             // Add option values in the csv like this: value1||value2||value3
-                            $fieldValue = $fieldValue != '' ? \StringUtil::trimSplit($arrDelim, $fieldValue) : array();
+                            $fieldValue = $fieldValue != '' ? explode($arrDelim, $fieldValue) : array();
                         }
 
                         \Input::setPost($fieldname, $fieldValue);
@@ -281,7 +281,8 @@ class ImportFromCsv extends \Backend
                             $strTimeFormat = $GLOBALS['TL_CONFIG'][$rgxp . 'Format'];
                             $objDate = new \Date($fieldValue, $strTimeFormat);
                             $fieldValue = $objDate->tstamp;
-                        } catch (\OutOfBoundsException $e)
+                        }
+                        catch (\OutOfBoundsException $e)
                         {
                             $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['invalidDate'], $fieldValue));
                         }
@@ -401,7 +402,8 @@ class ImportFromCsv extends \Backend
                         // Insert entry into database
                         $this->Database->prepare('INSERT INTO ' . $strTable . ' %s')->set($set)->execute();
                     }
-                } catch (\Exception $e)
+                }
+                catch (\Exception $e)
                 {
                     $set['insertError'] = $e->getMessage();
                     $doNotSave = true;
