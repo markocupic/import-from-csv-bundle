@@ -28,12 +28,6 @@ namespace Markocupic\ImportFromCsv;
 class ImportFromCsv extends \Backend
 {
 
-    /**
-     * array
-     * import options
-     */
-    public $arrData;
-
 
     /**
      * @param \File $objCsvFile
@@ -47,6 +41,13 @@ class ImportFromCsv extends \Backend
      */
     public function importCsv(\File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $arrDelim = '||', $blnTestMode = false, $arrSkipValidationFields = array())
     {
+
+        // Create temporary file
+        $objTmp = new \File('system/tmp/' . time() . '.csv');
+        // Get the file content as string without BOM!!! and write it to the temporary file
+        $objTmp->write($objCsvFile->getContent());
+        $objTmp->close();
+
         // Get the primary key
         $strPrimaryKey = $this->getPrimaryKey($strTable);
         if ($strPrimaryKey === null)
@@ -87,8 +88,10 @@ class ImportFromCsv extends \Backend
         // Auto detect line endings https://stackoverflow.com/questions/31331110/auto-detect-line-endings-are-there-side-effects
         ini_set("auto_detect_line_endings", true);
 
-        // Get content as array
-        $arrFileContent = $objCsvFile->getContentAsArray();
+        // Get the file content as array
+        $arrFileContent = $objTmp->getContentAsArray();
+
+        // Get the fieldnames
         $arrFieldnames = explode($this->arrData['fieldSeparator'], $arrFileContent[0]);
 
         // Trim quotes in the first line and get the fieldnames
@@ -113,12 +116,13 @@ class ImportFromCsv extends \Backend
                 continue;
             }
 
+
             // Count rows
             $rows++;
 
             // Separate the line into the different fields
-            $arrLine = explode($this->arrData['fieldSeparator'], $lineContent);
 
+            $arrLine = explode($this->arrData['fieldSeparator'], $lineContent);
             // Set the associative Array with the line content
             $assocArrayLine = array();
             foreach ($arrFieldnames as $k => $fieldname)
@@ -237,25 +241,20 @@ class ImportFromCsv extends \Backend
                     // Add option values in the csv like this: value1||value2||value3
                     if ($arrDCA['eval']['multiple'])
                     {
+                        // Convert CSV fields
                         if (isset($arrDCA['eval']['csv']))
                         {
-                            // Convert CSV fields
                             $fieldValue = explode($arrDCA['eval']['csv'], $fieldValue);
-                        }
-                        elseif (!empty($fieldValue) && strpos($fieldValue, $arrDelim) !== false)
-                        {
-                            // Add option values in the csv like this: value1||value2||value3
-                            $fieldValue = explode($arrDelim, $fieldValue);
-
                         }
                         elseif (!empty($fieldValue) && is_array(\StringUtil::deserialize($fieldValue)))
                         {
-                            // The value is a serialized array
+                            // The value is serialized array
                             $fieldValue = \StringUtil::deserialize($fieldValue);
                         }
                         else
                         {
-                            $fieldValue = array($fieldValue);
+                            // Add option values in the csv like this: value1||value2||value3
+                            $fieldValue = $fieldValue != '' ? \StringUtil::trimSplit($arrDelim, $fieldValue) : array();
                         }
 
                         \Input::setPost($fieldname, $fieldValue);
@@ -282,8 +281,7 @@ class ImportFromCsv extends \Backend
                             $strTimeFormat = $GLOBALS['TL_CONFIG'][$rgxp . 'Format'];
                             $objDate = new \Date($fieldValue, $strTimeFormat);
                             $fieldValue = $objDate->tstamp;
-                        }
-                        catch (\OutOfBoundsException $e)
+                        } catch (\OutOfBoundsException $e)
                         {
                             $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['invalidDate'], $fieldValue));
                         }
@@ -403,8 +401,7 @@ class ImportFromCsv extends \Backend
                         // Insert entry into database
                         $this->Database->prepare('INSERT INTO ' . $strTable . ' %s')->set($set)->execute();
                     }
-                }
-                catch (\Exception $e)
+                } catch (\Exception $e)
                 {
                     $set['insertError'] = $e->getMessage();
                     $doNotSave = true;
@@ -447,6 +444,9 @@ class ImportFromCsv extends \Backend
             'success'     => $rows - $insertError,
             'errors'      => $insertError,
         );
+
+        // Finally delete the temporary csv file
+        $objTmp->delete();
     }
 
 
@@ -454,8 +454,7 @@ class ImportFromCsv extends \Backend
      * @param $strTable
      * @return mixed|null
      */
-    private
-    function getPrimaryKey($strTable)
+    private function getPrimaryKey($strTable)
     {
         $objDb = \Database::getInstance()->execute("SHOW INDEX FROM " . $strTable . " WHERE Key_name = 'PRIMARY'");
         if ($objDb->numRows)

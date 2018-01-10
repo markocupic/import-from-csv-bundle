@@ -43,10 +43,6 @@
     color: red !important;
 }
 
-#reportTable .error td{
-    background-color: rgba(205, 92, 92, 0.26);
-}
-
 #reportTable .error td .errMsg {
     font-weight: normal !important;
     font-size: 10px !important;

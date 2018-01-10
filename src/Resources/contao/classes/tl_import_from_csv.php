@@ -53,10 +53,9 @@ class tl_import_from_csv extends Backend
         $arrSelectedFields = Input::post('selected_fields');
         $strFieldseparator = Input::post('field_separator');
         $strFieldenclosure = Input::post('field_enclosure');
-        $arrSkipValidationFields = is_array(Input::post('skipValidationFields')) ? Input::post('skipValidationFields') : array();
+        $arrSkipValidationFields = is_array(Input::post('skipValidationFields')) ?: array();
 
         $objFile = FilesModel::findByUuid(Input::post('fileSRC'));
-
         // call the import class if file exists
         if (is_file(TL_ROOT . '/' . $objFile->path))
         {
