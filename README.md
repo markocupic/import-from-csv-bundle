@@ -36,6 +36,9 @@ Legen Sie fest, ob die Datensätze aus der csv-Datei in der Zieltabelle angehän
 Abschliessend wählen Sie die Datei aus, von der in die Datenbank geschrieben werden soll.
 Tipp: Wenn Sie die Datei ausgewählt haben, klicken Sie voher auf "Speichern" und Sie kriegen eine Vorschau.
 
+### Zeilenumbrüche
+Alle [NEWLINE] tags in der csv-Datei werden beim Import-Vorgang in \r\n bzw. \n umgewandelt.
+
 ## Importmechanismus über Hook anpassen
 
 Mit einem updatesicheren Hook lässt sich die Validierung umgehen oder anpassen. Im folgenden Beispiel sollen die Geokoordinaten beim Import anhand von Strasse, Stadt und Länderkürzel automatisch per Curl-Request von GoogleMaps bezogen werden. Die Koordinaten werden danach in $arrCustomValidation['value'] gespeichert und das Array am Ende der Methode als Methodenrückgabewert zurückgegeben. Auch lassen sich Fehlermeldungen generieren, wenn z.B. keine Geokoordinaten ermittelt werden konnten. Dadurch wird der Datensatz übersprungen und nicht in die Datenbank geschrieben.
