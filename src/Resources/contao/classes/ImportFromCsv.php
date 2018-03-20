@@ -347,7 +347,8 @@ class ImportFromCsv extends \Backend
                     }
                 }
 
-                $set[$fieldname] = $fieldValue;
+                // Replace all '[NEWLINE]' tags with the end of line tag
+                $set[$fieldname] = str_replace('[NEWLINE]', PHP_EOL, $fieldValue);
             }
 
 
