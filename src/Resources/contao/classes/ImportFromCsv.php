@@ -23,8 +23,6 @@ namespace Markocupic\ImportFromCsv;
  * @author Marko Cupic <m.cupic@gmx.ch>
  * @package import_from_csv
  */
-
-
 class ImportFromCsv extends \Backend
 {
 
@@ -244,7 +242,18 @@ class ImportFromCsv extends \Backend
                         // Convert CSV fields
                         if (isset($arrDCA['eval']['csv']))
                         {
-                            $fieldValue = explode($arrDCA['eval']['csv'], $fieldValue);
+                            if ($fieldValue === '')
+                            {
+                                $fieldValue = array();
+                            }
+                            elseif (trim($fieldValue) === '')
+                            {
+                                $fieldValue = array();
+                            }
+                            else
+                            {
+                                $fieldValue = explode($arrDCA['eval']['csv'], $fieldValue);
+                            }
                         }
                         elseif (!empty($fieldValue) && is_array(\StringUtil::deserialize($fieldValue)))
                         {
@@ -281,8 +290,7 @@ class ImportFromCsv extends \Backend
                             $strTimeFormat = $GLOBALS['TL_CONFIG'][$rgxp . 'Format'];
                             $objDate = new \Date($fieldValue, $strTimeFormat);
                             $fieldValue = $objDate->tstamp;
-                        }
-                        catch (\OutOfBoundsException $e)
+                        } catch (\OutOfBoundsException $e)
                         {
                             $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['invalidDate'], $fieldValue));
                         }
@@ -403,8 +411,7 @@ class ImportFromCsv extends \Backend
                         // Insert entry into database
                         $this->Database->prepare('INSERT INTO ' . $strTable . ' %s')->set($set)->execute();
                     }
-                }
-                catch (\Exception $e)
+                } catch (\Exception $e)
                 {
                     $set['insertError'] = $e->getMessage();
                     $doNotSave = true;
