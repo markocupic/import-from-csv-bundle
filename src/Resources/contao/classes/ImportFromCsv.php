@@ -26,7 +26,6 @@ namespace Markocupic\ImportFromCsv;
 class ImportFromCsv extends \Backend
 {
 
-
     /**
      * @param \File $objCsvFile
      * @param $strTable
@@ -35,11 +34,14 @@ class ImportFromCsv extends \Backend
      * @param string $strFieldseparator
      * @param string $strFieldenclosure
      * @param string $arrDelim
+     * @param bool $blnTestMode
+     * @param array $arrSkipValidationFields
+     * @param int $offset
+     * @param int $limit
      * @throws \Exception
      */
-    public function importCsv(\File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $arrDelim = '||', $blnTestMode = false, $arrSkipValidationFields = array())
+    public function importCsv(\File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $arrDelim = '||', $blnTestMode = false, $arrSkipValidationFields = array(), $offset = 0, $limit = 0)
     {
-
         // Create temporary file
         $objTmp = new \File('system/tmp/' . time() . '.csv');
         // Get the file content as string without BOM!!! and write it to the temporary file
@@ -114,9 +116,26 @@ class ImportFromCsv extends \Backend
                 continue;
             }
 
+            // Check if offset is set
+            if ($offset > 0)
+            {
+                if ($offset > $rows)
+                {
+                    continue;
+                }
+            }
 
             // Count rows
             $rows++;
+
+            // Check if limit is set
+            if ($limit > 0)
+            {
+                if ($limit < $rows)
+                {
+                    continue;
+                }
+            }
 
             // Separate the line into the different fields
 
@@ -131,7 +150,6 @@ class ImportFromCsv extends \Backend
             $set = array();
             foreach ($arrFieldnames as $k => $fieldname)
             {
-
                 $blnCustomValidation = false;
 
                 // Continue if field is excluded from import
@@ -235,7 +253,6 @@ class ImportFromCsv extends \Backend
                         \Input::setPost('password_confirm', $fieldValue);
                     }
 
-
                     // Add option values in the csv like this: value1||value2||value3
                     if ($arrDCA['eval']['multiple'])
                     {
@@ -270,14 +287,12 @@ class ImportFromCsv extends \Backend
                         $objWidget->value = $fieldValue;
                     }
 
-
                     // !!! SECURITY !!! SKIP VALIDATION FOR SELECTED FIELDS
                     if (!in_array($fieldname, $arrSkipValidationFields))
                     {
                         // Validate input
                         $objWidget->validate();
                     }
-
 
                     $fieldValue = $objWidget->value;
 
@@ -295,7 +310,6 @@ class ImportFromCsv extends \Backend
                             $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['invalidDate'], $fieldValue));
                         }
                     }
-
 
                     // !!! SECURITY !!! SKIP UNIQUE VALIDATION FOR SELECTED FIELDS
                     if (!in_array($fieldname, $arrSkipValidationFields))
@@ -358,7 +372,6 @@ class ImportFromCsv extends \Backend
                 // Replace all '[NEWLINE]' tags with the end of line tag
                 $set[$fieldname] = str_replace('[NEWLINE]', PHP_EOL, $fieldValue);
             }
-
 
             // Insert data record
             if (!$doNotSave)
@@ -443,7 +456,6 @@ class ImportFromCsv extends \Backend
                 $htmlReport .= sprintf('<tr class="%s"><td>%s</td><td>%s</td></tr>', $cssClass, \StringUtil::substr($k, 30), \StringUtil::substrHtml($v, 90));
             }
 
-
             $htmlReport .= '<tr class="delim"><td>&nbsp;</td><td>&nbsp;</td></tr>';
             $_SESSION['import_from_csv']['report'][] = $htmlReport;
         }
@@ -458,7 +470,6 @@ class ImportFromCsv extends \Backend
         // Finally delete the temporary csv file
         $objTmp->delete();
     }
-
 
     /**
      * @param $strTable

@@ -53,6 +53,9 @@ class tl_import_from_csv extends Backend
         $arrSelectedFields = Input::post('selected_fields');
         $strFieldseparator = Input::post('field_separator');
         $strFieldenclosure = Input::post('field_enclosure');
+        $intOffset = Input::post('offset') > 0 ? intval(Input::post('offset')) : 0;
+        $intLimit = Input::post('limit') > 0 ? intval(Input::post('limit')) : 0;
+
         $arrSkipValidationFields = (is_array(Input::post('skipValidationFields')) && !empty(Input::post('skipValidationFields'))) ? Input::post('skipValidationFields') : array();
 
         $objFile = FilesModel::findByUuid(Input::post('fileSRC'));
@@ -63,7 +66,7 @@ class tl_import_from_csv extends Backend
             if (strtolower($objFile->extension) == 'csv')
             {
                 $objImport = new Markocupic\ImportFromCsv\ImportFromCsv;
-                $objImport->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strFieldseparator, $strFieldenclosure, '||', $blnTestMode, $arrSkipValidationFields);
+                $objImport->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strFieldseparator, $strFieldenclosure, '||', $blnTestMode, $arrSkipValidationFields, $intOffset, $intLimit);
             }
         }
     }

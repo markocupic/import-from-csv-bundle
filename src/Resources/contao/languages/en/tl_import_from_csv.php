@@ -11,6 +11,7 @@
 // legends
 $GLOBALS['TL_LANG']['tl_import_from_csv']['manual'] = 'Manual/Help';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['settings'] = 'Settings';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['limitAndOffset_settings'] = "Offset and limit (max_execution_time)";
 
 // fields
 $GLOBALS['TL_LANG']['tl_import_from_csv']['import_table'] = array('Import data into this table', 'Choose a table for import.');
@@ -21,6 +22,9 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['selected_fields'] = array('Select the
 $GLOBALS['TL_LANG']['tl_import_from_csv']['fileSRC'] = array('Select a csv-file for the import');
 $GLOBALS['TL_LANG']['tl_import_from_csv']['fileContent'] = array('File content');
 $GLOBALS['TL_LANG']['tl_import_from_csv']['skipValidationFields'] = array("Skip validation for these fields", "Select field that will not be validated.");
+$GLOBALS['TL_LANG']['tl_import_from_csv']['offset'] = array("Skip entries", "Please select the number of entries that will be skiped during the import process.");
+$GLOBALS['TL_LANG']['tl_import_from_csv']['limit'] = array("Limit entries", "Please select the number of entries that will be imported (0 = all).");
+
 //references
 $GLOBALS['TL_LANG']['tl_import_from_csv']['truncate_table'] = array('truncate the target table before importing data');
 $GLOBALS['TL_LANG']['tl_import_from_csv']['append_entries'] = array('only append data into the target table');
@@ -30,7 +34,6 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['new'][0] = 'Add new import';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['new'][1] = 'Add a new import';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['launchImportButton'] = 'Launch import process';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['testRunImportButton'] = 'Launch  import in test mode';
-
 
 // messages
 $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'] = 'Datarecords';
