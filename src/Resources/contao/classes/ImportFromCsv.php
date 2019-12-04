@@ -100,7 +100,10 @@ class ImportFromCsv extends \Backend
         }, $arrFieldnames);
 
         // Count rows
-        $rows = 0;
+        $row = 0;
+
+        // Count inserts (depends on offset and limit and is not equal to $row)
+        $countInserts = 0;
 
         // Count errors
         $insertError = 0;
@@ -116,26 +119,28 @@ class ImportFromCsv extends \Backend
                 continue;
             }
 
+            // Count rows
+            $row++;
+
             // Check if offset is set
             if ($offset > 0)
             {
-                if ($offset > $rows)
+                if ($offset >= $row)
                 {
                     continue;
                 }
             }
-
-            // Count rows
-            $rows++;
 
             // Check if limit is set
             if ($limit > 0)
             {
-                if ($limit < $rows)
+                if ($limit + $offset < $row)
                 {
                     continue;
                 }
             }
+
+            $countInserts++;
 
             // Separate the line into the different fields
 
@@ -246,7 +251,7 @@ class ImportFromCsv extends \Backend
                     \Input::setPost($fieldname, $fieldValue);
 
                     // Special treatment for password
-                    if ($objWidget instanceof \FormPassword)
+                    if ($arrDCA['inputType'] === 'password')
                     {
                         // @see Contao\FormPassword::construct() Line 66
                         $objWidget->useRawRequestData = false;
@@ -352,6 +357,26 @@ class ImportFromCsv extends \Backend
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+
+                // Encode password, if validation was skipped
+                if ($arrDCA['inputType'] === 'password')
+                {
+                    if (strlen($fieldValue))
+                    {
+                        if ($fieldValue == $arrLine[$k])
+                        {
+                            if ($strTable === 'tl_user')
+                            {
+                                $encoder = \System::getContainer()->get('security.encoder_factory')->getEncoder(\BackendUser::class);
+                            }
+                            else
+                            {
+                                $encoder = \System::getContainer()->get('security.encoder_factory')->getEncoder(\FrontendUser::class);
+                            }
+                            $fieldValue = $encoder->encodePassword($fieldValue, null);
                         }
                     }
                 }
@@ -462,9 +487,11 @@ class ImportFromCsv extends \Backend
 
         $_SESSION['import_from_csv']['status'] = array(
             'blnTestMode' => $blnTestMode ? true : false,
-            'rows'        => $rows,
-            'success'     => $rows - $insertError,
+            'rows'        => $countInserts,
+            'success'     => $countInserts - $insertError,
             'errors'      => $insertError,
+            'offset'      => $offset > 0 ? $offset : '-',
+            'limit'       => $limit > 0 ? $limit : '-'
         );
 
         // Finally delete the temporary csv file

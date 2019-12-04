@@ -162,12 +162,15 @@ class tl_import_from_csv extends Backend
         $rows = $_SESSION['import_from_csv']['status']['rows'];
         $success = $_SESSION['import_from_csv']['status']['success'];
         $errors = $_SESSION['import_from_csv']['status']['errors'];
+        $offset = $_SESSION['import_from_csv']['status']['offset'];
+        $limit = $_SESSION['import_from_csv']['status']['limit'];
+
         if ($_SESSION['import_from_csv']['status']['blnTestMode'] > 0)
         {
             $html .= '<h3>Testmode: ON</h3><br>';
         }
 
-        $html .= sprintf('<p id="summary"><span>%s: %s</span><br><span class="allOk">%s: %s</span><br><span class="error">%s: %s</span></p>', $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'], $rows, $GLOBALS['TL_LANG']['tl_import_from_csv']['successful_inserts'], $success, $GLOBALS['TL_LANG']['tl_import_from_csv']['failed_inserts'], $errors);
+        $html .= sprintf('<p id="summary"><span>%s: %s</span><br><span>Offset: %s</span><br><span>Limit: %s</span><br><span class="allOk">%s: %s</span><br><span class="error">%s: %s</span></p>', $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'], $rows, $offset, $limit, $GLOBALS['TL_LANG']['tl_import_from_csv']['successful_inserts'], $success, $GLOBALS['TL_LANG']['tl_import_from_csv']['failed_inserts'], $errors);
 
         $html .= '<table id="reportTable" class="reportTable">';
         if (is_array($_SESSION['import_from_csv']['report']))
