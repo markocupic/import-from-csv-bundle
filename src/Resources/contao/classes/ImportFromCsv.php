@@ -16,18 +16,29 @@
 
 namespace Markocupic\ImportFromCsv;
 
+use Contao\BackendUser;
+use Contao\Controller;
+use Contao\Database;
+use Contao\Date;
+use Contao\File;
+use Contao\FrontendUser;
+use Contao\Input;
+use Contao\StringUtil;
+use Contao\System;
+
 /**
  * Class ImportFromCsv
- * Copyright: 2017 Marko Cupic
- *
- * @author Marko Cupic <m.cupic@gmx.ch>
- * @package import_from_csv
+ * @package Markocupic\ImportFromCsv
  */
-class ImportFromCsv extends \Backend
+class ImportFromCsv
 {
+    /**
+     * @var array
+     */
+    protected $arrData;
 
     /**
-     * @param \File $objCsvFile
+     * @param File $objCsvFile
      * @param $strTable
      * @param $strImportMode
      * @param null $arrSelectedFields
@@ -40,10 +51,10 @@ class ImportFromCsv extends \Backend
      * @param int $limit
      * @throws \Exception
      */
-    public function importCsv(\File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $arrDelim = '||', $blnTestMode = false, $arrSkipValidationFields = array(), $offset = 0, $limit = 0)
+    public function importCsv(File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $arrDelim = '||', $blnTestMode = false, $arrSkipValidationFields = array(), $offset = 0, $limit = 0)
     {
         // Create temporary file
-        $objTmp = new \File('system/tmp/' . time() . '.csv');
+        $objTmp = new File('system/tmp/' . time() . '.csv');
         // Get the file content as string without BOM!!! and write it to the temporary file
         $objTmp->write($objCsvFile->getContent());
         $objTmp->close();
@@ -59,10 +70,10 @@ class ImportFromCsv extends \Backend
         $_SESSION['import_from_csv']['report'] = array();
 
         // Load language file
-        \System::loadLanguageFile($strTable);
+        System::loadLanguageFile($strTable);
 
         // Load dca
-        $this->loadDataContainer($strTable);
+        Controller::loadDataContainer($strTable);
 
         // Store the options in $this->arrData
         $this->arrData = array(
@@ -77,7 +88,7 @@ class ImportFromCsv extends \Backend
         // Truncate table
         if ($this->arrData['importMode'] == 'truncate_table' && $blnTestMode === false)
         {
-            $this->Database->execute('TRUNCATE TABLE `' . $strTable . '`');
+            Database::getInstance()->execute('TRUNCATE TABLE `' . $strTable . '`');
         }
 
         if (count($this->arrData['selectedFields']) < 1)
@@ -213,8 +224,8 @@ class ImportFromCsv extends \Backend
                     $blnCustomValidation = false;
                     foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback)
                     {
-                        $this->import($callback[0]);
-                        $arrCustomValidation = $this->{$callback[0]}->{$callback[1]}($arrCustomValidation, $this);
+
+                        $arrCustomValidation =  System::importStatic($callback[0])->{$callback[1]}($arrCustomValidation, $this);
                         if (!is_array($arrCustomValidation))
                         {
                             throw new \Exception('Expected array as return value.');
@@ -248,14 +259,14 @@ class ImportFromCsv extends \Backend
                     $objWidget->storeValues = false;
 
                     // Set post var, so the content can be validated
-                    \Input::setPost($fieldname, $fieldValue);
+                    Input::setPost($fieldname, $fieldValue);
 
                     // Special treatment for password
                     if ($arrDCA['inputType'] === 'password')
                     {
                         // @see Contao\FormPassword::construct() Line 66
                         $objWidget->useRawRequestData = false;
-                        \Input::setPost('password_confirm', $fieldValue);
+                        Input::setPost('password_confirm', $fieldValue);
                     }
 
                     // Add option values in the csv like this: value1||value2||value3
@@ -277,10 +288,10 @@ class ImportFromCsv extends \Backend
                                 $fieldValue = explode($arrDCA['eval']['csv'], $fieldValue);
                             }
                         }
-                        elseif (!empty($fieldValue) && is_array(\StringUtil::deserialize($fieldValue)))
+                        elseif (!empty($fieldValue) && is_array(StringUtil::deserialize($fieldValue)))
                         {
                             // The value is serialized array
-                            $fieldValue = \StringUtil::deserialize($fieldValue);
+                            $fieldValue = StringUtil::deserialize($fieldValue);
                         }
                         else
                         {
@@ -288,7 +299,7 @@ class ImportFromCsv extends \Backend
                             $fieldValue = $fieldValue != '' ? explode($arrDelim, $fieldValue) : array();
                         }
 
-                        \Input::setPost($fieldname, $fieldValue);
+                        Input::setPost($fieldname, $fieldValue);
                         $objWidget->value = $fieldValue;
                     }
 
@@ -308,7 +319,7 @@ class ImportFromCsv extends \Backend
                         try
                         {
                             $strTimeFormat = $GLOBALS['TL_CONFIG'][$rgxp . 'Format'];
-                            $objDate = new \Date($fieldValue, $strTimeFormat);
+                            $objDate = new Date($fieldValue, $strTimeFormat);
                             $fieldValue = $objDate->tstamp;
                         } catch (\OutOfBoundsException $e)
                         {
@@ -320,7 +331,7 @@ class ImportFromCsv extends \Backend
                     if (!in_array($fieldname, $arrSkipValidationFields))
                     {
                         // Make sure that unique fields are unique
-                        if ($arrDCA['eval']['unique'] && $fieldValue != '' && !$this->Database->isUniqueValue($strTable, $fieldname, $fieldValue, null))
+                        if ($arrDCA['eval']['unique'] && $fieldValue != '' && !Database::getInstance()->isUniqueValue($strTable, $fieldname, $fieldValue, null))
                         {
                             $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['unique'], $arrDCA['label'][0] ?: $fieldname));
                         }
@@ -370,11 +381,11 @@ class ImportFromCsv extends \Backend
                         {
                             if ($strTable === 'tl_user')
                             {
-                                $encoder = \System::getContainer()->get('security.encoder_factory')->getEncoder(\BackendUser::class);
+                                $encoder = System::getContainer()->get('security.encoder_factory')->getEncoder(BackendUser::class);
                             }
                             else
                             {
-                                $encoder = \System::getContainer()->get('security.encoder_factory')->getEncoder(\FrontendUser::class);
+                                $encoder = System::getContainer()->get('security.encoder_factory')->getEncoder(FrontendUser::class);
                             }
                             $fieldValue = $encoder->encodePassword($fieldValue, null);
                         }
@@ -402,7 +413,7 @@ class ImportFromCsv extends \Backend
             if (!$doNotSave)
             {
                 // Insert tstamp
-                if ($this->Database->fieldExists('tstamp', $strTable))
+                if (Database::getInstance()->fieldExists('tstamp', $strTable))
                 {
                     if (!$set['tstamp'] > 0)
                     {
@@ -411,7 +422,7 @@ class ImportFromCsv extends \Backend
                 }
 
                 // Insert dateAdded (tl_member)
-                if ($this->Database->fieldExists('dateAdded', $strTable))
+                if (Database::getInstance()->fieldExists('dateAdded', $strTable))
                 {
                     if (!$set['dateAdded'] > 0)
                     {
@@ -422,10 +433,10 @@ class ImportFromCsv extends \Backend
                 // Add new member to newsletter recipient list
                 if ($strTable == 'tl_member' && $set['email'] != '' && $set['newsletter'] != '')
                 {
-                    foreach (deserialize($set['newsletter'], true) as $newsletterId)
+                    foreach (StringUtil::deserialize($set['newsletter'], true) as $newsletterId)
                     {
                         // Check for unique email-address
-                        $objRecipient = $this->Database->prepare("SELECT * FROM tl_newsletter_recipients WHERE email=? AND pid=(SELECT pid FROM tl_newsletter_recipients WHERE id=?) AND id!=?")->execute($set['email'], $newsletterId, $newsletterId);
+                        $objRecipient = Database::getInstance()->prepare("SELECT * FROM tl_newsletter_recipients WHERE email=? AND pid=(SELECT pid FROM tl_newsletter_recipients WHERE id=?) AND id!=?")->execute($set['email'], $newsletterId, $newsletterId);
 
                         if (!$objRecipient->numRows)
                         {
@@ -436,7 +447,7 @@ class ImportFromCsv extends \Backend
                             $arrRecipient['active'] = '1';
                             if ($blnTestMode !== true)
                             {
-                                $this->Database->prepare('INSERT INTO tl_newsletter_recipients %s')->set($arrRecipient)->execute();
+                                Database::getInstance()->prepare('INSERT INTO tl_newsletter_recipients %s')->set($arrRecipient)->execute();
                             }
                         }
                     }
@@ -447,7 +458,7 @@ class ImportFromCsv extends \Backend
                     if ($blnTestMode !== true)
                     {
                         // Insert entry into database
-                        $this->Database->prepare('INSERT INTO ' . $strTable . ' %s')->set($set)->execute();
+                        Database::getInstance()->prepare('INSERT INTO ' . $strTable . ' %s')->set($set)->execute();
                     }
                 } catch (\Exception $e)
                 {
@@ -478,7 +489,7 @@ class ImportFromCsv extends \Backend
                 {
                     $v = serialize($v);
                 }
-                $htmlReport .= sprintf('<tr class="%s"><td>%s</td><td>%s</td></tr>', $cssClass, \StringUtil::substr($k, 30), \StringUtil::substrHtml($v, 90));
+                $htmlReport .= sprintf('<tr class="%s"><td>%s</td><td>%s</td></tr>', $cssClass, StringUtil::substr($k, 30), StringUtil::substrHtml($v, 90));
             }
 
             $htmlReport .= '<tr class="delim"><td>&nbsp;</td><td>&nbsp;</td></tr>';
@@ -504,7 +515,7 @@ class ImportFromCsv extends \Backend
      */
     private function getPrimaryKey($strTable)
     {
-        $objDb = \Database::getInstance()->execute("SHOW INDEX FROM " . $strTable . " WHERE Key_name = 'PRIMARY'");
+        $objDb = Database::getInstance()->execute("SHOW INDEX FROM " . $strTable . " WHERE Key_name = 'PRIMARY'");
         if ($objDb->numRows)
         {
             if ($objDb->Column_name != '')
