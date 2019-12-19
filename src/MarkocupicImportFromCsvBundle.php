@@ -1,13 +1,12 @@
 <?php
 
-/*
- * This file is part of Contao.
- *
- * Copyright (c) 2005-2016 Leo Feyer
- *
- * @license LGPL-3.0+
+/**
+ * Import from csv bundle: Backend module for Contao CMS
+ * Copyright (c) 2008-2020 Marko Cupic
+ * @package import-from-csv-bundle
+ * @author Marko Cupic m.cupic@gmx.ch, 2020
+ * @link https://github.com/markocupic/resource-booking-bundle
  */
-
 namespace Markocupic\ImportFromCsvBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
@@ -17,6 +16,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  *
  * @author Marko Cupic <https://github.com/markocupic>
  */
-class MarkocupicImportFromCsvBundle extends Bundle 
+class MarkocupicImportFromCsvBundle extends Bundle
 {
 }
+

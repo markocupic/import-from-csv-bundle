@@ -1,18 +1,14 @@
 <?php
 
 /**
- * Contao Open Source CMS
- * Copyright (C) 2005-2012 Leo Feyer
- *
- * @package import_from_csv
- * @author Marko Cupic 2017
- * @link https://github.com/markocupic/import-from-csv-bundle
- * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
+ * Import from csv bundle: Backend module for Contao CMS
+ * Copyright (c) 2008-2020 Marko Cupic
+ * @package import-from-csv-bundle
+ * @author Marko Cupic m.cupic@gmx.ch, 2020
+ * @link https://github.com/markocupic/resource-booking-bundle
  */
 
-/**
- * Run in a custom namespace, so the class can be replaced
- */
+declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsv;
 
@@ -25,6 +21,8 @@ use Contao\FrontendUser;
 use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
+use League\Csv\Reader;
+use League\Csv\Statement;
 
 /**
  * Class ImportFromCsv
@@ -39,25 +37,44 @@ class ImportFromCsv
 
     /**
      * @param File $objCsvFile
-     * @param $strTable
-     * @param $strImportMode
-     * @param null $arrSelectedFields
-     * @param string $strFieldseparator
-     * @param string $strFieldenclosure
-     * @param string $arrDelim
+     * @param string $strTable
+     * @param string $strImportMode
+     * @param array|null $arrSelectedFields
+     * @param string $strDelimiter
+     * @param string $strEnclosure
+     * @param string $strArrayDelimiter
      * @param bool $blnTestMode
      * @param array $arrSkipValidationFields
      * @param int $offset
      * @param int $limit
-     * @throws \Exception
+     * @throws \League\Csv\Exception
      */
-    public function importCsv(File $objCsvFile, $strTable, $strImportMode, $arrSelectedFields = null, $strFieldseparator = ';', $strFieldenclosure = '', $arrDelim = '||', $blnTestMode = false, $arrSkipValidationFields = array(), $offset = 0, $limit = 0)
+    public function importCsv(File $objCsvFile, string $strTable, string $strImportMode, array $arrSelectedFields = null, string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = array(), int $offset = 0, int $limit = 0): void
     {
-        // Create temporary file
-        $objTmp = new File('system/tmp/' . time() . '.csv');
-        // Get the file content as string without BOM!!! and write it to the temporary file
-        $objTmp->write($objCsvFile->getContent());
-        $objTmp->close();
+        // If the CSV document was created or is read on a Macintosh computer,
+        // add the following lines before using the library to help PHP detect line ending in Mac OS X.
+        if (!ini_get("auto_detect_line_endings"))
+        {
+            ini_set("auto_detect_line_endings", '1');
+        }
+
+        // Get the project directory
+        $rootDir = System::getContainer()->getParameter('kernel.project_dir');
+
+        // Get the League\Csv\Reader object
+        $objCsvReader = Reader::createFromPath($rootDir . '/' . $objCsvFile->path, 'r');
+
+        // Set the CSV header offset
+        $objCsvReader->setHeaderOffset(0);
+
+        // Set the delimiter string
+        $objCsvReader->setDelimiter($strDelimiter);
+
+        // Set Enclosure string
+        $objCsvReader->setEnclosure($strEnclosure);
+
+        // Get fieldnames
+        $arrFieldnames = $objCsvReader->getHeader();
 
         // Get the primary key
         $strPrimaryKey = $this->getPrimaryKey($strTable);
@@ -81,8 +98,8 @@ class ImportFromCsv
             'primaryKey'     => $strPrimaryKey,
             'importMode'     => $strImportMode,
             'selectedFields' => is_array($arrSelectedFields) ? $arrSelectedFields : array(),
-            'fieldSeparator' => $strFieldseparator,
-            'fieldEnclosure' => $strFieldenclosure,
+            'fieldSeparator' => $strDelimiter,
+            'fieldEnclosure' => $strEnclosure,
         );
 
         // Truncate table
@@ -96,101 +113,71 @@ class ImportFromCsv
             return;
         }
 
-        // Auto detect line endings https://stackoverflow.com/questions/31331110/auto-detect-line-endings-are-there-side-effects
-        ini_set("auto_detect_line_endings", true);
-
-        // Get the file content as array
-        $arrFileContent = $objTmp->getContentAsArray();
-
-        // Get the fieldnames
-        $arrFieldnames = explode($this->arrData['fieldSeparator'], $arrFileContent[0]);
-
-        // Trim quotes in the first line and get the fieldnames
-        $arrFieldnames = array_map(function ($strFieldname) {
-            return trim($strFieldname, $this->arrData['fieldEnclosure']);
-        }, $arrFieldnames);
-
-        // Count rows
-        $row = 0;
-
         // Count inserts (depends on offset and limit and is not equal to $row)
         $countInserts = 0;
 
         // Count errors
         $insertError = 0;
 
-        // Store each line as an entry in the db
-        foreach ($arrFileContent as $line => $lineContent)
+        // Get Line (Header is line 0)
+        $line = $offset;
+
+        // Get the League\Csv\Statement object
+        $stmt = new Statement();
+
+        // Set offset
+        if ($offset > 0)
+        {
+            $stmt = $stmt->offset($offset);
+        }
+
+        // Set limit
+        if ($limit > 0)
+        {
+            $stmt = $stmt->limit($limit);
+        }
+
+        $arrRecords = $stmt->process($objCsvReader);
+
+        // Get ech line as an associative array array('fieldname1' => 'value1',  'fieldname2' => 'value2')
+        // and store each record in the db
+        foreach ($arrRecords as $arrRecord)
         {
             $doNotSave = false;
 
-            // Line 0 contains the fieldnames
-            if ($line == 0)
-            {
-                continue;
-            }
+            // Count line
+            $line++;
 
-            // Count rows
-            $row++;
-
-            // Check if offset is set
-            if ($offset > 0)
-            {
-                if ($offset >= $row)
-                {
-                    continue;
-                }
-            }
-
-            // Check if limit is set
-            if ($limit > 0)
-            {
-                if ($limit + $offset < $row)
-                {
-                    continue;
-                }
-            }
-
+            // Count inserts
             $countInserts++;
 
-            // Separate the line into the different fields
-
-            $arrLine = explode($this->arrData['fieldSeparator'], $lineContent);
-            // Set the associative Array with the line content
-            $assocArrayLine = array();
-            foreach ($arrFieldnames as $k => $fieldname)
-            {
-                $assocArrayLine[$fieldname] = $arrLine[$k];
-            }
-
             $set = array();
-            foreach ($arrFieldnames as $k => $fieldname)
+            foreach ($arrRecord as $fieldName => $fieldValue)
             {
                 $blnCustomValidation = false;
 
                 // Continue if field is excluded from import
-                if (!in_array($fieldname, $this->arrData['selectedFields']))
+                if (!in_array($fieldName, $this->arrData['selectedFields']))
                 {
                     continue;
                 }
 
                 // If entries are appended autoincrement id
-                if ($this->arrData['importMode'] == 'append_entries' && strtolower($fieldname) == strtolower($this->arrData['primaryKey']))
+                if ($this->arrData['importMode'] == 'append_entries' && strtolower($fieldName) == strtolower($this->arrData['primaryKey']))
                 {
                     continue;
                 }
 
-                // Get the field content
-                $fieldValue = $arrLine[$k];
-
-                // Trim quotes
-                $fieldValue = trim($fieldValue, $this->arrData['fieldEnclosure']);
+                if ($fieldValue === null)
+                {
+                    $fieldValue = '';
+                }
 
                 // Convert variable to a string
                 $fieldValue = strval($fieldValue);
 
                 // Get the DCA of the current field
-                $arrDCA =  &$GLOBALS['TL_DCA'][$strTable]['fields'][$fieldname];
+                $arrDCA =  &$GLOBALS['TL_DCA'][$strTable]['fields'][$fieldName];
                 $arrDCA = is_array($arrDCA) ? $arrDCA : array();
 
                 // Prepare FormWidget object set inputType to "text" if there is no definition
@@ -210,11 +197,12 @@ class ImportFromCsv
                     $arrCustomValidation = array(
                         'strTable'             => $strTable,
                         'arrDCA'               => $arrDCA,
-                        'fieldname'            => $fieldname,
+                        'fieldname'            => $fieldName,
                         'value'                => $fieldValue,
-                        'arrayLine'            => $assocArrayLine,
+                        'arrayLine'            => $arrRecord,
                         'line'                 => $line,
                         'objCsvFile'           => $objCsvFile,
+                        'objCsvReader'         => $objCsvReader,
                         'skipWidgetValidation' => false,
                         'hasErrors'            => false,
                         'errorMsg'             => null,
@@ -224,8 +212,7 @@ class ImportFromCsv
                     $blnCustomValidation = false;
                     foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback)
                     {
-
-                        $arrCustomValidation =  System::importStatic($callback[0])->{$callback[1]}($arrCustomValidation, $this);
+                        $arrCustomValidation = System::importStatic($callback[0])->{$callback[1]}($arrCustomValidation, $this);
                         if (!is_array($arrCustomValidation))
                         {
                             throw new \Exception('Expected array as return value.');
@@ -255,11 +242,11 @@ class ImportFromCsv
                 // Use form widgets for input validation
                 if (class_exists($strClass) && $blnCustomValidation !== true)
                 {
-                    $objWidget = new $strClass($strClass::getAttributesFromDca($arrDCA, $fieldname, $fieldValue, '', '', $this));
+                    $objWidget = new $strClass($strClass::getAttributesFromDca($arrDCA, $fieldName, $fieldValue, '', '', $this));
                     $objWidget->storeValues = false;
 
                     // Set post var, so the content can be validated
-                    Input::setPost($fieldname, $fieldValue);
+                    Input::setPost($fieldName, $fieldValue);
 
                     // Special treatment for password
                     if ($arrDCA['inputType'] === 'password')
@@ -296,15 +283,15 @@ class ImportFromCsv
                         else
                         {
                             // Add option values in the csv like this: value1||value2||value3
-                            $fieldValue = $fieldValue != '' ? explode($arrDelim, $fieldValue) : array();
+                            $fieldValue = $fieldValue != '' ? explode($strArrayDelimiter, $fieldValue) : array();
                         }
 
-                        Input::setPost($fieldname, $fieldValue);
+                        Input::setPost($fieldName, $fieldValue);
                         $objWidget->value = $fieldValue;
                     }
 
                     // !!! SECURITY !!! SKIP VALIDATION FOR SELECTED FIELDS
-                    if (!in_array($fieldname, $arrSkipValidationFields))
+                    if (!in_array($fieldName, $arrSkipValidationFields))
                     {
                         // Validate input
                         $objWidget->validate();
@@ -328,12 +315,12 @@ class ImportFromCsv
                     }
 
                     // !!! SECURITY !!! SKIP UNIQUE VALIDATION FOR SELECTED FIELDS
-                    if (!in_array($fieldname, $arrSkipValidationFields))
+                    if (!in_array($fieldName, $arrSkipValidationFields))
                     {
                         // Make sure that unique fields are unique
-                        if ($arrDCA['eval']['unique'] && $fieldValue != '' && !Database::getInstance()->isUniqueValue($strTable, $fieldname, $fieldValue, null))
+                        if ($arrDCA['eval']['unique'] && $fieldValue != '' && !Database::getInstance()->isUniqueValue($strTable, $fieldName, $fieldValue, null))
                         {
-                            $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['unique'], $arrDCA['label'][0] ?: $fieldname));
+                            $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['unique'], $arrDCA['label'][0] ?: $fieldName));
                         }
                     }
 
@@ -356,9 +343,9 @@ class ImportFromCsv
                                  * Hack Because Contao doesn't handle correct empty string input f.ex username
                                  * @see https://github.com/contao/core-bundle/blob/master/src/Resources/contao/library/Contao/Widget.php#L1526-1527
                                  */
-                                if (isset($GLOBALS['TL_DCA'][$strTable]['fields'][$fieldname]['sql']))
+                                if (isset($GLOBALS['TL_DCA'][$strTable]['fields'][$fieldName]['sql']))
                                 {
-                                    $sql = $GLOBALS['TL_DCA'][$strTable]['fields'][$fieldname]['sql'];
+                                    $sql = $GLOBALS['TL_DCA'][$strTable]['fields'][$fieldName]['sql'];
                                     if (strpos($sql, 'NOT NULL') === false)
                                     {
                                         if (strpos($sql, 'NULL') !== false)
@@ -377,7 +364,7 @@ class ImportFromCsv
                 {
                     if (strlen($fieldValue))
                     {
-                        if ($fieldValue == $arrLine[$k])
+                        if ($fieldValue == $arrRecord[$k])
                         {
                             if ($strTable === 'tl_user')
                             {
@@ -406,7 +393,7 @@ class ImportFromCsv
                 }
 
                 // Replace all '[NEWLINE]' tags with the end of line tag
-                $set[$fieldname] = str_replace('[NEWLINE]', PHP_EOL, $fieldValue);
+                $set[$fieldName] = str_replace('[NEWLINE]', PHP_EOL, $fieldValue);
             }
 
             // Insert data record
@@ -504,9 +491,6 @@ class ImportFromCsv
             'offset'      => $offset > 0 ? $offset : '-',
             'limit'       => $limit > 0 ? $limit : '-'
         );
-
-        // Finally delete the temporary csv file
-        $objTmp->delete();
     }
 
     /**

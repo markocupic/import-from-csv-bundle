@@ -1,11 +1,15 @@
 <?php
 
 /**
+ * Import from csv bundle: Backend module for Contao CMS
+ * Copyright (c) 2008-2020 Marko Cupic
+ * @package import-from-csv-bundle
+ * @author Marko Cupic m.cupic@gmx.ch, 2020
+ * @link https://github.com/markocupic/resource-booking-bundle
+ */
+
+/**
  * Class tl_import_from_csv
- * Provide miscellaneous methods that are used by the data configuration array.
- * Copyright : &copy; 2014 Marko Cupic Sponsor der Erweiterung: Fast-Doc UG, Berlin
- * @author Marko Cupic 2014, extension sponsered by Rainer-Maria Fritsch - Fast-Doc UG, Berlin
- * @package import_from_csv
  */
 class tl_import_from_csv extends Backend
 {

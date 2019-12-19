@@ -1,12 +1,11 @@
 <?php
+
 /**
- * Contao Open Source CMS
- * Copyright (C) 2005-2012 Leo Feyer
- * @package import_from_csv
- * @author Marko Cupic 2014, extension sponsered by Rainer-Maria Fritsch - Fast-Doc UG, Berlin
- * @link    http://www.contao.org
- * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
- * @link https://github.com/markocupic/import_from_csv
+ * Import from csv bundle: Backend module for Contao CMS
+ * Copyright (c) 2008-2020 Marko Cupic
+ * @package import-from-csv-bundle
+ * @author Marko Cupic m.cupic@gmx.ch, 2020
+ * @link https://github.com/markocupic/resource-booking-bundle
  */
 
 $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
@@ -99,13 +98,13 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
             'label'     => &$GLOBALS['TL_LANG']['tl_import_from_csv']['field_separator'],
             'inputType' => 'text',
             'default'   => ';',
-            'eval'      => array('mandatory' => true),
+            'eval'      => array('mandatory' => true, 'maxlength' => 1),
             'sql'       => "varchar(255) NOT NULL default ''",
         ),
         'field_enclosure'      => array(
             'label'     => &$GLOBALS['TL_LANG']['tl_import_from_csv']['field_enclosure'],
             'inputType' => 'text',
-            'eval'      => array('mandatory' => false),
+            'eval'      => array('mandatory' => false, 'maxlength' => 1),
             'sql'       => "varchar(255) NOT NULL default ''",
         ),
         'import_mode'          => array(
@@ -122,15 +121,14 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
             'inputType'        => 'checkbox',
             'options_callback' => array('tl_import_from_csv', 'optionsCbSelectedFields'),
             'eval'             => array('multiple' => true, 'mandatory' => true),
-            'sql'              => "varchar(1024) NOT NULL default ''",
-
+            'sql'              => "blob NULL"
         ),
         'skipValidationFields' => array(
             'label'            => &$GLOBALS['TL_LANG']['tl_import_from_csv']['skipValidationFields'],
             'inputType'        => 'select',
             'options_callback' => array('tl_import_from_csv', 'optionsCbSelectedFields'),
             'eval'             => array('multiple' => true, 'chosen' => true, 'mandatory' => false),
-            'sql'              => "varchar(1024) NOT NULL default ''",
+            'sql'              => "blob NULL"
         ),
         'fileSRC'              => array(
             'label'     => &$GLOBALS['TL_LANG']['tl_import_from_csv']['fileSRC'],
