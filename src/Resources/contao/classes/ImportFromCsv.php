@@ -56,7 +56,7 @@ class ImportFromCsv
         {
             throw new \Exception(sprintf('%s expects field delimiter to be a single character. %s given.', __METHOD__, $strDelimiter));
         }
-        
+
         // Throw a Exception exception if the submitted string length is not equal to 1 byte.
         if (strlen($strEnclosure) > 1)
         {
@@ -155,10 +155,9 @@ class ImportFromCsv
             $stmt = $stmt->limit($intLimit);
         }
 
-        $arrRecords = $stmt->process($objCsvReader);
-
         // Get ech line as an associative array array('fieldname1' => 'value1',  'fieldname2' => 'value2')
         // and store each record in the db
+        $arrRecords = $stmt->process($objCsvReader);
         foreach ($arrRecords as $arrRecord)
         {
             $doNotSave = false;
