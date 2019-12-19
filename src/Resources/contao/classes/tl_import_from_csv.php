@@ -18,18 +18,15 @@ class tl_import_from_csv extends Backend
      */
     protected $reportTableMode = false;
 
-
     /**
      * tl_import_from_csv constructor.
      */
     public function __construct()
     {
-
         parent::__construct();
 
         if ((isset($_POST['saveNcreate']) || isset($_POST['saveNclose'])) && Input::post('FORM_SUBMIT') == 'tl_import_from_csv' && Input::post('SUBMIT_TYPE') != 'auto' && !$_SESSION['import_from_csv'])
         {
-
             $blnTestMode = false;
             if (isset($_POST['saveNcreate']))
             {
@@ -38,7 +35,6 @@ class tl_import_from_csv extends Backend
 
             if (isset($_POST['saveNclose']))
             {
-
                 $blnTestMode = true;
                 unset($_POST['saveNclose']);
             }
@@ -48,20 +44,19 @@ class tl_import_from_csv extends Backend
 
     /**
      * @param $blnTestMode
+     * @throws \League\Csv\Exception
      */
     private function initImport($blnTestMode)
     {
-
         $strTable = Input::post('import_table');
         $importMode = Input::post('import_mode');
-        $arrSelectedFields = Input::post('selected_fields');
-        $strFieldseparator = Input::post('field_separator');
-        $strFieldenclosure = Input::post('field_enclosure');
+        $arrSelectedFields = (is_array(Input::post('selected_fields')) && !empty(Input::post('selected_fields'))) ? Input::post('selected_fields') : array();
+        $strDelimiter = Input::post('field_separator');
+        $strEnclosure = Input::post('field_enclosure');
         $intOffset = Input::post('offset') > 0 ? intval(Input::post('offset')) : 0;
         $intLimit = Input::post('limit') > 0 ? intval(Input::post('limit')) : 0;
-
         $arrSkipValidationFields = (is_array(Input::post('skipValidationFields')) && !empty(Input::post('skipValidationFields'))) ? Input::post('skipValidationFields') : array();
-
+        $strEnclosure = '""';
         $objFile = FilesModel::findByUuid(Input::post('fileSRC'));
         // call the import class if file exists
         if (is_file(TL_ROOT . '/' . $objFile->path))
@@ -70,18 +65,16 @@ class tl_import_from_csv extends Backend
             if (strtolower($objFile->extension) == 'csv')
             {
                 $objImport = new Markocupic\ImportFromCsv\ImportFromCsv;
-                $objImport->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strFieldseparator, $strFieldenclosure, '||', $blnTestMode, $arrSkipValidationFields, $intOffset, $intLimit);
+                $objImport->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strDelimiter, $strEnclosure, '||', $blnTestMode, $arrSkipValidationFields, $intOffset, $intLimit);
             }
         }
     }
-
 
     /**
      * onload_callback setPalettes
      */
     public function setPalettes()
     {
-
         if ($_SESSION['import_from_csv'] && !Input::post('FORM_SUBMIT'))
         {
             // Set  $this->reportTableMode to true. This is used in the buttonsCallback
@@ -97,7 +90,6 @@ class tl_import_from_csv extends Backend
      */
     public function generateExplanationMarkup()
     {
-
         return '
 <div class="widget manual">
     <label><h2>Erkl&auml;rungen</h2></label>
@@ -116,14 +108,12 @@ class tl_import_from_csv extends Backend
              ';
     }
 
-
     /**
      * field_callback generateExplanationMarkup
      * @return string
      */
     public function generateFileContentMarkup()
     {
-
         $objDb = $this->Database->prepare('SELECT fileSRC FROM tl_import_from_csv WHERE id=?')->execute(Input::get('id'));
         $objFile = FilesModel::findByUuid($objDb->fileSRC);
 
@@ -153,7 +143,6 @@ class tl_import_from_csv extends Backend
 </div>
              ';
     }
-
 
     /**
      * field_callback generateReportMarkup
@@ -188,9 +177,7 @@ class tl_import_from_csv extends Backend
 
         $html .= '</table></div>';
         return $html;
-
     }
-
 
     /**
      * option_callback
@@ -198,7 +185,6 @@ class tl_import_from_csv extends Backend
      */
     public function optionsCbGetTables()
     {
-
         $objTables = $this->Database->listTables();
         $arrOptions = array();
         foreach ($objTables as $table)
@@ -208,14 +194,12 @@ class tl_import_from_csv extends Backend
         return $arrOptions;
     }
 
-
     /**
      * option_callback
      * @return array
      */
     public function optionsCbSelectedFields()
     {
-
         $objDb = $this->Database->prepare('SELECT * FROM tl_import_from_csv WHERE id = ?')->execute(Input::get('id'));
         if ($objDb->import_table == '')
         {
@@ -238,7 +222,6 @@ class tl_import_from_csv extends Backend
         return $arrOptions;
     }
 
-
     /**
      * @param $arrButtons
      * @param DC_Table $dc
@@ -246,7 +229,6 @@ class tl_import_from_csv extends Backend
      */
     public function buttonsCallback($arrButtons, DC_Table $dc)
     {
-
         if (Input::get('act') === 'edit')
         {
             $arrButtons['saveNclose'] = '<button type="submit" name="saveNclose" id="saveNclose" class="tl_submit testButton" accesskey="n">' . $GLOBALS['TL_LANG']['tl_import_from_csv']['testRunImportButton'] . '</button>';

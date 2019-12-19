@@ -39,18 +39,30 @@ class ImportFromCsv
      * @param File $objCsvFile
      * @param string $strTable
      * @param string $strImportMode
-     * @param array|null $arrSelectedFields
+     * @param array $arrSelectedFields
      * @param string $strDelimiter
      * @param string $strEnclosure
      * @param string $strArrayDelimiter
      * @param bool $blnTestMode
      * @param array $arrSkipValidationFields
-     * @param int $offset
-     * @param int $limit
+     * @param int $intOffset
+     * @param int $intLimit
      * @throws \League\Csv\Exception
      */
-    public function importCsv(File $objCsvFile, string $strTable, string $strImportMode, array $arrSelectedFields = null, string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = array(), int $offset = 0, int $limit = 0): void
+    public function importCsv(File $objCsvFile, string $strTable, string $strImportMode, array $arrSelectedFields = array(), string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = array(), int $intOffset = 0, int $intLimit = 0): void
     {
+        // Throw a Exception exception if the submitted string length is not equal to 1 byte.
+        if (strlen($strDelimiter) > 1)
+        {
+            throw new \Exception(sprintf('%s expects field delimiter to be a single character. %s given.', __METHOD__, $strDelimiter));
+        }
+        
+        // Throw a Exception exception if the submitted string length is not equal to 1 byte.
+        if (strlen($strEnclosure) > 1)
+        {
+            throw new \Exception(sprintf('%s expects field enclosure to be a single character. %s given.', __METHOD__, $strEnclosure));
+        }
+
         // If the CSV document was created or is read on a Macintosh computer,
         // add the following lines before using the library to help PHP detect line ending in Mac OS X.
         if (!ini_get("auto_detect_line_endings"))
@@ -94,12 +106,18 @@ class ImportFromCsv
 
         // Store the options in $this->arrData
         $this->arrData = array(
-            'tablename'      => $strTable,
-            'primaryKey'     => $strPrimaryKey,
-            'importMode'     => $strImportMode,
-            'selectedFields' => is_array($arrSelectedFields) ? $arrSelectedFields : array(),
-            'fieldSeparator' => $strDelimiter,
-            'fieldEnclosure' => $strEnclosure,
+            'objCsvFile'              => $objCsvFile,
+            'tablename'               => $strTable,
+            'primaryKey'              => $strPrimaryKey,
+            'importMode'              => $strImportMode,
+            'selectedFields'          => $arrSelectedFields,
+            'strDelimiter'            => $strDelimiter,
+            'strEnclosure'            => $strEnclosure,
+            'strArrayDelimiter'       => $strArrayDelimiter,
+            'blnTestMode'             => $blnTestMode,
+            'arrSkipValidationFields' => $arrSkipValidationFields,
+            'intOffset'               => $intOffset,
+            'intLimit'                => $intLimit,
         );
 
         // Truncate table
@@ -120,21 +138,21 @@ class ImportFromCsv
         $insertError = 0;
 
         // Get Line (Header is line 0)
-        $line = $offset;
+        $line = $intOffset;
 
         // Get the League\Csv\Statement object
         $stmt = new Statement();
 
         // Set offset
-        if ($offset > 0)
+        if ($intOffset > 0)
         {
-            $stmt = $stmt->offset($offset);
+            $stmt = $stmt->offset($intOffset);
         }
 
         // Set limit
-        if ($limit > 0)
+        if ($intLimit > 0)
         {
-            $stmt = $stmt->limit($limit);
+            $stmt = $stmt->limit($intLimit);
         }
 
         $arrRecords = $stmt->process($objCsvReader);
@@ -488,8 +506,8 @@ class ImportFromCsv
             'rows'        => $countInserts,
             'success'     => $countInserts - $insertError,
             'errors'      => $insertError,
-            'offset'      => $offset > 0 ? $offset : '-',
-            'limit'       => $limit > 0 ? $limit : '-'
+            'offset'      => $intOffset > 0 ? $intOffset : '-',
+            'limit'       => $intLimit > 0 ? $intLimit : '-',
         );
     }
 
