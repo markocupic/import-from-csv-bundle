@@ -49,8 +49,18 @@ class ImportFromCsv
      * @param int $intLimit
      * @throws \League\Csv\Exception
      */
-    public function importCsv(File $objCsvFile, string $strTable, string $strImportMode, array $arrSelectedFields = array(), string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = array(), int $intOffset = 0, int $intLimit = 0): void
+    public function importCsv(File $objCsvFile, string $strTable, string $strImportMode, array $arrSelectedFields = [], string $strDelimiter, string $strEnclosure, string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = [], int $intOffset = 0, int $intLimit = 0): void
     {
+        if (empty($strDelimiter))
+        {
+            $strDelimiter = ';';
+        }
+
+        if (empty($strEnclosure))
+        {
+            $strEnclosure = '"';
+        }
+
         // Throw a Exception exception if the submitted string length is not equal to 1 byte.
         if (strlen($strDelimiter) > 1)
         {
@@ -85,9 +95,6 @@ class ImportFromCsv
         // Set Enclosure string
         $objCsvReader->setEnclosure($strEnclosure);
 
-        // Get fieldnames
-        $arrFieldnames = $objCsvReader->getHeader();
-
         // Get the primary key
         $strPrimaryKey = $this->getPrimaryKey($strTable);
         if ($strPrimaryKey === null)
@@ -96,7 +103,7 @@ class ImportFromCsv
         }
 
         // Store sucess or failure message in the session
-        $_SESSION['import_from_csv']['report'] = array();
+        $_SESSION['import_from_csv']['report'] = [];
 
         // Load language file
         System::loadLanguageFile($strTable);
@@ -105,7 +112,7 @@ class ImportFromCsv
         Controller::loadDataContainer($strTable);
 
         // Store the options in $this->arrData
-        $this->arrData = array(
+        $this->arrData = [
             'objCsvFile'              => $objCsvFile,
             'tablename'               => $strTable,
             'primaryKey'              => $strPrimaryKey,
@@ -118,10 +125,10 @@ class ImportFromCsv
             'arrSkipValidationFields' => $arrSkipValidationFields,
             'intOffset'               => $intOffset,
             'intLimit'                => $intLimit,
-        );
+        ];
 
         // Truncate table
-        if ($this->arrData['importMode'] == 'truncate_table' && $blnTestMode === false)
+        if ($this->arrData['importMode'] === 'truncate_table' && $blnTestMode === false)
         {
             Database::getInstance()->execute('TRUNCATE TABLE `' . $strTable . '`');
         }
@@ -168,7 +175,7 @@ class ImportFromCsv
             // Count inserts
             $countInserts++;
 
-            $set = array();
+            $set = [];
             foreach ($arrRecord as $fieldName => $fieldValue)
             {
                 $blnCustomValidation = false;
@@ -180,7 +187,7 @@ class ImportFromCsv
                 }
 
                 // If entries are appended autoincrement id
-                if ($this->arrData['importMode'] == 'append_entries' && strtolower($fieldName) == strtolower($this->arrData['primaryKey']))
+                if ($this->arrData['importMode'] === 'append_entries' && strtolower($fieldName) == strtolower($this->arrData['primaryKey']))
                 {
                     continue;
                 }
@@ -195,13 +202,13 @@ class ImportFromCsv
 
                 // Get the DCA of the current field
                 $arrDCA =  &$GLOBALS['TL_DCA'][$strTable]['fields'][$fieldName];
-                $arrDCA = is_array($arrDCA) ? $arrDCA : array();
+                $arrDCA = is_array($arrDCA) ? $arrDCA : [];
 
                 // Prepare FormWidget object set inputType to "text" if there is no definition
                 $inputType = $arrDCA['inputType'] != '' ? $arrDCA['inputType'] : 'text';
 
                 // Map checkboxWizards to regular checkbox widgets
-                if ($inputType == 'checkboxWizard')
+                if ($inputType === 'checkboxWizard')
                 {
                     $inputType = 'checkbox';
                 }
@@ -211,7 +218,7 @@ class ImportFromCsv
                 $errorMessage = null;
                 if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && is_array($GLOBALS['TL_HOOKS']['importFromCsv']))
                 {
-                    $arrCustomValidation = array(
+                    $arrCustomValidation = [
                         'strTable'             => $strTable,
                         'arrDCA'               => $arrDCA,
                         'fieldname'            => $fieldName,
@@ -224,7 +231,7 @@ class ImportFromCsv
                         'hasErrors'            => false,
                         'errorMsg'             => null,
                         'doNotSave'            => false,
-                    );
+                    ];
 
                     $blnCustomValidation = false;
                     foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback)
@@ -281,11 +288,11 @@ class ImportFromCsv
                         {
                             if ($fieldValue === '')
                             {
-                                $fieldValue = array();
+                                $fieldValue = [];
                             }
                             elseif (trim($fieldValue) === '')
                             {
-                                $fieldValue = array();
+                                $fieldValue = [];
                             }
                             else
                             {
@@ -300,7 +307,7 @@ class ImportFromCsv
                         else
                         {
                             // Add option values in the csv like this: value1||value2||value3
-                            $fieldValue = $fieldValue != '' ? explode($strArrayDelimiter, $fieldValue) : array();
+                            $fieldValue = $fieldValue != '' ? explode($strArrayDelimiter, $fieldValue) : [];
                         }
 
                         Input::setPost($fieldName, $fieldValue);
@@ -318,7 +325,7 @@ class ImportFromCsv
 
                     // Convert date formats into timestamps
                     $rgxp = $arrDCA['eval']['rgxp'];
-                    if (($rgxp == 'date' || $rgxp == 'time' || $rgxp == 'datim') && $fieldValue != '' && !$objWidget->hasErrors())
+                    if (($rgxp === 'date' || $rgxp === 'time' || $rgxp === 'datim') && $fieldValue != '' && !$objWidget->hasErrors())
                     {
                         try
                         {
@@ -381,7 +388,7 @@ class ImportFromCsv
                 {
                     if (strlen($fieldValue))
                     {
-                        if ($fieldValue == $arrRecord[$k])
+                        if ($fieldValue === $arrRecord[$fieldName])
                         {
                             if ($strTable === 'tl_user')
                             {
@@ -435,7 +442,7 @@ class ImportFromCsv
                 }
 
                 // Add new member to newsletter recipient list
-                if ($strTable == 'tl_member' && $set['email'] != '' && $set['newsletter'] != '')
+                if ($strTable === 'tl_member' && $set['email'] != '' && $set['newsletter'] != '')
                 {
                     foreach (StringUtil::deserialize($set['newsletter'], true) as $newsletterId)
                     {
@@ -444,7 +451,7 @@ class ImportFromCsv
 
                         if (!$objRecipient->numRows)
                         {
-                            $arrRecipient = array();
+                            $arrRecipient = [];
                             $arrRecipient['tstamp'] = time();
                             $arrRecipient['pid'] = $newsletterId;
                             $arrRecipient['email'] = $set['email'];
@@ -500,14 +507,14 @@ class ImportFromCsv
             $_SESSION['import_from_csv']['report'][] = $htmlReport;
         }
 
-        $_SESSION['import_from_csv']['status'] = array(
+        $_SESSION['import_from_csv']['status'] = [
             'blnTestMode' => $blnTestMode ? true : false,
             'rows'        => $countInserts,
             'success'     => $countInserts - $insertError,
             'errors'      => $insertError,
             'offset'      => $intOffset > 0 ? $intOffset : '-',
             'limit'       => $intLimit > 0 ? $intLimit : '-',
-        );
+        ];
     }
 
     /**
