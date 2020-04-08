@@ -47,9 +47,9 @@ class ImportFromCsv
      * @param array $arrSkipValidationFields
      * @param int $intOffset
      * @param int $intLimit
-     * @throws \League\Csv\Exception
+     * @throws \Exception
      */
-    public function importCsv(File $objCsvFile, string $strTable, string $strImportMode, array $arrSelectedFields = [], string $strDelimiter, string $strEnclosure, string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = [], int $intOffset = 0, int $intLimit = 0): void
+    public function importCsv(File $objCsvFile, string $strTable, string $strImportMode, array $arrSelectedFields = [], string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = [], int $intOffset = 0, int $intLimit = 0): void
     {
         if (empty($strDelimiter))
         {
@@ -59,6 +59,11 @@ class ImportFromCsv
         if (empty($strEnclosure))
         {
             $strEnclosure = '"';
+        }
+
+        if (empty($strArrayDelimiter))
+        {
+            $strArrayDelimiter = '||';
         }
 
         // Throw a Exception exception if the submitted string length is not equal to 1 byte.
