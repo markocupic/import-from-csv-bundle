@@ -14,43 +14,76 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\TlDca;
 
-use Contao\Backend;
+use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\Database;
 use Contao\DC_Table;
 use Contao\File;
 use Contao\FilesModel;
 use Contao\Input;
-use Contao\System;
 use League\Csv\Exception;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
  * Class TlImportFromCsv.
  */
-class TlImportFromCsv extends Backend
+class TlImportFromCsv
 {
     /**
      * @var bool
      */
     protected $reportTableMode = false;
+    /**
+     * @var ContaoFramework
+     */
+    private $framework;
 
     /**
-     * tl_import_from_csv constructor.
+     * @var Request
      */
-    public function __construct()
+    private $requestStack;
+
+    /**
+     * @var SessionInterface
+     */
+    private $session;
+
+    /**
+     * @var ImportFromCsv
+     */
+    private $importer;
+
+    /**
+     * @var string
+     */
+    private $projectDir;
+
+    /**
+     * TlImportFromCsv constructor.
+     *
+     * @throws Exception
+     */
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, SessionInterface $session, ImportFromCsv $importer, string $projectDir)
     {
-        parent::__construct();
+        $this->framework = $framework;
+        $this->requestStack = $requestStack;
+        $this->session = $session;
+        $this->importer = $importer;
+        $this->projectDir = $projectDir;
 
-        $session = System::getContainer()->get('session');
-        $bag = $session->getBag('contao_backend');
+        $request = $this->requestStack->getCurrentRequest();
+        $bag = $this->session->getBag('contao_backend');
 
-        if ((isset($_POST['saveNcreate']) || isset($_POST['saveNclose'])) && 'tl_import_from_csv' === Input::post('FORM_SUBMIT') && 'auto' !== Input::post('SUBMIT_TYPE') && !isset($bag['import_from_csv'])) {
+        if ($request->request->has('saveNcreate') || $request->request->has('saveNclose') && 'tl_import_from_csv' === $request->request('FORM_SUBMIT') && 'auto' !== $request->request('SUBMIT_TYPE') && !isset($bag['import_from_csv'])) {
             $blnTestMode = false;
 
-            if (isset($_POST['saveNcreate'])) {
+            if ($request->request->has('saveNcreate')) {
                 unset($_POST['saveNcreate']);
             }
 
-            if (isset($_POST['saveNclose'])) {
+            if ($request->request->has('saveNclose')) {
                 $blnTestMode = true;
                 unset($_POST['saveNclose']);
             }
@@ -58,15 +91,13 @@ class TlImportFromCsv extends Backend
         }
     }
 
-    /**
-     * onload_callback setPalettes.
-     */
     public function setPalettes(): void
     {
-        $session = System::getContainer()->get('session');
-        $bag = $session->getBag('contao_backend');
+        $request = $this->requestStack->getCurrentRequest();
 
-        if (isset($bag['import_from_csv']) && !Input::post('FORM_SUBMIT')) {
+        $bag = $this->session->getBag('contao_backend');
+
+        if (isset($bag['import_from_csv']) && !$request->request->has('FORM_SUBMIT')) {
             // Set  $this->reportTableMode to true. This is used in the buttonsCallback
             $this->reportTableMode = true;
 
@@ -75,46 +106,52 @@ class TlImportFromCsv extends Backend
     }
 
     /**
-     * field_callback generateExplanationMarkup.
-     *
      * @return string
      */
     public function generateExplanationMarkup()
     {
-        return '
+        return <<<EOT
 <div class="widget manual">
-    <label><h2>Erkl&auml;rungen</h2></label>
+    <label><h2>Erklärungen</h2></label>
     <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual.jpg" title="ms-excel" style="width:100%" alt="manual"></figure>
-    <p class="tl_help">CSV erstellt mit Tabellenkalkulationsprogramm (MS-Excel o.&auml;.)</p>
+    <p class="tl_help">CSV erstellt mit Tabellenkalkulationsprogramm (MS-Excel o.ä.)</p>
 <br>
     <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual2.jpg" title="text-editor" style="width:100%" alt="manual"></figure>
     <p class="tl_help">CSV erstellt mit einfachem Texteditor</p>
 <br>
-    <p class="tl_help">Mit MS-Excel oder einem Texteditor l&auml;sst sich eine kommaseparierte Textdatei anlegen (csv). In die erste Zeile geh&ouml;ren die Feldnamen. Die einzelnen Felder sollten durch ein Trennzeichen (&uuml;blicherweise das Semikolon ";") abgegrenzt werden. Feldinhalt, der in der Datenbank als serialisiertes Array abgelegt wird (z.B. Gruppenzugeh&ouml;rigkeiten), muss durch zwei aufeinanderfolgende pipe-Zeichen abgegrenzt werden z.B. "2||5". Feldbegrenzer und Feldtrennzeichen k&ouml;nnen individuell festgelegt werden. Wichtig! Jeder Datensatz geh&ouml;rt auf eine neue Zeile. Zeilenumbr&uuml;che im Datensatz verunm&ouml;glichen den Import.<br>Die erstellte csv-Datei muss &uuml;ber die Daeiverwaltung auf den Webserver geladen werden. Anschliessend kann der Importvorgang unter dem Splitbutton gestartet werden.</p>
-    <p class="tl_help">Beim Importvorgang werden die Inhalte auf G&uuml;ltigkeit &uuml;berpr&uuml;ft.</p>
-    <p class="tl_help">Achtung! Das Modul sollte nur genutzt werden, wenn man sich seiner Sache sehr sicher ist. Gel&ouml;schte Daten k&ouml;nnen nur wiederhergestellt werden, wenn vorher ein Datenbankbackup erstellt worden ist.</p>
+    <p class="tl_help">Mit MS-Excel oder einem Texteditor lässt sich eine kommaseparierte Textdatei anlegen (csv). In die erste Zeile gehören die Feldnamen. Die einzelnen Felder sollten durch ein Trennzeichen (üblicherweise das Semikolon ";") abgegrenzt werden. Feldinhalt, der in der Datenbank als serialisiertes Array abgelegt wird (z.B. Gruppenzugehörigkeiten), muss durch zwei aufeinanderfolgende pipe-Zeichen abgegrenzt werden z.B. "2||5". Feldbegrenzer und Feldtrennzeichen können individuell festgelegt werden. Wichtig! Jeder Datensatz gehört auf eine neue Zeile. Zeilenumbrüche im Datensatz verunmöglichen den Import.<br>Die erstellte csv-Datei muss über die Daeiverwaltung auf den Webserver geladen werden. Anschliessend kann der Importvorgang unter dem Splitbutton gestartet werden.</p>
+    <p class="tl_help">Beim Importvorgang werden die Inhalte auf Gültigkeit überprüft.</p>
+    <p class="tl_help">Achtung! Das Modul sollte nur genutzt werden, wenn man sich seiner Sache sehr sicher ist. Gelöschte Daten können nur wiederhergestellt werden, wenn vorher ein Datenbankbackup erstellt worden ist.</p>
 
     <p><br>Weitere Hilfe gibt es unter: <a href="https://github.com/markocupic/import-from-csv-bundle">https://github.com/markocupic/import-from-csv-bundle</a></p>
 </div>
-             ';
+EOT;
     }
 
     /**
-     * field_callback generateExplanationMarkup.
-     *
-     * @return string
+     * @throws \Exception
      */
-    public function generateFileContentMarkup()
+    public function generateFileContentMarkup(): string
     {
-        $objDb = $this->Database
-            ->prepare('SELECT fileSRC FROM tl_import_from_csv WHERE id=?')
-            ->execute(Input::get('id'))
-        ;
-        $objFile = FilesModel::findByUuid($objDb->fileSRC);
+        /** @var Database $databaseAdapter */
+        $databaseAdapter = $this->framework->getAdapter(Database::class);
 
-        // call the import class if file exists
-        if (!is_file(TL_ROOT.'/'.$objFile->path)) {
-            return;
+        /** @var FilesModel $filesModelAdapter */
+        $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
+
+        /** @var Input $inputAdapter */
+        $inputAdapter = $this->framework->getAdapter(Input::class);
+
+        $objDb = $databaseAdapter
+            ->getInstance()
+            ->prepare('SELECT fileSRC FROM tl_import_from_csv WHERE id=?')
+            ->execute($inputAdapter->get('id'))
+        ;
+        $objFile = $filesModelAdapter->findByUuid($objDb->fileSRC);
+
+        // Only launch the import script if file exists
+        if (!is_file($this->projectDir.'/'.$objFile->path)) {
+            return '';
         }
 
         $objFile = new File($objFile->path, true);
@@ -125,28 +162,24 @@ class TlImportFromCsv extends Backend
             $fileContent .= '<p class="tl_help">'.$line.'</p>';
         }
 
-        return '
+        $fc = $GLOBALS['TL_LANG']['tl_import_from_csv']['fileContent'][0];
+
+        return <<<EOT
 <div class="widget parsedFile">
-       <br>
-       <label><h2>'.$GLOBALS['TL_LANG']['tl_import_from_csv']['fileContent'][0].'</h2></label>
-       <div class="fileContentBox">
-              <div>
-                     '.$fileContent.'
-              </div>
-       </div>
+  <p></p>
+  <label>
+    <h2>$fc</h2>
+  </label>
+  <div class="fileContentBox">
+    <div>$fileContent</div>
+  </div>
 </div>
-             ';
+EOT;
     }
 
-    /**
-     * field_callback generateReportMarkup.
-     *
-     * @return string
-     */
-    public function generateReportMarkup()
+    public function generateReportMarkup(): string
     {
-        $session = System::getContainer()->get('session');
-        $bag = $session->getBag('contao_backend');
+        $bag = $this->session->getBag('contao_backend');
 
         // Html
         $html = '<div class="widget"><h2>Importübersicht:</h2>';
@@ -171,19 +204,21 @@ class TlImportFromCsv extends Backend
         }
 
         unset($bag['import_from_csv']);
-        $session->set('contao_backend', $bag);
+        $this->session->set('contao_backend', $bag);
 
         return $html.'</table></div>';
     }
 
-    /**
-     * option_callback.
-     *
-     * @return array
-     */
-    public function optionsCbGetTables()
+    public function optionsCbGetTables(): array
     {
-        $objTables = $this->Database->listTables();
+        /** @var Database $databaseAdapter */
+        $databaseAdapter = $this->framework->getAdapter(Database::class);
+
+        $objTables = $databaseAdapter
+            ->getInstance()
+            ->listTables()
+        ;
+
         $arrOptions = [];
 
         foreach ($objTables as $table) {
@@ -194,19 +229,31 @@ class TlImportFromCsv extends Backend
     }
 
     /**
-     * option_callback.
-     *
      * @return array
      */
     public function optionsCbSelectedFields()
     {
-        $objDb = $this->Database->prepare('SELECT * FROM tl_import_from_csv WHERE id = ?')->execute(Input::get('id'));
+        /** @var Database $databaseAdapter */
+        $databaseAdapter = $this->framework->getAdapter(Database::class);
+
+        /** @var Input $inputAdapter */
+        $inputAdapter = $this->framework->getAdapter(Input::class);
+
+        $objDb = $databaseAdapter
+            ->getInstance()
+            ->prepare('SELECT * FROM tl_import_from_csv WHERE id = ?')
+            ->execute($inputAdapter->get('id'))
+        ;
+
+        $arrOptions = [];
 
         if (empty($objDb->import_table)) {
-            return;
+            return $arrOptions;
         }
-        $objFields = $this->Database->listFields($objDb->import_table, 1);
-        $arrOptions = [];
+        $objFields = $databaseAdapter
+            ->getInstance()
+            ->listFields($objDb->import_table, 1)
+        ;
 
         foreach ($objFields as $field) {
             if ('PRIMARY' === $field['name']) {
@@ -216,20 +263,19 @@ class TlImportFromCsv extends Backend
             if (\in_array($field['name'], $arrOptions, true)) {
                 continue;
             }
+
             $arrOptions[$field['name']] = $field['name'].' ['.$field['type'].']';
         }
 
         return $arrOptions;
     }
 
-    /**
-     * @param $arrButtons
-     *
-     * @return mixed
-     */
-    public function buttonsCallback($arrButtons, DC_Table $dc)
+    public function buttonsCallback(array $arrButtons, DC_Table $dc): array
     {
-        if ('edit' === Input::get('act')) {
+        /** @var Input $inputAdapter */
+        $inputAdapter = $this->framework->getAdapter(Input::class);
+
+        if ('edit' === $inputAdapter->get('act')) {
             $arrButtons['saveNclose'] = '<button type="submit" name="saveNclose" id="saveNclose" class="tl_submit testButton" accesskey="n">'.$GLOBALS['TL_LANG']['tl_import_from_csv']['testRunImportButton'].'</button>';
             $arrButtons['saveNcreate'] = '<button type="submit" name="saveNcreate" id="saveNcreate" class="tl_submit importButton" accesskey="n">'.$GLOBALS['TL_LANG']['tl_import_from_csv']['launchImportButton'].'</button>';
             unset($arrButtons['saveNduplicate']);
@@ -244,29 +290,32 @@ class TlImportFromCsv extends Backend
     }
 
     /**
-     * @param $blnTestMode
-     *
      * @throws Exception
      */
     private function initImport(bool $blnTestMode): void
     {
-        $strTable = Input::post('import_table');
-        $importMode = Input::post('import_mode');
-        $arrSelectedFields = !empty(Input::post('selected_fields')) && \is_array(Input::post('selected_fields')) ? Input::post('selected_fields') : [];
-        $strDelimiter = Input::post('field_separator');
-        $strEnclosure = Input::post('field_enclosure');
-        $intOffset = (int) Input::post('offset', 0);
-        $intLimit = (int) Input::post('limit', 0);
-        $arrSkipValidationFields = !empty(Input::post('skipValidationFields')) && \is_array(Input::post('skipValidationFields')) ? Input::post('skipValidationFields') : [];
-        $objFile = FilesModel::findByUuid(Input::post('fileSRC'));
+        /** @var Input $inputAdapter */
+        $inputAdapter = $this->framework->getAdapter(Input::class);
+
+        /** @var FilesModel $filesModelAdapter */
+        $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
+
+        $strTable = $inputAdapter->post('import_table');
+        $importMode = $inputAdapter->post('import_mode');
+        $arrSelectedFields = !empty($inputAdapter->post('selected_fields')) && \is_array($inputAdapter->post('selected_fields')) ? $inputAdapter->post('selected_fields') : [];
+        $strDelimiter = $inputAdapter->post('field_separator');
+        $strEnclosure = $inputAdapter->post('field_enclosure');
+        $intOffset = (int) $inputAdapter->post('offset', 0);
+        $intLimit = (int) $inputAdapter->post('limit', 0);
+        $arrSkipValidationFields = !empty($inputAdapter->post('skipValidationFields')) && \is_array($inputAdapter->post('skipValidationFields')) ? $inputAdapter->post('skipValidationFields') : [];
+        $objFile = $filesModelAdapter->findByUuid($inputAdapter->post('fileSRC'));
 
         // call the import class if file exists
-        if (is_file(TL_ROOT.'/'.$objFile->path)) {
+        if (is_file($this->projectDir.'/'.$objFile->path)) {
             $objFile = new File($objFile->path);
 
             if ('csv' === strtolower($objFile->extension)) {
-                $objImport = System::getContainer()->get(ImportFromCsv::class);
-                $objImport->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strDelimiter, $strEnclosure, '||', $blnTestMode, $arrSkipValidationFields, $intOffset, $intLimit);
+                $this->importer->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strDelimiter, $strEnclosure, '||', $blnTestMode, $arrSkipValidationFields, $intOffset, $intLimit);
             }
         }
     }

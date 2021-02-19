@@ -13,3 +13,12 @@ services:
       - '@contao.framework'
       - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsv'
     public: true
+
+  Markocupic\ImportFromCsvBundle\TlDca\TlImportFromCsv:
+    arguments:
+      - '@contao.framework'
+      - '@request_stack'
+      - '@session'
+      - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsv'
+      - '%kernel.project_dir%'
+    public: true
