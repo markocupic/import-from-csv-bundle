@@ -89,7 +89,6 @@ class Cron
                 // call the import class if file exists
                 if (is_file(TL_ROOT.'/'.$objFile->path)) {
                     $objFile = new File($objFile->path);
-
                     if ('csv' === strtolower($objFile->extension)) {
                         $this->importFromCsv->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strDelimiter, $strEnclosure, '||', $blnTestMode, $arrSkipValidationFields, $intOffset, $intLimit);
                     }

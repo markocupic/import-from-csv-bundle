@@ -236,7 +236,7 @@ class ImportFromCsv
                 $arrDCA = \is_array($arrDCA) ? $arrDCA : [];
 
                 // Prepare FormWidget object set inputType to "text" if there is no definition
-                $inputType = '' !== $arrDCA['inputType'] ? $arrDCA['inputType'] : 'text';
+                $inputType = !empty($arrDCA['inputType']) ? $arrDCA['inputType'] : 'text';
 
                 // Map checkboxWizards to regular checkbox widgets
                 if ('checkboxWizard' === $inputType) {
@@ -277,7 +277,7 @@ class ImportFromCsv
                         }
                     }
 
-                    if ('' !== $arrCustomValidation['errorMsg']) {
+                    if (!empty($arrCustomValidation['errorMsg'])) {
                         $fieldValue = $arrCustomValidation['errorMsg'];
                         $doNotSave = true;
                     }
@@ -319,7 +319,7 @@ class ImportFromCsv
                             $fieldValue = $stringUtilAdapter->deserialize($fieldValue);
                         } else {
                             // Add option values in the csv like this: value1||value2||value3
-                            $fieldValue = '' !== $fieldValue ? explode($strArrayDelimiter, $fieldValue) : [];
+                            $fieldValue = !empty($fieldValue) ? explode($strArrayDelimiter, $fieldValue) : [];
                         }
 
                         $inputAdapter->setPost($fieldName, $fieldValue);
@@ -337,7 +337,7 @@ class ImportFromCsv
                     // Convert date formats into timestamps
                     $rgxp = $arrDCA['eval']['rgxp'];
 
-                    if (('date' === $rgxp || 'time' === $rgxp || 'datim' === $rgxp) && '' !== $fieldValue && !$objWidget->hasErrors()) {
+                    if (('date' === $rgxp || 'time' === $rgxp || 'datim' === $rgxp) && !empty($fieldValue) && !$objWidget->hasErrors()) {
                         try {
                             $strTimeFormat = $GLOBALS['TL_CONFIG'][$rgxp.'Format'];
                             $objDate = new Date($fieldValue, $strTimeFormat);
@@ -350,7 +350,7 @@ class ImportFromCsv
                     // !!! SECURITY !!! SKIP UNIQUE VALIDATION FOR SELECTED FIELDS
                     if (!\in_array($fieldName, $arrSkipValidationFields, true)) {
                         // Make sure that unique fields are unique
-                        if ($arrDCA['eval']['unique'] && '' !== $fieldValue && !$databaseAdapter->getInstance()->isUniqueValue($strTable, $fieldName, $fieldValue, null)) {
+                        if ($arrDCA['eval']['unique'] && !empty($fieldValue) && !$databaseAdapter->getInstance()->isUniqueValue($strTable, $fieldName, $fieldValue, null)) {
                             $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['unique'], $arrDCA['label'][0] ?: $fieldName));
                         }
                     }
@@ -519,7 +519,7 @@ class ImportFromCsv
         $objDb = $databaseAdapter->getInstance()->execute('SHOW INDEX FROM '.$strTable." WHERE Key_name = 'PRIMARY'");
 
         if ($objDb->numRows) {
-            if ('' !== $objDb->Column_name) {
+            if (!empty($objDb->Column_name)) {
                 return $objDb->Column_name;
             }
         }
