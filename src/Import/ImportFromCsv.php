@@ -307,9 +307,9 @@ class ImportFromCsv
                     if ($arrDCA['eval']['multiple']) {
                         // Convert CSV fields
                         if (isset($arrDCA['eval']['csv'])) {
-                            if ('' === $fieldValue) {
+                            if (empty($fieldValue)) {
                                 $fieldValue = [];
-                            } elseif ('' === trim($fieldValue)) {
+                            } elseif (empty(trim($fieldValue))) {
                                 $fieldValue = [];
                             } else {
                                 $fieldValue = explode($arrDCA['eval']['csv'], $fieldValue);
@@ -362,10 +362,10 @@ class ImportFromCsv
                         $fieldValue = sprintf('"%s" => <span class="errMsg">%s</span>', $fieldValue, $objWidget->getErrorsAsString());
                     } else {
                         // Set the correct empty value
-                        if ('' === $fieldValue) {
+                        if (empty($fieldValue)) {
                             $fieldValue = $objWidget->getEmptyValue();
                             // Set the correct empty value
-                            if ('' === $fieldValue) {
+                            if (empty($fieldValue)) {
                                 /*
                                  * Hack Because Contao doesn't handle correct empty string input f.ex username
                                  * @see https://github.com/contao/core-bundle/blob/master/src/Resources/contao/library/Contao/Widget.php#L1526-1527
@@ -386,7 +386,7 @@ class ImportFromCsv
 
                 // Encode password, if validation was skipped
                 if ('password' === $arrDCA['inputType']) {
-                    if (\strlen($fieldValue)) {
+                    if (!empty($fieldValue)) {
                         if ($fieldValue === $arrRecord[$fieldName]) {
                             if ('tl_user' === $strTable) {
                                 $encoder = $this->encoderFactory->getEncoder(BackendUser::class);
@@ -408,7 +408,7 @@ class ImportFromCsv
                 }
 
                 // Replace all '[NEWLINE]' tags with the end of line tag
-                $set[$fieldName] = str_replace('[NEWLINE]', PHP_EOL, $fieldValue);
+                $set[$fieldName] = str_replace('[NEWLINE]', PHP_EOL, (string) $fieldValue);
             }
 
             // Insert data record
@@ -428,7 +428,7 @@ class ImportFromCsv
                 }
 
                 // Add new member to newsletter recipient list
-                if ('tl_member' === $strTable && '' !== $set['email'] && '' !== $set['newsletter']) {
+                if ('tl_member' === $strTable && !empty($set['email']) && !empty($set['newsletter'])) {
                     foreach ($stringUtilAdapter->deserialize($set['newsletter'], true) as $newsletterId) {
                         // Check for unique email-address
                         $objRecipient = $databaseAdapter->getInstance()->prepare('SELECT * FROM tl_newsletter_recipients WHERE email=? AND pid=(SELECT pid FROM tl_newsletter_recipients WHERE id=?) AND id!=?')->execute($set['email'], $newsletterId, $newsletterId);
@@ -511,7 +511,7 @@ class ImportFromCsv
      *
      * @return mixed|null
      */
-    private function getPrimaryKey($strTable)
+    private function getPrimaryKey(string $strTable): ?string
     {
         /** @var Database $databaseAdapter */
         $databaseAdapter = $this->framework->getAdapter(Database::class);
