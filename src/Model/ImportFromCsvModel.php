@@ -12,15 +12,19 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-namespace Markocupic\ImportFromCsvBundle;
+namespace Markocupic\ImportFromCsvBundle\Model;
 
-use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Contao\Model;
 
 /**
- * Configures the import-from-csv-bundle bundle.
- *
- * @author Marko Cupic <https://github.com/markocupic>
+ * Class ImportFromCsvModel.
  */
-class MarkocupicImportFromCsvBundle extends Bundle
+class ImportFromCsvModel extends Model
 {
+    /**
+     * Table name.
+     *
+     * @var string
+     */
+    protected static $strTable = 'tl_import_from_csv';
 }

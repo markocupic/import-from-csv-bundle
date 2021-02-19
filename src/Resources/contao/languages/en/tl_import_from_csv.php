@@ -12,6 +12,7 @@
 $GLOBALS['TL_LANG']['tl_import_from_csv']['manual'] = 'Manual/Help';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['settings'] = 'Settings';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['limitAndOffset_settings'] = "Offset and limit (max_execution_time)";
+$GLOBALS['TL_LANG']['tl_import_from_csv']['cron_settings'] = "Cron settings";
 
 // fields
 $GLOBALS['TL_LANG']['tl_import_from_csv']['import_table'] = array('Import data into this table', 'Choose a table for import.');
@@ -24,6 +25,8 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['fileContent'] = array('File content')
 $GLOBALS['TL_LANG']['tl_import_from_csv']['skipValidationFields'] = array("Skip validation for these fields", "Select field that will not be validated.");
 $GLOBALS['TL_LANG']['tl_import_from_csv']['offset'] = array("Skip entries", "Please select the number of entries that will be skiped during the import process.");
 $GLOBALS['TL_LANG']['tl_import_from_csv']['limit'] = array("Limit entries", "Please select the number of entries that will be imported (0 = all).");
+$GLOBALS['TL_LANG']['tl_import_from_csv']['enableCron'] = array("Enable cron", "Run import as a cronjob.");
+$GLOBALS['TL_LANG']['tl_import_from_csv']['cronLevel'] = array("Cron level", "Select a cron level");
 
 //references
 $GLOBALS['TL_LANG']['tl_import_from_csv']['truncate_table'] = array('truncate the target table before importing data');
