@@ -20,6 +20,7 @@ services:
       - '@request_stack'
       - '@session'
       - '@translator'
+      - '@twig'
       - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsv'
       - '%kernel.project_dir%'
     public: true

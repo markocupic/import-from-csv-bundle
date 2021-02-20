@@ -1,0 +1,25 @@
+<div class="widget">
+    <h2>{{ head.lang_title }}:</h2>
+
+    {% if head.bln_testmode %}
+    <h3>Testmode: ON</h3><br>
+    {% endif %}
+
+    <p id="summary">
+        <br><span>{{ head.lang_datarecords }}:{{head.count_rows }}</span>
+        <br><span>Offset: {{ head.int_offset }}</span
+        ><br><span>Limit: {{ head.int_limit }}</span>
+        <br><span class="allOk">{{ head.lang_successfull_inserts }}: {{ head.count_success }}</span>
+        <br><span class="error">{{ head.lang_failed_inserts }}: {{ head.count_errors }}</span>
+    </p>
+
+    <p>
+        <button class="tl_submit showErrorButton" data-lblerroronly="{{ head.lang_show_errors_btn }}" data-lblall="{{ head.lang_show_all_btn }}">{{ head.lang_show_errors_btn }}</button>
+    </p>
+
+    <table id="reportTable" class="reportTable">
+        {% for row in rows %}
+            {{ row|raw }}
+        {% endfor %}
+    </table>
+</div>

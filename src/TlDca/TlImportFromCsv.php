@@ -26,6 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Twig\Environment as TwigEnvironment;
 
 /**
  * Class TlImportFromCsv.
@@ -35,7 +36,8 @@ class TlImportFromCsv
     /**
      * @var bool
      */
-    protected $reportTableMode = false;
+    private $reportTableMode = false;
+    
     /**
      * @var ContaoFramework
      */
@@ -57,6 +59,11 @@ class TlImportFromCsv
     private $translator;
 
     /**
+     * @var TwigEnvironment
+     */
+    private $twig;
+
+    /**
      * @var ImportFromCsv
      */
     private $importer;
@@ -71,28 +78,29 @@ class TlImportFromCsv
      *
      * @throws Exception
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, SessionInterface $session, TranslatorInterface $translator, ImportFromCsv $importer, string $projectDir)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, SessionInterface $session, TranslatorInterface $translator, TwigEnvironment $twig, ImportFromCsv $importer, string $projectDir)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
         $this->session = $session;
         $this->translator = $translator;
+        $this->twig = $twig;
         $this->importer = $importer;
         $this->projectDir = $projectDir;
 
         $request = $this->requestStack->getCurrentRequest();
         $bag = $this->session->getBag('contao_backend');
 
-        if ($request->request->has('saveNcreate') || $request->request->has('saveNclose') && 'tl_import_from_csv' === $request->request('FORM_SUBMIT') && 'auto' !== $request->request('SUBMIT_TYPE') && !isset($bag[ImportFromCsv::SESSION_BAG_KEY])) {
+        if ($request->request->has('saveNcreate') || $request->request->has('saveNclose') && 'tl_import_from_csv' === $request->request->get('FORM_SUBMIT') && 'auto' !== $request->request->get('SUBMIT_TYPE') && !isset($bag[ImportFromCsv::SESSION_BAG_KEY])) {
             $blnTestMode = false;
 
             if ($request->request->has('saveNcreate')) {
-                unset($_POST['saveNcreate']);
+                $request->request->remove('saveNcreate');
             }
 
             if ($request->request->has('saveNclose')) {
                 $blnTestMode = true;
-                unset($_POST['saveNclose']);
+                $request->request->remove('saveNclose');
             }
             $this->initImport($blnTestMode);
         }
@@ -117,17 +125,12 @@ class TlImportFromCsv
      */
     public function generateExplanationMarkup()
     {
-        $helpText = $this->translator->trans('tl_import_from_csv.infoText', [], 'contao_default');
-
-        return <<<EOT
-<div class="widget manual">
-  <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual.jpg" title="ms-excel" style="width:100%" alt="manual"></figure>
-  <p></p>
-  <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual2.jpg" title="text-editor" style="width:100%" alt="manual"></figure>
-  <p></p>
-  <p class="tl_help">$helpText</p>
-</div>
-EOT;
+        return $this->twig->render(
+            '@MarkocupicImportFromCsv/ImportFromCsv/help_text.html.twig',
+            [
+                'help_text' => $this->translator->trans('tl_import_from_csv.infoText', [], 'contao_default'),
+            ]
+        );
     }
 
     /**
@@ -149,99 +152,64 @@ EOT;
             ->prepare('SELECT fileSRC FROM tl_import_from_csv WHERE id=?')
             ->execute($inputAdapter->get('id'))
         ;
-        $objFile = $filesModelAdapter->findByUuid($objDb->fileSRC);
+
+        $objFilseModel = $filesModelAdapter->findByUuid($objDb->fileSRC);
 
         // Only launch the import script if file exists
-        if (!is_file($this->projectDir.'/'.$objFile->path)) {
+        if (null === $objFilseModel || !is_file($this->projectDir.'/'.$objFilseModel->path)) {
             return '';
         }
 
-        $objFile = new File($objFile->path, true);
-        $arrFileContent = $objFile->getContentAsArray();
-        $fileContent = '';
+        $objFile = new File($objFilseModel->path, true);
 
-        foreach ($arrFileContent as $line) {
-            $fileContent .= '<p class="tl_help">'.$line.'</p>';
-        }
-
-        $fc = $this->translator->trans('tl_import_from_csv.fileContent.0', [], 'contao_default');
-
-        return <<<EOT
-<div class="widget parsedFile">
-  <p></p>
-  <label>
-    <h2>$fc</h2>
-  </label>
-  <div class="fileContentBox">
-    <div>$fileContent</div>
-  </div>
-</div>
-EOT;
+        return $this->twig->render(
+            '@MarkocupicImportFromCsv/ImportFromCsv/file_content.html.twig',
+            [
+                'headline' => $this->translator->trans('tl_import_from_csv.fileContent.0', [], 'contao_default'),
+                'rows' => $objFile->getContentAsArray(),
+            ]
+        );
     }
 
     public function generateReportMarkup(): string
     {
         $bag = $this->session->getBag('contao_backend');
 
-        $langTitle = $this->translator->trans('tl_import_from_csv.importOverview', [], 'contao_default');
-        $langDatarecords = $this->translator->trans('tl_import_from_csv.datarecords', [], 'contao_default');
-        $langSuccessfullInserts = $this->translator->trans('tl_import_from_csv.successfullInserts', [], 'contao_default');
-        $langFailedInserts = $this->translator->trans('tl_import_from_csv.failedInserts', [], 'contao_default');
-        $langShowErrorsButton = $this->translator->trans('tl_import_from_csv.showErrorsButton', [], 'contao_default');
-        $langShowLabelAll = $this->translator->trans('tl_import_from_csv.showAllButton', [], 'contao_default');
+        $arrHead = [
+            // labels/title
+            'lang_title' => $this->translator->trans('tl_import_from_csv.importOverview', [], 'contao_default'),
+            'lang_datarecords' => $this->translator->trans('tl_import_from_csv.datarecords', [], 'contao_default'),
+            'lang_successfull_inserts' => $this->translator->trans('tl_import_from_csv.successfullInserts', [], 'contao_default'),
+            'lang_failed_inserts' => $this->translator->trans('tl_import_from_csv.failedInserts', [], 'contao_default'),
+            'lang_show_errors_btn' => $this->translator->trans('tl_import_from_csv.showErrorsButton', [], 'contao_default'),
+            'lang_show_all_btn' => $this->translator->trans('tl_import_from_csv.showAllButton', [], 'contao_default'),
+            // Values
+            'count_rows' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['rows'],
+            'count_success' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['success'],
+            'count_errors' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['errors'],
+            'int_offset' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['offset'],
+            'int_limit' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['limit'],
+            'bln_testmode' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['blnTestMode'] > 0 ? true : false,
+        ];
 
-        // Html
-        $rows = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['rows'];
-        $success = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['success'];
-        $errors = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['errors'];
-        $offset = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['offset'];
-        $limit = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['limit'];
-
-        $strTestmode = '';
-
-        if ($bag[ImportFromCsv::SESSION_BAG_KEY]['status']['blnTestMode'] > 0) {
-            $strTestmode .= '<h3>Testmode: ON</h3><br>';
-        }
-
-        $strHead = sprintf(
-            '<p id="summary"><br><span>%s: %s</span><br><span>Offset: %s</span><br><span>Limit: %s</span><br><span class="allOk">%s: %s</span><br><span class="error">%s: %s</span></p>',
-            $langDatarecords,
-            $rows,
-            $offset,
-            $limit,
-            $langSuccessfullInserts,
-            $success,
-            $langFailedInserts,
-            $errors
-        );
-
-        $strHead .= sprintf(
-            '<p><button class="tl_submit showErrorButton" data-lblerroronly="%s" data-lblall="%s">%s</button></p>',
-            $langShowErrorsButton,
-            $langShowLabelAll,
-            $langShowErrorsButton,
-        );
-
-        $strRows = '';
+        $arrRows = [];
 
         if (\is_array($bag[ImportFromCsv::SESSION_BAG_KEY]['report'])) {
             foreach ($bag[ImportFromCsv::SESSION_BAG_KEY]['report'] as $row) {
-                $strRows .= $row;
+                $arrRows[] = $row;
             }
         }
-
-        $html = sprintf(
-            '<div class="widget"><h2>%s:</h2>%s%s<table id="reportTable" class="reportTable">%s</table></div>',
-            $langTitle,
-            $strTestmode,
-            $strHead,
-            $strRows
-        );
 
         unset($bag[ImportFromCsv::SESSION_BAG_KEY]);
         $this->session->set('contao_backend', $bag);
 
-        return $html;
+        return $this->twig->render(
+            '@MarkocupicImportFromCsv/ImportFromCsv/import_report.html.twig',
+            [
+                'head' => $arrHead,
+                'rows' => $arrRows,
+            ]
+        );
     }
 
     public function optionsCbGetTables(): array

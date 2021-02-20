@@ -1,0 +1,18 @@
+<div class="widget parsedFile">
+    <p></p>
+    <label>
+        <h2>{{ headline }}</h2>
+    </label>
+
+    <div class="fileContentBox">
+        <ul>
+
+            {% for row in rows %}
+
+                <li>{{ row }}</li>
+
+            {% endfor %}
+
+        </ul>
+    </div>
+</div>
