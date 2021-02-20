@@ -96,11 +96,11 @@ class ImportFromCsv
             $this->session->set('contao_backend', $bag);
         }
 
-        if (empty($strDelimiter)) {
+        if ($strDelimiter === '') {
             $strDelimiter = ';';
         }
 
-        if (empty($strEnclosure)) {
+        if ($strEnclosure === '') {
             $strEnclosure = '"';
         }
 
@@ -167,7 +167,9 @@ class ImportFromCsv
 
         // Truncate table
         if ('truncate_table' === $this->arrData['importMode'] && false === $blnTestMode) {
-            $databaseAdapter->getInstance()->execute('TRUNCATE TABLE `'.$strTable.'`');
+            $databaseAdapter
+                ->getInstance()
+                ->execute('TRUNCATE TABLE `'.$strTable.'`');
         }
 
         if (\count($this->arrData['selectedFields']) < 1) {
@@ -222,10 +224,6 @@ class ImportFromCsv
                 // If entries are appended autoincrement id
                 if ('append_entries' === $this->arrData['importMode'] && strtolower($fieldName) === strtolower($this->arrData['primaryKey'])) {
                     continue;
-                }
-
-                if (null === $fieldValue) {
-                    $fieldValue = '';
                 }
 
                 // Convert variable to a string
@@ -314,12 +312,12 @@ class ImportFromCsv
                             } else {
                                 $fieldValue = explode($arrDCA['eval']['csv'], $fieldValue);
                             }
-                        } elseif (!empty($fieldValue) && \is_array($stringUtilAdapter->deserialize($fieldValue))) {
+                        } elseif ('' !== $fieldValue && \is_array($stringUtilAdapter->deserialize($fieldValue))) {
                             // The value is serialized array
                             $fieldValue = $stringUtilAdapter->deserialize($fieldValue);
                         } else {
                             // Add option values in the csv like this: value1||value2||value3
-                            $fieldValue = !empty($fieldValue) ? explode($strArrayDelimiter, $fieldValue) : [];
+                            $fieldValue = '' !== $fieldValue ? explode($strArrayDelimiter, $fieldValue) : [];
                         }
 
                         $inputAdapter->setPost($fieldName, $fieldValue);
@@ -337,7 +335,7 @@ class ImportFromCsv
                     // Convert date formats into timestamps
                     $rgxp = $arrDCA['eval']['rgxp'];
 
-                    if (('date' === $rgxp || 'time' === $rgxp || 'datim' === $rgxp) && !empty($fieldValue) && !$objWidget->hasErrors()) {
+                    if (('date' === $rgxp || 'time' === $rgxp || 'datim' === $rgxp) && $fieldValue !== '' && !$objWidget->hasErrors()) {
                         try {
                             $strTimeFormat = $GLOBALS['TL_CONFIG'][$rgxp.'Format'];
                             $objDate = new Date($fieldValue, $strTimeFormat);
@@ -350,7 +348,7 @@ class ImportFromCsv
                     // !!! SECURITY !!! SKIP UNIQUE VALIDATION FOR SELECTED FIELDS
                     if (!\in_array($fieldName, $arrSkipValidationFields, true)) {
                         // Make sure that unique fields are unique
-                        if ($arrDCA['eval']['unique'] && !empty($fieldValue) && !$databaseAdapter->getInstance()->isUniqueValue($strTable, $fieldName, $fieldValue, null)) {
+                        if ($arrDCA['eval']['unique'] && $fieldValue !== '' && !$databaseAdapter->getInstance()->isUniqueValue($strTable, $fieldName, $fieldValue, null)) {
                             $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['unique'], $arrDCA['label'][0] ?: $fieldName));
                         }
                     }
@@ -414,7 +412,9 @@ class ImportFromCsv
             // Insert data record
             if (!$doNotSave) {
                 // Insert tstamp
-                if ($databaseAdapter->getInstance()->fieldExists('tstamp', $strTable)) {
+                if ($databaseAdapter
+                    ->getInstance()
+                    ->fieldExists('tstamp', $strTable)) {
                     if (!$set['tstamp'] > 0) {
                         $set['tstamp'] = time();
                     }
@@ -422,13 +422,13 @@ class ImportFromCsv
 
                 // Insert dateAdded (tl_member)
                 if ($databaseAdapter->getInstance()->fieldExists('dateAdded', $strTable)) {
-                    if (!$set['dateAdded'] > 0) {
+                    if (!strlen((string)$set['dateAdded'])) {
                         $set['dateAdded'] = time();
                     }
                 }
 
                 // Add new member to newsletter recipient list
-                if ('tl_member' === $strTable && !empty($set['email']) && !empty($set['newsletter'])) {
+                if ('tl_member' === $strTable && $set['email'] !== '' && $set['newsletter'] !== '') {
                     foreach ($stringUtilAdapter->deserialize($set['newsletter'], true) as $newsletterId) {
                         // Check for unique email-address
                         $objRecipient = $databaseAdapter->getInstance()->prepare('SELECT * FROM tl_newsletter_recipients WHERE email=? AND pid=(SELECT pid FROM tl_newsletter_recipients WHERE id=?) AND id!=?')->execute($set['email'], $newsletterId, $newsletterId);
@@ -441,7 +441,8 @@ class ImportFromCsv
                             $arrRecipient['active'] = '1';
 
                             if (true !== $blnTestMode) {
-                                $databaseAdapter->getInstance()
+                                $databaseAdapter
+                                    ->getInstance()
                                     ->prepare('INSERT INTO tl_newsletter_recipients %s')
                                     ->set($arrRecipient)
                                     ->execute()
@@ -454,7 +455,11 @@ class ImportFromCsv
                 try {
                     if (true !== $blnTestMode) {
                         // Insert entry into database
-                        $databaseAdapter->getInstance()->prepare('INSERT INTO '.$strTable.' %s')->set($set)->execute();
+                        $databaseAdapter
+                            ->getInstance()
+                            ->prepare('INSERT INTO '.$strTable.' %s')
+                            ->set($set)
+                            ->execute();
                     }
                 } catch (\Exception $e) {
                     $set['insertError'] = $e->getMessage();
