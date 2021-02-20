@@ -157,14 +157,14 @@ class TlImportFromCsv
             ->execute($inputAdapter->get('id'))
         ;
 
-        $objFilseModel = $filesModelAdapter->findByUuid($objDb->fileSRC);
+        $objFilesModel = $filesModelAdapter->findByUuid($objDb->fileSRC);
 
         // Only launch the import script if file exists
-        if (null === $objFilseModel || !is_file($this->projectDir.'/'.$objFilseModel->path)) {
+        if (null === $objFilesModel || !is_file($this->projectDir.'/'.$objFilesModel->path)) {
             return '';
         }
 
-        $objFile = new File($objFilseModel->path, true);
+        $objFile = new File($objFilesModel->path, true);
 
         return $this->twig->render(
             '@MarkocupicImportFromCsv/ImportFromCsv/file_content.html.twig',
@@ -257,12 +257,12 @@ class TlImportFromCsv
         if ('' === $objDb->import_table) {
             return $arrOptions;
         }
-        $objFields = $databaseAdapter
+        $arrFields = $databaseAdapter
             ->getInstance()
             ->listFields($objDb->import_table, 1)
         ;
 
-        foreach ($objFields as $field) {
+        foreach ($arrFields as $field) {
             if ('PRIMARY' === $field['name']) {
                 continue;
             }
