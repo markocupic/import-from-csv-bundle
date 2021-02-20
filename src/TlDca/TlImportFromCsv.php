@@ -76,7 +76,7 @@ class TlImportFromCsv
         $request = $this->requestStack->getCurrentRequest();
         $bag = $this->session->getBag('contao_backend');
 
-        if ($request->request->has('saveNcreate') || $request->request->has('saveNclose') && 'tl_import_from_csv' === $request->request('FORM_SUBMIT') && 'auto' !== $request->request('SUBMIT_TYPE') && !isset($bag['import_from_csv'])) {
+        if ($request->request->has('saveNcreate') || $request->request->has('saveNclose') && 'tl_import_from_csv' === $request->request('FORM_SUBMIT') && 'auto' !== $request->request('SUBMIT_TYPE') && !isset($bag[ImportFromCsv::SESSION_BAG_KEY])) {
             $blnTestMode = false;
 
             if ($request->request->has('saveNcreate')) {
@@ -97,7 +97,7 @@ class TlImportFromCsv
 
         $bag = $this->session->getBag('contao_backend');
 
-        if (isset($bag['import_from_csv']) && !$request->request->has('FORM_SUBMIT')) {
+        if (isset($bag[ImportFromCsv::SESSION_BAG_KEY]) && !$request->request->has('FORM_SUBMIT')) {
             // Set  $this->reportTableMode to true. This is used in the buttonsCallback
             $this->reportTableMode = true;
 
@@ -110,7 +110,7 @@ class TlImportFromCsv
      */
     public function generateExplanationMarkup()
     {
-        return <<<EOT
+        return <<<'EOT'
 <div class="widget manual">
     <label><h2>Erklärungen</h2></label>
     <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual.jpg" title="ms-excel" style="width:100%" alt="manual"></figure>
@@ -183,13 +183,13 @@ EOT;
 
         // Html
         $html = '<div class="widget"><h2>Importübersicht:</h2>';
-        $rows = $bag['import_from_csv']['status']['rows'];
-        $success = $bag['import_from_csv']['status']['success'];
-        $errors = $bag['import_from_csv']['status']['errors'];
-        $offset = $bag['import_from_csv']['status']['offset'];
-        $limit = $bag['import_from_csv']['status']['limit'];
+        $rows = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['rows'];
+        $success = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['success'];
+        $errors = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['errors'];
+        $offset = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['offset'];
+        $limit = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['limit'];
 
-        if ($bag['import_from_csv']['status']['blnTestMode'] > 0) {
+        if ($bag[ImportFromCsv::SESSION_BAG_KEY]['status']['blnTestMode'] > 0) {
             $html .= '<h3>Testmode: ON</h3><br>';
         }
 
@@ -197,13 +197,13 @@ EOT;
 
         $html .= '<table id="reportTable" class="reportTable">';
 
-        if (\is_array($bag['import_from_csv']['report'])) {
-            foreach ($bag['import_from_csv']['report'] as $row) {
+        if (\is_array($bag[ImportFromCsv::SESSION_BAG_KEY]['report'])) {
+            foreach ($bag[ImportFromCsv::SESSION_BAG_KEY]['report'] as $row) {
                 $html .= $row;
             }
         }
 
-        unset($bag['import_from_csv']);
+        unset($bag[ImportFromCsv::SESSION_BAG_KEY]);
         $this->session->set('contao_backend', $bag);
 
         return $html.'</table></div>';
@@ -247,7 +247,7 @@ EOT;
 
         $arrOptions = [];
 
-        if (empty($objDb->import_table)) {
+        if ('' === $objDb->import_table) {
             return $arrOptions;
         }
         $objFields = $databaseAdapter

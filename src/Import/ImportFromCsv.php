@@ -35,11 +35,13 @@ use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
  */
 class ImportFromCsv
 {
+    const SESSION_BAG_KEY = 'import_from_csv';
+
     /**
      * @var array
      */
-    pivate $arrData;
-    
+    private $arrData;
+
     /**
      * @var ContaoFramework
      */
@@ -93,15 +95,15 @@ class ImportFromCsv
 
         if (TL_MODE === 'BE') {
             $bag = $this->session->getBag('contao_backend');
-            $bag['import_from_csv']['report'][] = $htmlReport;
+            $bag[self::SESSION_BAG_KEY]['report'][] = $htmlReport;
             $this->session->set('contao_backend', $bag);
         }
 
-        if ($strDelimiter === '') {
+        if ('' === $strDelimiter) {
             $strDelimiter = ';';
         }
 
-        if ($strEnclosure === '') {
+        if ('' === $strEnclosure) {
             $strEnclosure = '"';
         }
 
@@ -170,7 +172,8 @@ class ImportFromCsv
         if ('truncate_table' === $this->arrData['importMode'] && false === $blnTestMode) {
             $databaseAdapter
                 ->getInstance()
-                ->execute('TRUNCATE TABLE `'.$strTable.'`');
+                ->execute('TRUNCATE TABLE `'.$strTable.'`')
+            ;
         }
 
         if (\count($this->arrData['selectedFields']) < 1) {
@@ -336,7 +339,7 @@ class ImportFromCsv
                     // Convert date formats into timestamps
                     $rgxp = $arrDCA['eval']['rgxp'];
 
-                    if (('date' === $rgxp || 'time' === $rgxp || 'datim' === $rgxp) && $fieldValue !== '' && !$objWidget->hasErrors()) {
+                    if (('date' === $rgxp || 'time' === $rgxp || 'datim' === $rgxp) && '' !== $fieldValue && !$objWidget->hasErrors()) {
                         try {
                             $strTimeFormat = $GLOBALS['TL_CONFIG'][$rgxp.'Format'];
                             $objDate = new Date($fieldValue, $strTimeFormat);
@@ -349,7 +352,7 @@ class ImportFromCsv
                     // !!! SECURITY !!! SKIP UNIQUE VALIDATION FOR SELECTED FIELDS
                     if (!\in_array($fieldName, $arrSkipValidationFields, true)) {
                         // Make sure that unique fields are unique
-                        if ($arrDCA['eval']['unique'] && $fieldValue !== '' && !$databaseAdapter->getInstance()->isUniqueValue($strTable, $fieldName, $fieldValue, null)) {
+                        if ($arrDCA['eval']['unique'] && '' !== $fieldValue && !$databaseAdapter->getInstance()->isUniqueValue($strTable, $fieldName, $fieldValue, null)) {
                             $objWidget->addError(sprintf($GLOBALS['TL_LANG']['ERR']['unique'], $arrDCA['label'][0] ?: $fieldName));
                         }
                     }
@@ -413,9 +416,11 @@ class ImportFromCsv
             // Insert data record
             if (!$doNotSave) {
                 // Insert tstamp
-                if ($databaseAdapter
-                    ->getInstance()
-                    ->fieldExists('tstamp', $strTable)) {
+                if (
+                    $databaseAdapter
+                        ->getInstance()
+                        ->fieldExists('tstamp', $strTable)
+                ) {
                     if (!$set['tstamp'] > 0) {
                         $set['tstamp'] = time();
                     }
@@ -423,13 +428,13 @@ class ImportFromCsv
 
                 // Insert dateAdded (tl_member)
                 if ($databaseAdapter->getInstance()->fieldExists('dateAdded', $strTable)) {
-                    if (!strlen((string)$set['dateAdded'])) {
+                    if (!\strlen((string) $set['dateAdded'])) {
                         $set['dateAdded'] = time();
                     }
                 }
 
                 // Add new member to newsletter recipient list
-                if ('tl_member' === $strTable && $set['email'] !== '' && $set['newsletter'] !== '') {
+                if ('tl_member' === $strTable && '' !== $set['email'] && '' !== $set['newsletter']) {
                     foreach ($stringUtilAdapter->deserialize($set['newsletter'], true) as $newsletterId) {
                         // Check for unique email-address
                         $objRecipient = $databaseAdapter->getInstance()->prepare('SELECT * FROM tl_newsletter_recipients WHERE email=? AND pid=(SELECT pid FROM tl_newsletter_recipients WHERE id=?) AND id!=?')->execute($set['email'], $newsletterId, $newsletterId);
@@ -460,7 +465,8 @@ class ImportFromCsv
                             ->getInstance()
                             ->prepare('INSERT INTO '.$strTable.' %s')
                             ->set($set)
-                            ->execute();
+                            ->execute()
+                        ;
                     }
                 } catch (\Exception $e) {
                     $set['insertError'] = $e->getMessage();
@@ -493,14 +499,14 @@ class ImportFromCsv
 
             if (TL_MODE === 'BE') {
                 $bag = $this->session->getBag('contao_backend');
-                $bag['import_from_csv']['report'][] = $htmlReport;
+                $bag[self::SESSION_BAG_KEY]['report'][] = $htmlReport;
                 $this->session->set('contao_backend', $bag);
             }
         }// end foreach
 
         if (TL_MODE === 'BE') {
             $bag = $this->session->getBag('contao_backend');
-            $bag['import_from_csv']['status'] = [
+            $bag[self::SESSION_BAG_KEY]['status'] = [
                 'blnTestMode' => $blnTestMode ? true : false,
                 'rows' => $countInserts,
                 'success' => $countInserts - $insertError,
@@ -508,7 +514,7 @@ class ImportFromCsv
                 'offset' => $intOffset > 0 ? $intOffset : '-',
                 'limit' => $intLimit > 0 ? $intLimit : '-',
             ];
-            $this->session->set('import_from_csv', $bag);
+            $this->session->set(self::SESSION_BAG_KEY, $bag);
         }
     }
 

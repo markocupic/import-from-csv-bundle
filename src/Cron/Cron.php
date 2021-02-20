@@ -86,6 +86,7 @@ class Cron
                 $arrSkipValidationFields = $stringUtilAdapter->deserialize($objImportModel->skipValidationFields, true);
                 $objFile = FilesModel::findByUuid($objImportModel->fileSRC);
                 $blnTestMode = false;
+
                 // call the import class if file exists
                 if (is_file(TL_ROOT.'/'.$objFile->path)) {
                     $objFile = new File($objFile->path);
