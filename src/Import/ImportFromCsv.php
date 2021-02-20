@@ -305,7 +305,7 @@ class ImportFromCsv
                         $objWidget->useRawRequestData = false;
                         $inputAdapter->setPost('password_confirm', $fieldValue);
                     }
-                    
+
                     if ($arrDCA['eval']['multiple']) {
                         // Convert CSV fields
                         if (isset($arrDCA['eval']['csv'])) {
@@ -364,7 +364,7 @@ class ImportFromCsv
                         $fieldValue = sprintf('"%s" => <span class="errMsg">%s</span>', $fieldValue, $objWidget->getErrorsAsString());
                     } else {
                         // Set the correct empty value
-                        if ($fieldValue === '') {
+                        if ('' === $fieldValue) {
                             $fieldValue = $objWidget->getEmptyValue();
                             // Set the correct empty value
                             if (empty($fieldValue)) {

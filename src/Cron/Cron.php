@@ -15,11 +15,14 @@ declare(strict_types=1);
 namespace Markocupic\ImportFromCsvBundle\Cron;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\File;
 use Contao\FilesModel;
 use Contao\StringUtil;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 
 class Cron
 {
@@ -39,10 +42,16 @@ class Cron
      */
     private $importFromCsv;
 
-    public function __construct(ContaoFramework $framework, ImportFromCsv $importFromCsv)
+    /**
+     * @var LoggerInterface|null
+     */
+    private $logger;
+
+    public function __construct(ContaoFramework $framework, ImportFromCsv $importFromCsv, LoggerInterface $logger = null)
     {
         $this->framework = $framework;
         $this->importFromCsv = $importFromCsv;
+        $this->logger = $logger;
     }
 
     public function initMinutely(): void
@@ -90,8 +99,20 @@ class Cron
                 // call the import class if file exists
                 if (is_file(TL_ROOT.'/'.$objFile->path)) {
                     $objFile = new File($objFile->path);
+
                     if ('csv' === strtolower($objFile->extension)) {
                         $this->importFromCsv->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strDelimiter, $strEnclosure, '||', $blnTestMode, $arrSkipValidationFields, $intOffset, $intLimit);
+
+                        // Log new insert
+                        if (null !== $this->logger) {
+                            $level = LogLevel::INFO;
+                            $strText = sprintf('Cron %s: Imported csv file "%s" into %s.', $cronLevel, $objFile->path, $strTable);
+                            $this->logger->log(
+                                $level,
+                                $strText, [
+                                    'contao' => new ContaoContext(__METHOD__, $level),
+                                ]);
+                        }
                     }
                 }
             }

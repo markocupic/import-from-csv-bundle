@@ -10,7 +10,7 @@
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-use Markocupic\ImportFromCsvBundle\TlDca\TlImportFromCsv;
+use Markocupic\ImportFromCsvBundle\Dca\TlImportFromCsv;
 
 $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 	'config'   => array(
@@ -62,8 +62,8 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 	),
 	'palettes' => array(
 		'default' => '{manual},explanation;{settings},import_table,selected_fields,field_separator,field_enclosure,import_mode,fileSRC,skipValidationFields,listLines;{limitAndOffset_settings},offset,limit;{cron_settings},enableCron',
-        'report' => 'report',
-        '__selector__' => array('enableCron'),
+		'report' => 'report',
+		'__selector__' => array('enableCron'),
 	),
 	'subpalettes' => array(
 		'enableCron' => 'cronLevel',

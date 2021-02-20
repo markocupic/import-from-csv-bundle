@@ -14,8 +14,8 @@
     }
   ],
   "require": {
-    "contao/core-bundle": "^4.4",
-    "league/csv": "^9.1"
+    "contao/core-bundle": "^4.9",
+    "league/csv": "^9.1"  
   },
   "autoload": {
     "psr-4": {

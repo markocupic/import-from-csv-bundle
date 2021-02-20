@@ -12,9 +12,10 @@ services:
     arguments:
       - '@contao.framework'
       - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsv'
+      - '@monolog.logger.contao'
     public: true
 
-  Markocupic\ImportFromCsvBundle\TlDca\TlImportFromCsv:
+  Markocupic\ImportFromCsvBundle\Dca\TlImportFromCsv:
     arguments:
       - '@contao.framework'
       - '@request_stack'

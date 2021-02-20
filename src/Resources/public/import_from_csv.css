@@ -1,7 +1,7 @@
 
 .tl_formbody_submit .tl_submit.importButton {
     color: #fff;
-    background: #ff0000;
+    background: #cc0000;
     text-shadow: 0 0 #fff;
 }
 
@@ -20,9 +20,9 @@
 }
 
 button.tl_submit.showErrorButton{
-    background-color: orange;
+    background-color: #cc0000;
+    border: 1px solid #cc0000 !important;
     color: #fff;
-    border: 1px solid #000;
     padding: 4px 8px;
     height:auto;
 }
@@ -30,7 +30,7 @@ button.tl_submit.showErrorButton{
 button.tl_submit.showErrorButton.hideSuccess{
     background-color: #00cc00;
     color: #fff;
-    border: 1px solid #000;
+    border-color: #00cc00 !important;
 }
 
 .import-report-table {
