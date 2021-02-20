@@ -37,7 +37,7 @@ class TlImportFromCsv
      * @var bool
      */
     private $reportTableMode = false;
-    
+
     /**
      * @var ContaoFramework
      */
@@ -96,11 +96,15 @@ class TlImportFromCsv
 
             if ($request->request->has('saveNcreate')) {
                 $request->request->remove('saveNcreate');
+                // Otherwise contao will save & create
+                unset($_POST['saveNcreate']);
             }
 
             if ($request->request->has('saveNclose')) {
                 $blnTestMode = true;
                 $request->request->remove('saveNclose');
+                // Otherwise contao will save & close
+                unset($_POST['saveNclose']);
             }
             $this->initImport($blnTestMode);
         }
@@ -116,7 +120,7 @@ class TlImportFromCsv
             // Set  $this->reportTableMode to true. This is used in the buttonsCallback
             $this->reportTableMode = true;
 
-            $GLOBALS['TL_DCA']['tl_import_from_csv']['palettes']['default'] = 'report;';
+            $GLOBALS['TL_DCA']['tl_import_from_csv']['palettes']['default'] = $GLOBALS['TL_DCA']['tl_import_from_csv']['palettes']['report'];
         }
     }
 
