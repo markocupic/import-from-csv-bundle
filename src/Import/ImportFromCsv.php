@@ -38,7 +38,8 @@ class ImportFromCsv
     /**
      * @var array
      */
-    protected $arrData;
+    pivate $arrData;
+    
     /**
      * @var ContaoFramework
      */
