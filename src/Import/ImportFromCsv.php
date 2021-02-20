@@ -111,7 +111,7 @@ class ImportFromCsv
             $strArrayDelimiter = '||';
         }
 
-        // Throw a Exception exception if the submitted string length is not equal to 1 byte.
+        // Throw an exception if the submitted string length is not equal to 1 byte.
         if (\strlen($strDelimiter) > 1) {
             throw new \Exception(sprintf('%s expects field delimiter to be a single character. %s given.', __METHOD__, $strDelimiter));
         }
@@ -136,7 +136,7 @@ class ImportFromCsv
         // Set the delimiter string
         $objCsvReader->setDelimiter($strDelimiter);
 
-        // Set Enclosure string
+        // Set enclosure string
         $objCsvReader->setEnclosure($strEnclosure);
 
         // Get the primary key
@@ -225,7 +225,7 @@ class ImportFromCsv
                     continue;
                 }
 
-                // If entries are appended autoincrement id
+                // Autoincrement id datarecords are appended
                 if ('append_entries' === $this->arrData['importMode'] && strtolower($fieldName) === strtolower($this->arrData['primaryKey'])) {
                     continue;
                 }
