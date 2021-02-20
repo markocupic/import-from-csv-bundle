@@ -116,7 +116,7 @@ class ImportFromCsv
             throw new \Exception(sprintf('%s expects field delimiter to be a single character. %s given.', __METHOD__, $strDelimiter));
         }
 
-        // Throw a Exception exception if the submitted string length is not equal to 1 byte.
+        // Throw an exception if the submitted string length is not equal to 1 byte.
         if (\strlen($strEnclosure) > 1) {
             throw new \Exception(sprintf('%s expects field enclosure to be a single character. %s given.', __METHOD__, $strEnclosure));
         }
@@ -202,7 +202,7 @@ class ImportFromCsv
             $stmt = $stmt->limit($intLimit);
         }
 
-        // Get ech line as an associative array array('fieldname1' => 'value1',  'fieldname2' => 'value2')
+        // Get each line as an associative array -> array('fieldname1' => 'value1',  'fieldname2' => 'value2')
         // and store each record in the db
         $arrRecords = $stmt->process($objCsvReader);
 
@@ -271,9 +271,10 @@ class ImportFromCsv
                         if (!\is_array($arrCustomValidation)) {
                             throw new \Exception('Expected array as return value.');
                         }
+
                         $fieldValue = $arrCustomValidation['value'];
 
-                        // Check if widget-validation should be skipped
+                        // Check if widget validation should be skipped
                         if (true === $arrCustomValidation['skipWidgetValidation']) {
                             $blnCustomValidation = true;
                         }
@@ -295,7 +296,7 @@ class ImportFromCsv
                     $objWidget = new $strClass($strClass::getAttributesFromDca($arrDCA, $fieldName, $fieldValue, '', '', $this));
                     $objWidget->storeValues = false;
 
-                    // Set post var, so the content can be validated
+                    // Set POST, so the content can be validated
                     $inputAdapter->setPost($fieldName, $fieldValue);
 
                     // Special treatment for password
@@ -304,8 +305,7 @@ class ImportFromCsv
                         $objWidget->useRawRequestData = false;
                         $inputAdapter->setPost('password_confirm', $fieldValue);
                     }
-
-                    // Add option values in the csv like this: value1||value2||value3
+                    
                     if ($arrDCA['eval']['multiple']) {
                         // Convert CSV fields
                         if (isset($arrDCA['eval']['csv'])) {
@@ -317,10 +317,10 @@ class ImportFromCsv
                                 $fieldValue = explode($arrDCA['eval']['csv'], $fieldValue);
                             }
                         } elseif ('' !== $fieldValue && \is_array($stringUtilAdapter->deserialize($fieldValue))) {
-                            // The value is serialized array
+                            // The value is a serialized array
                             $fieldValue = $stringUtilAdapter->deserialize($fieldValue);
                         } else {
-                            // Add option values in the csv like this: value1||value2||value3
+                            // Add option values like this: value1||value2||value3
                             $fieldValue = '' !== $fieldValue ? explode($strArrayDelimiter, $fieldValue) : [];
                         }
 
@@ -364,7 +364,7 @@ class ImportFromCsv
                         $fieldValue = sprintf('"%s" => <span class="errMsg">%s</span>', $fieldValue, $objWidget->getErrorsAsString());
                     } else {
                         // Set the correct empty value
-                        if (empty($fieldValue)) {
+                        if ($fieldValue === '') {
                             $fieldValue = $objWidget->getEmptyValue();
                             // Set the correct empty value
                             if (empty($fieldValue)) {
@@ -416,11 +416,7 @@ class ImportFromCsv
             // Insert data record
             if (!$doNotSave) {
                 // Insert tstamp
-                if (
-                    $databaseAdapter
-                        ->getInstance()
-                        ->fieldExists('tstamp', $strTable)
-                ) {
+                if ($databaseAdapter->getInstance()->fieldExists('tstamp', $strTable)) {
                     if (!$set['tstamp'] > 0) {
                         $set['tstamp'] = time();
                     }
