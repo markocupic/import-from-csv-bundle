@@ -33,42 +33,46 @@ button.tl_submit.showErrorButton.hideSuccess{
     border: 1px solid #000;
 }
 
-#reportTable {
+.import-report-table {
     width: 100%;
 }
 
-#reportTable td.tdTitle {
+.import-report-table td.tdTitle {
     font-weight: bold;
 }
 
-#reportTable td {
+.import-report-table td {
     border: 1px solid #ccc;
     padding: 4px;
     font-size: 10px;
 }
 
-#reportTable tr.allOk.hiddenRow {
+.import-report-table tr.allOk.hiddenRow {
     display:none;
 }
 
-#reportTable tr.delim td{
+.import-report-table tr.delim td{
     border: none;
 }
 
-#reportTable .allOk td, #summary .allOk {
+.import-report-table .allOk td, ul.import-summary li.allOk {
     color: #008000 !important;
 }
 
-#reportTable .error td, #summary .error {
+.import-summary{
+    margin: 16px 0;
+}
+
+.import-report-table .error td, ul.import-summary .error {
     color: red !important;
 }
 
-#reportTable .error td .errMsg {
+.import-report-table .error td .errMsg {
     font-weight: normal !important;
     font-size: 10px !important;
 }
 
-#reportTable .delim td {
+.import-report-table .delim td {
     border-left-width: 0;
     border-right-width: 0;
 }
