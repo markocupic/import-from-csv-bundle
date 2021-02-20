@@ -19,6 +19,7 @@ services:
       - '@contao.framework'
       - '@request_stack'
       - '@session'
+      - '@translator'
       - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsv'
       - '%kernel.project_dir%'
     public: true

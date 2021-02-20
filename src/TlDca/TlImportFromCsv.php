@@ -25,6 +25,7 @@ use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Class TlImportFromCsv.
@@ -51,6 +52,11 @@ class TlImportFromCsv
     private $session;
 
     /**
+     * @var TranslatorInterface
+     */
+    private $translator;
+
+    /**
      * @var ImportFromCsv
      */
     private $importer;
@@ -65,11 +71,12 @@ class TlImportFromCsv
      *
      * @throws Exception
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, SessionInterface $session, ImportFromCsv $importer, string $projectDir)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, SessionInterface $session, TranslatorInterface $translator, ImportFromCsv $importer, string $projectDir)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
         $this->session = $session;
+        $this->translator = $translator;
         $this->importer = $importer;
         $this->projectDir = $projectDir;
 
@@ -110,20 +117,15 @@ class TlImportFromCsv
      */
     public function generateExplanationMarkup()
     {
-        return <<<'EOT'
-<div class="widget manual">
-    <label><h2>Erklärungen</h2></label>
-    <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual.jpg" title="ms-excel" style="width:100%" alt="manual"></figure>
-    <p class="tl_help">CSV erstellt mit Tabellenkalkulationsprogramm (MS-Excel o.ä.)</p>
-<br>
-    <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual2.jpg" title="text-editor" style="width:100%" alt="manual"></figure>
-    <p class="tl_help">CSV erstellt mit einfachem Texteditor</p>
-<br>
-    <p class="tl_help">Mit MS-Excel oder einem Texteditor lässt sich eine kommaseparierte Textdatei anlegen (csv). In die erste Zeile gehören die Feldnamen. Die einzelnen Felder sollten durch ein Trennzeichen (üblicherweise das Semikolon ";") abgegrenzt werden. Feldinhalt, der in der Datenbank als serialisiertes Array abgelegt wird (z.B. Gruppenzugehörigkeiten), muss durch zwei aufeinanderfolgende pipe-Zeichen abgegrenzt werden z.B. "2||5". Feldbegrenzer und Feldtrennzeichen können individuell festgelegt werden. Wichtig! Jeder Datensatz gehört auf eine neue Zeile. Zeilenumbrüche im Datensatz verunmöglichen den Import.<br>Die erstellte csv-Datei muss über die Daeiverwaltung auf den Webserver geladen werden. Anschliessend kann der Importvorgang unter dem Splitbutton gestartet werden.</p>
-    <p class="tl_help">Beim Importvorgang werden die Inhalte auf Gültigkeit überprüft.</p>
-    <p class="tl_help">Achtung! Das Modul sollte nur genutzt werden, wenn man sich seiner Sache sehr sicher ist. Gelöschte Daten können nur wiederhergestellt werden, wenn vorher ein Datenbankbackup erstellt worden ist.</p>
+        $helpText = $this->translator->trans('tl_import_from_csv.infoText', [], 'contao_default');
 
-    <p><br>Weitere Hilfe gibt es unter: <a href="https://github.com/markocupic/import-from-csv-bundle">https://github.com/markocupic/import-from-csv-bundle</a></p>
+        return <<<EOT
+<div class="widget manual">
+  <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual.jpg" title="ms-excel" style="width:100%" alt="manual"></figure>
+  <p></p>
+  <figure class="image_container"><img src="bundles/markocupicimportfromcsv/manual2.jpg" title="text-editor" style="width:100%" alt="manual"></figure>
+  <p></p>
+  <p class="tl_help">$helpText</p>
 </div>
 EOT;
     }
@@ -162,7 +164,7 @@ EOT;
             $fileContent .= '<p class="tl_help">'.$line.'</p>';
         }
 
-        $fc = $GLOBALS['TL_LANG']['tl_import_from_csv']['fileContent'][0];
+        $fc = $this->translator->trans('tl_import_from_csv.fileContent.0', [], 'contao_default');
 
         return <<<EOT
 <div class="widget parsedFile">
@@ -181,32 +183,65 @@ EOT;
     {
         $bag = $this->session->getBag('contao_backend');
 
+        $langTitle = $this->translator->trans('tl_import_from_csv.importOverview', [], 'contao_default');
+        $langDatarecords = $this->translator->trans('tl_import_from_csv.datarecords', [], 'contao_default');
+        $langSuccessfullInserts = $this->translator->trans('tl_import_from_csv.successfullInserts', [], 'contao_default');
+        $langFailedInserts = $this->translator->trans('tl_import_from_csv.failedInserts', [], 'contao_default');
+        $langShowErrorsButton = $this->translator->trans('tl_import_from_csv.showErrorsButton', [], 'contao_default');
+        $langShowLabelAll = $this->translator->trans('tl_import_from_csv.showAllButton', [], 'contao_default');
+
         // Html
-        $html = '<div class="widget"><h2>Importübersicht:</h2>';
         $rows = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['rows'];
         $success = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['success'];
         $errors = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['errors'];
         $offset = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['offset'];
         $limit = $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['limit'];
 
+        $strTestmode = '';
+
         if ($bag[ImportFromCsv::SESSION_BAG_KEY]['status']['blnTestMode'] > 0) {
-            $html .= '<h3>Testmode: ON</h3><br>';
+            $strTestmode .= '<h3>Testmode: ON</h3><br>';
         }
 
-        $html .= sprintf('<p id="summary"><span>%s: %s</span><br><span>Offset: %s</span><br><span>Limit: %s</span><br><span class="allOk">%s: %s</span><br><span class="error">%s: %s</span></p>', $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'], $rows, $offset, $limit, $GLOBALS['TL_LANG']['tl_import_from_csv']['successful_inserts'], $success, $GLOBALS['TL_LANG']['tl_import_from_csv']['failed_inserts'], $errors);
+        $strHead = sprintf(
+            '<p id="summary"><br><span>%s: %s</span><br><span>Offset: %s</span><br><span>Limit: %s</span><br><span class="allOk">%s: %s</span><br><span class="error">%s: %s</span></p>',
+            $langDatarecords,
+            $rows,
+            $offset,
+            $limit,
+            $langSuccessfullInserts,
+            $success,
+            $langFailedInserts,
+            $errors
+        );
 
-        $html .= '<table id="reportTable" class="reportTable">';
+        $strHead .= sprintf(
+            '<p><button class="tl_submit showErrorButton" data-lblerroronly="%s" data-lblall="%s">%s</button></p>',
+            $langShowErrorsButton,
+            $langShowLabelAll,
+            $langShowErrorsButton,
+        );
+
+        $strRows = '';
 
         if (\is_array($bag[ImportFromCsv::SESSION_BAG_KEY]['report'])) {
             foreach ($bag[ImportFromCsv::SESSION_BAG_KEY]['report'] as $row) {
-                $html .= $row;
+                $strRows .= $row;
             }
         }
+
+        $html = sprintf(
+            '<div class="widget"><h2>%s:</h2>%s%s<table id="reportTable" class="reportTable">%s</table></div>',
+            $langTitle,
+            $strTestmode,
+            $strHead,
+            $strRows
+        );
 
         unset($bag[ImportFromCsv::SESSION_BAG_KEY]);
         $this->session->set('contao_backend', $bag);
 
-        return $html.'</table></div>';
+        return $html;
     }
 
     public function optionsCbGetTables(): array
@@ -276,8 +311,8 @@ EOT;
         $inputAdapter = $this->framework->getAdapter(Input::class);
 
         if ('edit' === $inputAdapter->get('act')) {
-            $arrButtons['saveNclose'] = '<button type="submit" name="saveNclose" id="saveNclose" class="tl_submit testButton" accesskey="n">'.$GLOBALS['TL_LANG']['tl_import_from_csv']['testRunImportButton'].'</button>';
-            $arrButtons['saveNcreate'] = '<button type="submit" name="saveNcreate" id="saveNcreate" class="tl_submit importButton" accesskey="n">'.$GLOBALS['TL_LANG']['tl_import_from_csv']['launchImportButton'].'</button>';
+            $arrButtons['saveNclose'] = '<button type="submit" name="saveNclose" id="saveNclose" class="tl_submit testButton" accesskey="n">'.$this->translator->trans('tl_import_from_csv.testRunImportButton', [], 'contao_default').'</button>';
+            $arrButtons['saveNcreate'] = '<button type="submit" name="saveNcreate" id="saveNcreate" class="tl_submit importButton" accesskey="n">'.$this->translator->trans('tl_import_from_csv.launchImportButton', [], 'contao_default').'</button>';
             unset($arrButtons['saveNduplicate']);
         }
 
