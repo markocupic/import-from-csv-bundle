@@ -28,6 +28,9 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as TwigEnvironment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 /**
  * Class TlImportFromCsv.
@@ -126,9 +129,11 @@ class TlImportFromCsv
     }
 
     /**
-     * @return string
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function generateExplanationMarkup()
+    public function generateExplanationMarkup(): string
     {
         return $this->twig->render(
             '@MarkocupicImportFromCsv/ImportFromCsv/help_text.html.twig',
@@ -139,7 +144,9 @@ class TlImportFromCsv
     }
 
     /**
-     * @throws \Exception
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function generateFileContentMarkup(): string
     {
@@ -176,6 +183,11 @@ class TlImportFromCsv
         );
     }
 
+    /**
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function generateReportMarkup(): string
     {
         $bag = $this->session->getBag('contao_backend');
@@ -226,10 +238,7 @@ class TlImportFromCsv
         return \is_array($arrTables) ? $arrTables : [];
     }
 
-    /**
-     * @return array
-     */
-    public function optionsCbSelectedFields()
+    public function optionsCbSelectedFields(): array
     {
         /** @var Database $databaseAdapter */
         $databaseAdapter = $this->framework->getAdapter(Database::class);
