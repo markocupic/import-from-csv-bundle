@@ -48,22 +48,6 @@ Mit einem updatesicheren Hook lässt sich die Validierung umgehen oder anpassen.
 
 
 
-
-In die src/Resources/contao/config.php schreibt man Folgendes:
-
-```php
-<?php
-
-/**
- * HOOKS
- */
-if (TL_MODE === 'BE' && \Contao\Input::get('do') === 'import_from_csv')
-{
-    $GLOBALS['TL_HOOKS']['importFromCsv'][] = array(Markocupic\ImportFromCsvBundle\Listener\ContaoHooks\ImportFromCsvExample::class, 'addGeolocation');
-}
-
-```
-
 Aufbau einer möglichen Hook-Klasse:
 
 ```php
