@@ -2,8 +2,8 @@
 
 Backend Modul für Contao 4
 
-Mit dem Modul lassen sich in einem Rutsch über eine csv-Datei massenhaft Datensätze importieren. Sehr praktisch, wenn z.B. sehr viele Benutzer oder Mitglieder generiert werden müssen.
-Die csv-Datei wird am besten in einem Tabellenkalkulationsprogramm  (excel o.ä.) erstellt und dann als kommaseparierte Datei (csv) abgespeichert.
+Mit dem Modul lassen sich in einem Rutsch über eine CSV Datei massenhaft Datensätze importieren. Sehr praktisch, wenn z.B. sehr viele Benutzer oder Mitglieder generiert werden müssen.
+Die CSV Datei wird am besten in einem Tabellenkalkulationsprogramm  (excel o.ä.) erstellt und dann als kommaseparierte Datei (csv) abgespeichert.
 Ein Beispiel für diese Datei findet sich im Verzeichnis vendor/markocupic/import-from-csv-bundle/Resources/contao/manual/example.csv.
 
 ## Warnung!
@@ -22,14 +22,14 @@ In der Datenbanktabelle wird nur in die ausgewählten Felder geschrieben. Meiste
 
 ### Felder getrennt von (Pflichtfeld)
 
-Geben Sie an, durch welches Zeichen in der csv-Datei die Feldinhalte voneinander getrennt sind.
+Geben Sie an, durch welches Zeichen in der CSV Datei die Feldinhalte voneinander getrennt sind.
 
 ### Felder eingeschlossen von (Pflichtfeld)
 
-Kontrollieren Sie, ob in der csv-Datei die Feldinhalte noch zusätzlich von einem Zeichen eingeschlossen sind. Oft ist das das doppelte Anführungszeichen. => "
+Kontrollieren Sie, ob in der CSV Datei die Feldinhalte noch zusätzlich von einem Zeichen eingeschlossen sind. Oft ist das das doppelte Anführungszeichen. => "
 
 ### Import Modus (Pflichtfeld)
-Legen Sie fest, ob die Datensätze aus der csv-Datei in der Zieltabelle angehängt werden oder die Zieltabelle vorher geleert werden soll (alter table). Achtung! Gelöschte Datensätze lassen sich, wenn kein Backup vorhanden, nicht mehr wiederherstellen.
+Legen Sie fest, ob die Datensätze aus der CSV Datei in der Zieltabelle angehängt werden oder die Zieltabelle vorher geleert werden soll (alter table). Achtung! Gelöschte Datensätze lassen sich, wenn kein Backup vorhanden, nicht mehr wiederherstellen.
 
 ### Datei auswählen (Pflichtfeld)
 
@@ -37,7 +37,7 @@ Abschliessend wählen Sie die Datei aus, aus der in die Datenbank geschrieben we
 Tipp: Wenn Sie die Datei ausgewählt haben, klicken Sie voher auf "Speichern" um eine Vorschau des Dateiinhalts zu bekommen.
 
 ### Zeilenumbrüche
-Alle [NEWLINE] tags in der csv-Datei werden beim Import-Vorgang in \r\n bzw. \n umgewandelt.
+Alle [NEWLINE] tags in der CSV Datei werden beim Import-Vorgang in \r\n bzw. \n umgewandelt.
 
 ### Cronjob
 Auf Wunsch kann CRON aktiviert werden. Der Import kann dadurch in einem festgelegten Intervall automatisch ausgeführt werden.
@@ -45,7 +45,6 @@ Auf Wunsch kann CRON aktiviert werden. Der Import kann dadurch in einem festgele
 ## Importmechanismus über Hook anpassen
 
 Mit einem updatesicheren Hook lässt sich die Validierung umgehen oder anpassen. Im folgenden Beispiel sollen die Geokoordinaten beim Import anhand von Strasse, Stadt und Länderkürzel automatisch per Curl-Request von GoogleMaps bezogen werden. Die Koordinaten werden danach in $arrCustomValidation['value'] gespeichert und das Array am Ende der Methode als Methodenrückgabewert zurückgegeben. Auch lassen sich Fehlermeldungen generieren, wenn z.B. keine Geokoordinaten ermittelt werden konnten. Dadurch wird der Datensatz übersprungen und nicht in die Datenbank geschrieben.
-
 
 
 Aufbau einer möglichen Hook-Klasse:
