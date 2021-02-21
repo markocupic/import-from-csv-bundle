@@ -198,7 +198,7 @@ class TlImportFromCsv
             'is_testmode' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['blnTestMode'] > 0 ? true : false,
         ];
 
-        $arrReport = \is_array($bag[ImportFromCsv::SESSION_BAG_KEY]['report']);
+        $arrReport = $bag[ImportFromCsv::SESSION_BAG_KEY]['report'];
         $arrRows = \is_array($arrReport) ? $arrReport : [];
 
         unset($bag[ImportFromCsv::SESSION_BAG_KEY]);
@@ -259,11 +259,12 @@ class TlImportFromCsv
         }
 
         $arrOptions = [];
+
         foreach ($arrFields as $fieldname => $arrField) {
             if (!isset($fieldname)) {
                 continue;
             }
-            
+
             $sql = $arrField['sql'] ?? '';
 
             $arrOptions[$fieldname] = sprintf('%s [%s]', $fieldname, $sql);
