@@ -181,8 +181,9 @@ class TlImportFromCsv
         $bag = $this->session->getBag('contao_backend');
 
         $arrHead = [
-            // labels/title
+            // Title
             'lang_title' => $this->translator->trans('tl_import_from_csv.importOverview', [], 'contao_default'),
+            // Labels
             'lang_datarecords' => $this->translator->trans('tl_import_from_csv.datarecords', [], 'contao_default'),
             'lang_successfull_inserts' => $this->translator->trans('tl_import_from_csv.successfullInserts', [], 'contao_default'),
             'lang_failed_inserts' => $this->translator->trans('tl_import_from_csv.failedInserts', [], 'contao_default'),
@@ -194,16 +195,11 @@ class TlImportFromCsv
             'count_errors' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['errors'],
             'int_offset' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['offset'],
             'int_limit' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['limit'],
-            'bln_testmode' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['blnTestMode'] > 0 ? true : false,
+            'is_testmode' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['blnTestMode'] > 0 ? true : false,
         ];
 
-        $arrRows = [];
-
-        if (\is_array($bag[ImportFromCsv::SESSION_BAG_KEY]['report'])) {
-            foreach ($bag[ImportFromCsv::SESSION_BAG_KEY]['report'] as $row) {
-                $arrRows[] = $row;
-            }
-        }
+        $arrReport = \is_array($bag[ImportFromCsv::SESSION_BAG_KEY]['report']);
+        $arrRows = \is_array($arrReport) ? $arrReport : [];
 
         unset($bag[ImportFromCsv::SESSION_BAG_KEY]);
         $this->session->set('contao_backend', $bag);
@@ -222,18 +218,12 @@ class TlImportFromCsv
         /** @var Database $databaseAdapter */
         $databaseAdapter = $this->framework->getAdapter(Database::class);
 
-        $objTables = $databaseAdapter
+        $arrTables = $databaseAdapter
             ->getInstance()
             ->listTables()
         ;
 
-        $arrOptions = [];
-
-        foreach ($objTables as $table) {
-            $arrOptions[] = $table;
-        }
-
-        return $arrOptions;
+        return \is_array($arrTables) ? $arrTables : [];
     }
 
     /**
@@ -256,31 +246,27 @@ class TlImportFromCsv
             ->execute($inputAdapter->get('id'))
         ;
 
-        $arrOptions = [];
-
         if ('' === $objDb->import_table) {
-            return $arrOptions;
+            return [];
         }
 
         $controllerAdapter->loadDataContainer($objDb->import_table);
 
-        $arrFields = $databaseAdapter
-            ->getInstance()
-            ->listFields($objDb->import_table)
-        ;
+        $arrFields = $GLOBALS['TL_DCA'][$objDb->import_table]['fields'];
 
-        foreach ($arrFields as $field) {
-            if (!isset($GLOBALS['TL_DCA'][$objDb->import_table]['fields'][$field['name']])) {
+        if (!isset($arrFields) || !\is_array($arrFields)) {
+            return [];
+        }
+
+        $arrOptions = [];
+        foreach ($arrFields as $fieldname => $arrField) {
+            if (!isset($fieldname)) {
                 continue;
             }
+            
+            $sql = $arrField['sql'] ?? '';
 
-            if (\in_array($field['name'], $arrOptions, true)) {
-                continue;
-            }
-
-            $sql = $GLOBALS['TL_DCA'][$objDb->import_table]['fields'][$field['name']]['sql'];
-
-            $arrOptions[$field['name']] = $field['name'].' ['.$sql.']';
+            $arrOptions[$fieldname] = sprintf('%s [%s]', $fieldname, $sql);
         }
 
         return $arrOptions;
