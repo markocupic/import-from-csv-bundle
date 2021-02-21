@@ -33,8 +33,8 @@ Legen Sie fest, ob die Datensätze aus der csv-Datei in der Zieltabelle angehän
 
 ### Datei auswählen (Pflichtfeld)
 
-Abschliessend wählen Sie die Datei aus, von der in die Datenbank geschrieben werden soll.
-Tipp: Wenn Sie die Datei ausgewählt haben, klicken Sie voher auf "Speichern" und Sie kriegen eine Vorschau.
+Abschliessend wählen Sie die Datei aus, aus der in die Datenbank geschrieben werden soll.
+Tipp: Wenn Sie die Datei ausgewählt haben, klicken Sie voher auf "Speichern" um eine Vorschau des Dateiinhalts zu bekommen.
 
 ### Zeilenumbrüche
 Alle [NEWLINE] tags in der csv-Datei werden beim Import-Vorgang in \r\n bzw. \n umgewandelt.
