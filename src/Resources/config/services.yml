@@ -3,9 +3,19 @@ services:
   Markocupic\ImportFromCsvBundle\Import\ImportFromCsv:
     arguments:
       - '@contao.framework'
+      - '@translator'
       - '@session'
       - '@security.encoder_factory'
+      - '@Markocupic\ImportFromCsvBundle\Import\Field\FieldFactory'
       - '%kernel.project_dir%'
+    public: true
+
+  Markocupic\ImportFromCsvBundle\Import\Field\FieldFactory:
+    arguments:
+      - '@Markocupic\ImportFromCsvBundle\Import\Field\Field'
+    public: true
+
+  Markocupic\ImportFromCsvBundle\Import\Field\Field:
     public: true
 
   Markocupic\ImportFromCsvBundle\Cron\Cron:

@@ -70,6 +70,9 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Listener\ContaoHooks;
 
+use Markocupic\ImportFromCsvBundle\Import\Field\Field;
+use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
+
 /**
  * Class ImportFromCsvHookExample.
  */
@@ -80,40 +83,20 @@ class ImportFromCsvHookExample
      */
     private $curlErrorMsg;
 
-    /**
-     * @param null $objBackendModule
-     */
-    public function addGeolocation(array $arrCustomValidation, $objBackendModule = null): array
+    public function addGeolocation(Field $objField, ImportFromCsv $objBackendModule = null): void
     {
-        /**
-         * $arrCustomValidation = array(.
-         *
-         * 'strTable' => 'tablename',
-         * 'arrDCA' => 'Datacontainer array (DCA) of the current field.',
-         * 'fieldname' => 'fieldname',
-         * 'value' => 'value',
-         * 'arrayLine' => 'Contains the current line/dataset as associative array.',
-         * 'line' => 'current line in the csv-spreadsheet',
-         * 'objCsvFile' => 'the Contao file object'
-         * 'objCsvReader => 'the League\Csv\Reader object
-         * 'skipWidgetValidation' => 'Skip widget-input-validation? (default is set to false)',
-         * 'hasErrors' => 'Should be set to true if custom validation fails. (default is set to false)',
-         * 'errorMsg' => 'Define a custom text message if custom validation fails.',
-         * 'doNotSave' => 'Set this item to true if you don't want to save the datarecord into the database. (default is set to false)',
-         * 'blnTestMode' => 'If set to 'true' the import runs in test mode, and there will be no inserts. (default is set to false)'
-         * );
-         */
-
         // tl_member
-        if ('tl_member' === $arrCustomValidation['strTable']) {
+        if ('tl_member' === $objField->getTablename()) {
             // Get geolocation from a given address
-            if ('geolocation' === $arrCustomValidation['fieldname']) {
+            if ('geolocation' === $objField->getName()) {
                 // Do custom validation and skip the Contao-Widget-Input-Validation
-                $arrCustomValidation['skipWidgetValidation'] = true;
+                $objField->setSkipWidgetValidation(true);
 
-                $strStreet = $arrCustomValidation['arrayLine']['street'];
-                $strCity = $arrCustomValidation['arrayLine']['city'];
-                $strCountry = $arrCustomValidation['arrayLine']['country'];
+                $arrRecord = $objField->getRecord();
+
+                $strStreet = $arrRecord['street'];
+                $strCity = $arrRecord['city'];
+                $strCountry = $arrRecord['country'];
 
                 $strStreet = str_replace(' ', '+', $strStreet);
                 $strCity = str_replace(' ', '+', $strCity);
@@ -126,22 +109,17 @@ class ImportFromCsvHookExample
                     $latPos = $arrPos['results'][0]['geometry']['location']['lat'];
                     $lngPos = $arrPos['results'][0]['geometry']['location']['lng'];
 
-                    // Save geolocation in $arrCustomValidation['value']
-                    $arrCustomValidation['value'] = $latPos.','.$lngPos;
+                    $objField->setValue($latPos.','.$lngPos);
                 } else {
                     // Error handling
                     if ('' !== $this->curlErrorMsg) {
-                        $arrCustomValidation['errorMsg'] = $this->curlErrorMsg;
+                        $objField->addError($this->curlErrorMsg);
                     } else {
-                        $arrCustomValidation['errorMsg'] = sprintf('Setting geolocation for (%s) failed!', $strAddress);
+                        $objField->addError(sprintf('Setting geolocation for (%s) failed!', $strAddress));
                     }
-                    $arrCustomValidation['hasErrors'] = true;
-                    $arrCustomValidation['doNotSave'] = true;
                 }
             }
         }
-
-        return $arrCustomValidation;
     }
 
     /**
@@ -184,6 +162,7 @@ class ImportFromCsvHookExample
         return $arrOutput;
     }
 }
+
 
 ```
 
