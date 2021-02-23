@@ -1,21 +1,21 @@
 
-.tl_formbody_submit .tl_submit.importButton {
+.tl_formbody_submit .tl_submit.import-button {
     color: #fff;
     background: #cc0000;
     text-shadow: 0 0 #fff;
 }
 
-.tl_formbody_submit .tl_submit.importButton:hover {
+.tl_formbody_submit .tl_submit.import-button:hover {
     background: #cc0000;
 }
 
-.tl_formbody_submit .tl_submit.testButton {
+.tl_formbody_submit .tl_submit.import-test-button {
     color: #fff;
     background: #006600;
     text-shadow: 0 0 #fff;
 }
 
-.tl_formbody_submit .tl_submit.testButton:hover {
+.tl_formbody_submit .tl_submit.import-test-button:hover {
     background: #003300;
 }
 

@@ -37,7 +37,7 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['new'][0] = 'Add new import';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['new'][1] = 'Add a new import';
 
 // Buttons
-$GLOBALS['TL_LANG']['tl_import_from_csv']['launchImportButton'] = 'Launch import process';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['runImportButton'] = 'Launch import process';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['testRunImportButton'] = 'Launch  import in test mode';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['showErrorsButton'] = 'Show failed inserts only';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['showAllButton'] = 'Show all inserts';

@@ -95,22 +95,26 @@ class TlImportFromCsv
         $request = $this->requestStack->getCurrentRequest();
         $bag = $this->session->getBag('contao_backend');
 
-        if ($request->request->has('saveNcreate') || $request->request->has('saveNclose') && 'tl_import_from_csv' === $request->request->get('FORM_SUBMIT') && 'auto' !== $request->request->get('SUBMIT_TYPE') && !isset($bag[ImportFromCsv::SESSION_BAG_KEY])) {
-            $blnTestMode = false;
+        if ('tl_import_from_csv' === $request->request->get('FORM_SUBMIT') && 'auto' !== $request->request->get('SUBMIT_TYPE')) {
+            if (!isset($bag[ImportFromCsv::SESSION_BAG_KEY])) {
+                if ($request->request->has('import') || $request->request->has('importTest')) {
+                    $blnTestMode = false;
 
-            if ($request->request->has('saveNcreate')) {
-                $request->request->remove('saveNcreate');
-                // Otherwise contao will save & create
-                unset($_POST['saveNcreate']);
-            }
+                    if ($request->request->has('importTest')) {
+                        $blnTestMode = true;
+                    }
+                    // Set $_POST['save'] thus the input will be saved
+                    $request->request->set('save',true);
 
-            if ($request->request->has('saveNclose')) {
-                $blnTestMode = true;
-                $request->request->remove('saveNclose');
-                // Otherwise contao will save & close
-                unset($_POST['saveNclose']);
+                    // Lauch import script
+                    $this->initImport($blnTestMode);
+                }
             }
-            $this->initImport($blnTestMode);
+        }
+
+        // Set report mode
+        if (isset($bag[ImportFromCsv::SESSION_BAG_KEY]) && !$request->request->has('FORM_SUBMIT')) {
+            $this->reportTableMode = true;
         }
     }
 
@@ -121,9 +125,6 @@ class TlImportFromCsv
         $bag = $this->session->getBag('contao_backend');
 
         if (isset($bag[ImportFromCsv::SESSION_BAG_KEY]) && !$request->request->has('FORM_SUBMIT')) {
-            // Set  $this->reportTableMode to true. This is used in the buttonsCallback
-            $this->reportTableMode = true;
-
             $GLOBALS['TL_DCA']['tl_import_from_csv']['palettes']['default'] = $GLOBALS['TL_DCA']['tl_import_from_csv']['palettes']['report'];
         }
     }
@@ -288,14 +289,14 @@ class TlImportFromCsv
         $inputAdapter = $this->framework->getAdapter(Input::class);
 
         if ('edit' === $inputAdapter->get('act')) {
-            $arrButtons['saveNclose'] = '<button type="submit" name="saveNclose" id="saveNclose" class="tl_submit testButton" accesskey="n">'.$this->translator->trans('tl_import_from_csv.testRunImportButton', [], 'contao_default').'</button>';
-            $arrButtons['saveNcreate'] = '<button type="submit" name="saveNcreate" id="saveNcreate" class="tl_submit importButton" accesskey="n">'.$this->translator->trans('tl_import_from_csv.launchImportButton', [], 'contao_default').'</button>';
-            unset($arrButtons['saveNduplicate']);
+            $arrButtons['importTest'] = '<button type="submit" name="importTest" id="importTestBtn" class="tl_submit import-test-button" accesskey="t">'.$this->translator->trans('tl_import_from_csv.testRunImportButton', [], 'contao_default').'</button>';
+            $arrButtons['import'] = '<button type="submit" name="import" id="importBtn" class="tl_submit import-button" accesskey="i">'.$this->translator->trans('tl_import_from_csv.runImportButton', [], 'contao_default').'</button>';
+            unset($arrButtons['saveNduplicate'], $arrButtons['saveNcreate'], $arrButtons['saveNclose']);
         }
 
         // Remove buttons in reportTable view
         if (true === $this->reportTableMode) {
-            unset($arrButtons['save'], $arrButtons['saveNclose'], $arrButtons['saveNcreate'], $arrButtons['saveNduplicate']);
+            $arrButtons = [];
         }
 
         return $arrButtons;
