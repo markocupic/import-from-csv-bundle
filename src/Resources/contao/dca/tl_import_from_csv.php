@@ -23,6 +23,10 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 		'onload_callback' => array(
 			array(
 				TlImportFromCsv::class,
+				'route',
+			),
+			array(
+				TlImportFromCsv::class,
 				'setPalettes',
 			),
 		),

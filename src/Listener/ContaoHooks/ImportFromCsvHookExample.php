@@ -31,7 +31,7 @@ class ImportFromCsvHookExample
      */
     private $curlErrorMsg;
 
-    public function addGeolocation(Field $objField, ImportFromCsv $objBackendModule = null): void
+    public function addGeolocation(Field $objField, int $line, ImportFromCsv $objBackendModule = null): void
     {
         // tl_member
         if ('tl_member' === $objField->getTablename()) {

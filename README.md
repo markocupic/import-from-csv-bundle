@@ -44,7 +44,7 @@ Auf Wunsch kann CRON aktiviert werden. Der Import kann dadurch in einem festgele
 
 ## Importmechanismus über Hook anpassen
 
-Mit einem updatesicheren Hook lässt sich die Validierung umgehen oder anpassen. Im folgenden Beispiel sollen die Geokoordinaten beim Import anhand von Strasse, Stadt und Länderkürzel automatisch per Curl-Request von GoogleMaps bezogen werden. Die Koordinaten werden danach in $arrCustomValidation['value'] gespeichert und das Array am Ende der Methode als Methodenrückgabewert zurückgegeben. Auch lassen sich Fehlermeldungen generieren, wenn z.B. keine Geokoordinaten ermittelt werden konnten. Dadurch wird der Datensatz übersprungen und nicht in die Datenbank geschrieben.
+Mit einem updatesicheren Hook lässt sich die Validierung umgehen oder anpassen. Im folgenden Beispiel sollen die Geokoordinaten beim Import anhand von Strasse, Stadt und Länderkürzel automatisch per Curl-Request von GoogleMaps bezogen werden. Auch lassen sich Fehlermeldungen generieren, wenn z.B. keine Geokoordinaten ermittelt werden konnten. Dadurch wird der Datensatz übersprungen und nicht in die Datenbank geschrieben.
 
 
 Aufbau einer möglichen Hook-Klasse:
@@ -83,7 +83,7 @@ class ImportFromCsvHookExample
      */
     private $curlErrorMsg;
 
-    public function addGeolocation(Field $objField, ImportFromCsv $objBackendModule = null): void
+    public function addGeolocation(Field $objField, int $line, ImportFromCsv $objBackendModule = null): void
     {
         // tl_member
         if ('tl_member' === $objField->getTablename()) {

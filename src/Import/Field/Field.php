@@ -14,8 +14,6 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Import\Field;
 
-use Contao\Widget;
-
 class Field
 {
     private $tablename;
@@ -30,17 +28,11 @@ class Field
 
     private $inputType = 'text';
 
-    private $widget;
-
     private $skipWidgetValidation = false;
 
     private $arrErrors = [];
 
     private $doNotSave = false;
-
-    public function __construct()
-    {
-    }
 
     /**
      * @return $this
@@ -89,11 +81,6 @@ class Field
         return $this->inputType;
     }
 
-    public function getWidget(): Widget
-    {
-        return $this->widget;
-    }
-
     public function getSkipWidgetValidation(): bool
     {
         return $this->skipWidgetValidation;
@@ -107,10 +94,6 @@ class Field
     public function setValue(?string $value): void
     {
         $this->fieldvalue = $value;
-
-        if ($this->widget) {
-            $this->widget->value = $value;
-        }
     }
 
     public function setDca(array $dca): void
@@ -121,15 +104,6 @@ class Field
     public function setInputType(string $inputType): void
     {
         $this->inputType = $inputType;
-
-        if ($this->widget) {
-            $this->widget->inputType = $inputType;
-        }
-    }
-
-    public function setWidget(Widget $widget): void
-    {
-        $this->widget = $widget;
     }
 
     public function setSkipWidgetValidation(bool $skip): void
@@ -140,10 +114,6 @@ class Field
     public function setDoNotSave(bool $doNotSave): void
     {
         $this->doNotSave = $doNotSave;
-
-        if ($this->widget) {
-            $this->widget->doNotSave = $doNotSave;
-        }
     }
 
     public function addError(string $msg): void

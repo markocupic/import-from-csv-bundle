@@ -17,6 +17,7 @@ namespace Markocupic\ImportFromCsvBundle\Dca;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\Database;
+use Contao\DataContainer;
 use Contao\DC_Table;
 use Contao\File;
 use Contao\FilesModel;
@@ -79,8 +80,6 @@ class TlImportFromCsv
 
     /**
      * TlImportFromCsv constructor.
-     *
-     * @throws Exception
      */
     public function __construct(ContaoFramework $framework, RequestStack $requestStack, SessionInterface $session, TranslatorInterface $translator, TwigEnvironment $twig, ImportFromCsv $importer, string $projectDir)
     {
@@ -92,6 +91,13 @@ class TlImportFromCsv
         $this->importer = $importer;
         $this->projectDir = $projectDir;
 
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function route(DataContainer $dc): void
+    {
         $request = $this->requestStack->getCurrentRequest();
         $bag = $this->session->getBag('contao_backend');
 
@@ -104,7 +110,7 @@ class TlImportFromCsv
                         $blnTestMode = true;
                     }
                     // Set $_POST['save'] thus the input will be saved
-                    $request->request->set('save',true);
+                    $request->request->set('save', true);
 
                     // Lauch import script
                     $this->initImport($blnTestMode);
@@ -118,7 +124,7 @@ class TlImportFromCsv
         }
     }
 
-    public function setPalettes(): void
+    public function setPalettes(DataContainer $dc): void
     {
         $request = $this->requestStack->getCurrentRequest();
 
@@ -289,8 +295,11 @@ class TlImportFromCsv
         $inputAdapter = $this->framework->getAdapter(Input::class);
 
         if ('edit' === $inputAdapter->get('act')) {
+            // Add import buttons
             $arrButtons['importTest'] = '<button type="submit" name="importTest" id="importTestBtn" class="tl_submit import-test-button" accesskey="t">'.$this->translator->trans('tl_import_from_csv.testRunImportButton', [], 'contao_default').'</button>';
             $arrButtons['import'] = '<button type="submit" name="import" id="importBtn" class="tl_submit import-button" accesskey="i">'.$this->translator->trans('tl_import_from_csv.runImportButton', [], 'contao_default').'</button>';
+
+            // Hide buttons
             unset($arrButtons['saveNduplicate'], $arrButtons['saveNcreate'], $arrButtons['saveNclose']);
         }
 

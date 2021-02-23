@@ -28,6 +28,7 @@ use Contao\Widget;
 use League\Csv\Exception;
 use League\Csv\Reader;
 use League\Csv\Statement;
+use Markocupic\ImportFromCsvBundle\Import\Field\Field;
 use Markocupic\ImportFromCsvBundle\Import\Field\FieldFactory;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
@@ -261,17 +262,10 @@ class ImportFromCsv
                     $objField->setInputType('checkbox');
                 }
 
-                // Use form widgets for input validation
-                $objWidget = $this->getWidgetFromInputType($objField->getInputType(), $objField->getName(), $objField->getValue(), $objField->getDca());
-
-                if (null !== $objWidget && false === $objField->getSkipWidgetValidation()) {
-                    $objField->setWidget($objWidget);
-                }
-
                 // HOOK: add custom validation
                 if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && \is_array($GLOBALS['TL_HOOKS']['importFromCsv'])) {
                     foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback) {
-                        $systemAdapter->importStatic($callback[0])->{$callback[1]}($objField, $this);
+                        $systemAdapter->importStatic($callback[0])->{$callback[1]}($objField, $line, $this);
                     }
 
                     if ($objField->hasErrors()) {
@@ -285,14 +279,17 @@ class ImportFromCsv
                 }
 
                 // Use form widgets for input validation
-                if ($objField->getWidget() && !$objField->getSkipWidgetValidation()) {
+                $objWidget = $this->getWidgetFromInputType($objField->getInputType(), $objField->getName(), $objField->getValue(), $objField->getDca());
+
+                // Use form widgets for input validation
+                if ($objWidget && !$objField->getSkipWidgetValidation()) {
                     // Set POST, so the content can be validated
                     $inputAdapter->setPost($objField->getName(), $objField->getValue());
 
                     // Special treatment for password
                     if ('password' === $objField->getInputType()) {
                         // @see Contao\FormPassword::construct() Line 66
-                        $objField->getWidget()->useRawRequestData = false;
+                        $objWidget->useRawRequestData = false;
                         $inputAdapter->setPost('password_confirm', $objField->getValue());
                     }
 
@@ -316,27 +313,27 @@ class ImportFromCsv
                         }
 
                         $inputAdapter->setPost($objField->getName(), $objField->getValue());
-                        $objField->getWidget()->value = $objField->getValue();
+                        $objWidget->value = $objField->getValue();
                     }
 
                     // !!! SECURITY !!! SKIP VALIDATION FOR SELECTED FIELDS
                     if (!\in_array($objField->getName(), $arrSkipValidationFields, true)) {
                         // Validate input
-                        $objField->getWidget()->validate();
+                        $objWidget->validate();
                     }
 
-                    $objField->setValue($objField->getWidget()->value);
+                    $objField->setValue($objWidget->value);
 
                     // Convert date formats into timestamps
                     $rgxp = $arrDcaField['eval']['rgxp'];
 
-                    if (('date' === $rgxp || 'time' === $rgxp || 'datim' === $rgxp) && '' !== $objField->getValue() && !$objField->getWidget()->hasErrors()) {
+                    if (('date' === $rgxp || 'time' === $rgxp || 'datim' === $rgxp) && '' !== $objField->getValue() && !$objWidget->hasErrors()) {
                         try {
                             $strTimeFormat = $configAdapter->get($rgxp.'Format');
                             $objDate = new Date($objField->getValue(), $strTimeFormat);
                             $objField->setValue($objDate->tstamp);
                         } catch (\OutOfBoundsException $e) {
-                            $objField->getWidget()->addError(sprintf($this->translator->trans('ERR.invalidDate', [], 'contao_default'), $objField->getValue()));
+                            $objWidget->addError(sprintf($this->translator->trans('ERR.invalidDate', [], 'contao_default'), $objField->getValue()));
                         }
                     }
 
@@ -344,20 +341,20 @@ class ImportFromCsv
                     if (!\in_array($objField->getName(), $arrSkipValidationFields, true)) {
                         // Make sure that unique fields are unique
                         if ($arrDcaField['eval']['unique'] && '' !== $objField->getValue() && !$databaseAdapter->getInstance()->isUniqueValue($objField->getTablename(), $objField->getName(), $objField->getValue(), null)) {
-                            $objField->getWidget()->addError(sprintf($this->translator->trans('ERR.unique', [], 'contao_default'), $arrDcaField['label'][0] ?: $objField->getName()));
+                            $objWidget->addError(sprintf($this->translator->trans('ERR.unique', [], 'contao_default'), $arrDcaField['label'][0] ?: $objField->getName()));
                         }
                     }
 
                     // Do not save the field if there are errors
-                    if ($objField->getWidget()->hasErrors()) {
+                    if ($objWidget->hasErrors()) {
                         $doNotSave = true;
 
-                        $value = sprintf('"%s" => <span class="errMsg">%s</span>', $objField->getValue(), $objField->getWidget()->getErrorsAsString());
+                        $value = sprintf('"%s" => <span class="errMsg">%s</span>', $objField->getValue(), $objWidget->getErrorsAsString());
                         $objField->setValue($value);
                     } else {
                         // Set the correct empty value
                         if ('' === $objField->getValue()) {
-                            $objField->setValue($objField->getWidget()->getEmptyValue());
+                            $objField->setValue($objWidget->getEmptyValue());
                             // Set the correct empty value
                             if (empty($objField->getValue())) {
                                 /*
@@ -422,44 +419,20 @@ class ImportFromCsv
                     }
                 }
 
-                // Add new member to newsletter recipient list
-                if ('tl_member' === $objField->getTablename() && '' !== $set['email'] && '' !== $set['newsletter']) {
-                    foreach ($stringUtilAdapter->deserialize($set['newsletter'], true) as $newsletterId) {
-                        // Check for unique email-address
-                        $objRecipient = $databaseAdapter->getInstance()->prepare('SELECT * FROM tl_newsletter_recipients WHERE email=? AND pid=(SELECT pid FROM tl_newsletter_recipients WHERE id=?) AND id!=?')->execute($set['email'], $newsletterId, $newsletterId);
-
-                        if (!$objRecipient->numRows) {
-                            $arrRecipient = [];
-                            $arrRecipient['tstamp'] = time();
-                            $arrRecipient['pid'] = $newsletterId;
-                            $arrRecipient['email'] = $set['email'];
-                            $arrRecipient['active'] = '1';
-
-                            if (true !== $blnTestMode) {
-                                $databaseAdapter
-                                    ->getInstance()
-                                    ->prepare('INSERT INTO tl_newsletter_recipients %s')
-                                    ->set($arrRecipient)
-                                    ->execute()
-                                ;
-                            }
-                        }
-                    }
+                // Add to newsletter
+                if (!empty($set['newsletter']) && !empty($set['email'])) {
+                    $this->addNewMemberToNewsletterRecipientList($objField, $set['newsletter'], $set['email']);
                 }
 
-                try {
-                    if (true !== $blnTestMode) {
-                        // Insert entry into database
-                        $databaseAdapter
-                            ->getInstance()
-                            ->prepare('INSERT INTO '.$objField->getTablename().' %s')
-                            ->set($set)
-                            ->execute()
-                        ;
-                    }
-                } catch (\Exception $e) {
-                    $set['insertError'] = $e->getMessage();
-                    $doNotSave = true;
+                // Insert datarecord
+                if (true !== $this->arrData['blnTestMode']) {
+                    // Insert entry into database
+                    $databaseAdapter
+                        ->getInstance()
+                        ->prepare('INSERT INTO '.$objField->getTablename().' %s')
+                        ->set($set)
+                        ->execute()
+                    ;
                 }
             }
 
@@ -496,7 +469,7 @@ class ImportFromCsv
         if (TL_MODE === 'BE') {
             $bag = $this->session->getBag('contao_backend');
             $bag[self::SESSION_BAG_KEY]['status'] = [
-                'blnTestMode' => $blnTestMode ? true : false,
+                'blnTestMode' => $blnTestMode,
                 'rows' => $countInserts,
                 'success' => $countInserts - $insertError,
                 'errors' => $insertError,
@@ -546,5 +519,40 @@ class ImportFromCsv
         }
 
         return null;
+    }
+
+    private function addNewMemberToNewsletterRecipientList($objField, string $newsletter, string $email): void
+    {
+        $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
+
+        $databaseAdapter = $this->framework->getAdapter(Database::class);
+
+        // Add new member to newsletter recipient list
+        if ('tl_member' === $objField->getTablename() && '' !== $email && '' !== $newsletter) {
+            foreach ($stringUtilAdapter->deserialize($newsletter, true) as $newsletterId) {
+                // Check for unique email-address
+                $objRecipient = $databaseAdapter->getInstance()
+                    ->prepare('SELECT * FROM tl_newsletter_recipients WHERE email=? AND pid=(SELECT pid FROM tl_newsletter_recipients WHERE id=?) AND id!=?')
+                    ->execute($email, $newsletterId, $newsletterId)
+                ;
+
+                if (!$objRecipient->numRows) {
+                    $arrRecipient = [];
+                    $arrRecipient['tstamp'] = time();
+                    $arrRecipient['pid'] = $newsletterId;
+                    $arrRecipient['email'] = $email;
+                    $arrRecipient['active'] = '1';
+
+                    if (true !== $blnTestMode) {
+                        $databaseAdapter
+                            ->getInstance()
+                            ->prepare('INSERT INTO tl_newsletter_recipients %s')
+                            ->set($arrRecipient)
+                            ->execute()
+                    ;
+                    }
+                }
+            }
+        }
     }
 }
