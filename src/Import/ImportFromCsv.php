@@ -102,6 +102,7 @@ class ImportFromCsv
      */
     public function importCsv(File $objCsvFile, string $tablename, string $strImportMode, array $arrSelectedFields = [], string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = [], int $intOffset = 0, int $intLimit = 0): void
     {
+      
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
@@ -491,11 +492,6 @@ class ImportFromCsv
         return null;
     }
 
-    /**
-     * @param string $tablename
-     * @param string $fieldname
-     * @return array
-     */
     private function getDca(string $tablename, string $fieldname): array
     {
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
@@ -505,13 +501,6 @@ class ImportFromCsv
         return \is_array($arrDcaField) ? $arrDcaField : [];
     }
 
-    /**
-     * @param string $inputType
-     * @param string $fieldname
-     * @param string|null $value
-     * @param array $arrDca
-     * @return Widget|null
-     */
     private function getWidgetFromInputType(string $inputType, string $fieldname, ?string $value, array $arrDca): ?Widget
     {
         $strClass = &$GLOBALS['TL_FFL'][$inputType];
@@ -524,12 +513,9 @@ class ImportFromCsv
     }
 
     /**
-     * @param $objField
-     * @param string $newsletter
-     * @param string $email
      * @throws \Doctrine\DBAL\Exception
      */
-    private function addNewMemberToNewsletterRecipientList($objField, string $newsletter, string $email): void
+    private function addNewMemberToNewsletterRecipientList(Field $objField, string $newsletter, string $email): void
     {
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
@@ -561,11 +547,6 @@ class ImportFromCsv
         }
     }
 
-    /**
-     * @param string $strColumn
-     * @param string $strTable
-     * @return bool
-     */
     private function hasColumn(string $strColumn, string $strTable): bool
     {
         $schemaManager = $this->connection->getSchemaManager();
@@ -589,13 +570,13 @@ class ImportFromCsv
 
         $qb->select('id')
             ->from($strTable, 't')
-            ->where($strColumn.' = ?')
-            ->setParameter(0, $value)
+            ->where('t.'.$strColumn.' = :value')
+            ->setParameter('value', $value)
         ;
 
         if (null !== $intId) {
-            $qb->andWhere('id != ?');
-            $qb->setParameter(1, $intId);
+            $qb->andWhere('t.id != :id');
+            $qb->setParameter('id', $intId);
         }
 
         $qb->setMaxResults(1);
