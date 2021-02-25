@@ -102,7 +102,6 @@ class ImportFromCsv
      */
     public function importCsv(File $objCsvFile, string $tablename, string $strImportMode, array $arrSelectedFields = [], string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = [], int $intOffset = 0, int $intLimit = 0): void
     {
-      
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
@@ -333,7 +332,12 @@ class ImportFromCsv
                             $objDate = new Date($objField->getValue(), $strTimeFormat);
                             $objField->setValue($objDate->tstamp);
                         } catch (\OutOfBoundsException $e) {
-                            $objWidget->addError(sprintf($this->translator->trans('ERR.invalidDate', [], 'contao_default'), $objField->getValue()));
+                            $objWidget->addError(
+                                sprintf(
+                                    $this->translator->trans('ERR.invalidDate', [], 'contao_default'),
+                                    $objField->getValue()
+                                )
+                            );
                         }
                     }
 
@@ -341,7 +345,12 @@ class ImportFromCsv
                     if (!\in_array($objField->getName(), $arrSkipValidationFields, true)) {
                         // Make sure that unique fields are unique
                         if ($arrDcaField['eval']['unique'] && '' !== $objField->getValue() && !$this->isUniqueValue($objField->getTablename(), $objField->getName(), $objField->getValue())) {
-                            $objWidget->addError(sprintf($this->translator->trans('ERR.unique', [], 'contao_default'), $arrDcaField['label'][0] ?: $objField->getName()));
+                            $objWidget->addError(
+                                sprintf(
+                                    $this->translator->trans('ERR.unique', [], 'contao_default'),
+                                    $arrDcaField['label'][0] ?: $objField->getName()
+                                )
+                            );
                         }
                     }
 
@@ -349,7 +358,11 @@ class ImportFromCsv
                     if ($objWidget->hasErrors()) {
                         $doNotSave = true;
 
-                        $value = sprintf('"%s" => <span class="errMsg">%s</span>', $objField->getValue(), $objWidget->getErrorsAsString());
+                        $value = sprintf(
+                            '"%s" => <span class="errMsg">%s</span>',
+                            $objField->getValue(),
+                            $objWidget->getErrorsAsString()
+                        );
                         $objField->setValue($value);
                     } else {
                         // Set the correct empty value
@@ -437,19 +450,34 @@ class ImportFromCsv
 
             if ($doNotSave) {
                 $cssClass = 'error';
-                $htmlReport .= sprintf('<tr class="%s"><td class="tdTitle" colspan="2">#%s %s</td></tr>', $cssClass, $line, $this->translator->trans('tl_import_from_csv.datarecordInsertFailed', [], 'contao_default'));
+                $htmlReport .= sprintf(
+                    '<tr class="%s"><td class="tdTitle" colspan="2">#%s %s</td></tr>',
+                    $cssClass,
+                    $line,
+                    $this->translator->trans('tl_import_from_csv.datarecordInsertFailed', [], 'contao_default')
+                );
 
                 // Increment error counter if necessary
                 ++$insertError;
             } else {
-                $htmlReport .= sprintf('<tr class="%s"><td class="tdTitle" colspan="2">#%s %s</td></tr>', $cssClass, $line, $this->translator->trans('tl_import_from_csv.datarecordInsertSucceed', [], 'contao_default'));
+                $htmlReport .= sprintf(
+                    '<tr class="%s"><td class="tdTitle" colspan="2">#%s %s</td></tr>',
+                    $cssClass,
+                    $line,
+                    $this->translator->trans('tl_import_from_csv.datarecordInsertSucceed', [], 'contao_default')
+                );
             }
 
             foreach ($set as $k => $v) {
                 if (\is_array($v)) {
                     $v = serialize($v);
                 }
-                $htmlReport .= sprintf('<tr class="%s"><td>%s</td><td>%s</td></tr>', $cssClass, $stringUtilAdapter->substr($k, 30), $stringUtilAdapter->substrHtml($v, 90));
+                $htmlReport .= sprintf(
+                    '<tr class="%s"><td>%s</td><td>%s</td></tr>',
+                    $cssClass,
+                    $stringUtilAdapter->substr($k, 30),
+                    $stringUtilAdapter->substrHtml($v, 90)
+                );
             }
 
             $htmlReport .= '<tr class="delim"><td>&nbsp;</td><td>&nbsp;</td></tr>';
