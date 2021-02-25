@@ -25,6 +25,8 @@ use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\Widget;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\Table;
 use League\Csv\Exception;
 use League\Csv\Reader;
 use League\Csv\Statement;
@@ -50,6 +52,11 @@ class ImportFromCsv
      * @var ContaoFramework
      */
     private $framework;
+
+    /**
+     * @var Connection
+     */
+    private $connection;
 
     /**
      * @var TranslatorInterface
@@ -79,9 +86,10 @@ class ImportFromCsv
     /**
      * ImportFromCsv constructor.
      */
-    public function __construct(ContaoFramework $framework, TranslatorInterface $translator, SessionInterface $session, EncoderFactoryInterface $encoderFactory, FieldFactory $fieldFactory, string $rootDir)
+    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, SessionInterface $session, EncoderFactoryInterface $encoderFactory, FieldFactory $fieldFactory, string $rootDir)
     {
         $this->framework = $framework;
+        $this->connection = $connection;
         $this->translator = $translator;
         $this->session = $session;
         $this->encoderFactory = $encoderFactory;
@@ -102,12 +110,6 @@ class ImportFromCsv
 
         /** @var Config $configAdapter */
         $configAdapter = $this->framework->getAdapter(Config::class);
-
-        /** @var Controller $controllerAdapter */
-        $controllerAdapter = $this->framework->getAdapter(Controller::class);
-
-        /** @var Database $databaseAdapter */
-        $databaseAdapter = $this->framework->getAdapter(Database::class);
 
         /** @var $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
@@ -186,10 +188,7 @@ class ImportFromCsv
 
         // Truncate table
         if ('truncate_table' === $this->arrData['importMode'] && false === $blnTestMode) {
-            $databaseAdapter
-                ->getInstance()
-                ->execute('TRUNCATE TABLE `'.$tablename.'`')
-            ;
+            $this->connection->executeStatement('TRUNCATE TABLE '.$tablename);
         }
 
         if (\count($this->arrData['selectedFields']) < 1) {
@@ -340,7 +339,6 @@ class ImportFromCsv
                     // !!! SECURITY !!! SKIP UNIQUE VALIDATION FOR SELECTED FIELDS
                     if (!\in_array($objField->getName(), $arrSkipValidationFields, true)) {
                         // Make sure that unique fields are unique
-                        if ($arrDcaField['eval']['unique'] && '' !== $objField->getValue() && !$databaseAdapter->getInstance()->isUniqueValue($objField->getTablename(), $objField->getName(), $objField->getValue(), null)) {
                             $objWidget->addError(sprintf($this->translator->trans('ERR.unique', [], 'contao_default'), $arrDcaField['label'][0] ?: $objField->getName()));
                         }
                     }
@@ -406,14 +404,14 @@ class ImportFromCsv
             // Insert data record
             if (!$doNotSave) {
                 // Insert tstamp
-                if ($databaseAdapter->getInstance()->fieldExists('tstamp', $objField->getTablename())) {
+                if ($this->hasColumn('tstamp', $objField->getTablename())) {
                     if (!$set['tstamp'] > 0) {
                         $set['tstamp'] = time();
                     }
                 }
 
                 // Insert dateAdded (tl_member)
-                if ($databaseAdapter->getInstance()->fieldExists('dateAdded', $objField->getTablename())) {
+                if ($this->hasColumn('dateAdded', $objField->getTablename())) {
                     if (!\strlen((string) $set['dateAdded'])) {
                         $set['dateAdded'] = time();
                     }
@@ -427,12 +425,7 @@ class ImportFromCsv
                 // Insert datarecord
                 if (true !== $this->arrData['blnTestMode']) {
                     // Insert entry into database
-                    $databaseAdapter
-                        ->getInstance()
-                        ->prepare('INSERT INTO '.$objField->getTablename().' %s')
-                        ->set($set)
-                        ->execute()
-                    ;
+                    $this->connection->insert($objField->getTablename(), $set);
                 }
             }
 
@@ -481,26 +474,27 @@ class ImportFromCsv
     }
 
     /**
-     * @param $tablename
-     *
-     * @return mixed|null
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
      */
     private function getPrimaryKey(string $tablename): ?string
     {
-        /** @var Database $databaseAdapter */
-        $databaseAdapter = $this->framework->getAdapter(Database::class);
+        $stmt = $this->connection->executeQuery('SHOW INDEX FROM '.$tablename." WHERE Key_name = 'PRIMARY'");
 
-        $objDb = $databaseAdapter->getInstance()->execute('SHOW INDEX FROM '.$tablename." WHERE Key_name = 'PRIMARY'");
-
-        if ($objDb->numRows) {
-            if (!empty($objDb->Column_name)) {
-                return $objDb->Column_name;
+        while (($row = $stmt->fetchAssociative()) !== false) {
+            if (!empty($row['Column_name'])) {
+                return $row['Column_name'];
             }
         }
 
         return null;
     }
 
+    /**
+     * @param string $tablename
+     * @param string $fieldname
+     * @return array
+     */
     private function getDca(string $tablename, string $fieldname): array
     {
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
@@ -510,6 +504,13 @@ class ImportFromCsv
         return \is_array($arrDcaField) ? $arrDcaField : [];
     }
 
+    /**
+     * @param string $inputType
+     * @param string $fieldname
+     * @param string|null $value
+     * @param array $arrDca
+     * @return Widget|null
+     */
     private function getWidgetFromInputType(string $inputType, string $fieldname, ?string $value, array $arrDca): ?Widget
     {
         $strClass = &$GLOBALS['TL_FFL'][$inputType];
@@ -521,22 +522,30 @@ class ImportFromCsv
         return null;
     }
 
+    /**
+     * @param $objField
+     * @param string $newsletter
+     * @param string $email
+     * @throws \Doctrine\DBAL\Exception
+     */
     private function addNewMemberToNewsletterRecipientList($objField, string $newsletter, string $email): void
     {
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
-        $databaseAdapter = $this->framework->getAdapter(Database::class);
-
         // Add new member to newsletter recipient list
         if ('tl_member' === $objField->getTablename() && '' !== $email && '' !== $newsletter) {
             foreach ($stringUtilAdapter->deserialize($newsletter, true) as $newsletterId) {
-                // Check for unique email-address
-                $objRecipient = $databaseAdapter->getInstance()
-                    ->prepare('SELECT * FROM tl_newsletter_recipients WHERE email=? AND pid=(SELECT pid FROM tl_newsletter_recipients WHERE id=?) AND id!=?')
-                    ->execute($email, $newsletterId, $newsletterId)
+                $count = $this->connection->executeStatement(
+                    'SELECT id FROM tl_newsletter_recipients WHERE email = ? AND pid = (SELECT pid FROM tl_newsletter_recipients WHERE id = ?) AND id != ?',
+                        [
+                            $email,
+                            $newsletterId,
+                            $newsletterId,
+                        ]
+                    )
                 ;
 
-                if (!$objRecipient->numRows) {
+                if (!$count) {
                     $arrRecipient = [];
                     $arrRecipient['tstamp'] = time();
                     $arrRecipient['pid'] = $newsletterId;
@@ -544,15 +553,53 @@ class ImportFromCsv
                     $arrRecipient['active'] = '1';
 
                     if (true !== $blnTestMode) {
-                        $databaseAdapter
-                            ->getInstance()
-                            ->prepare('INSERT INTO tl_newsletter_recipients %s')
-                            ->set($arrRecipient)
-                            ->execute()
-                    ;
+                        $this->connection->insert('tl_newsletter_recipients', $set);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * @param string $strColumn
+     * @param string $strTable
+     * @return bool
+     */
+    private function hasColumn(string $strColumn, string $strTable): bool
+    {
+        $schemaManager = $this->connection->getSchemaManager();
+
+        // If the database table itself return false
+        if (!$schemaManager->tablesExist([$strTable])) {
+            return false;
+        }
+
+        $columns = $schemaManager->listTableColumns($strTable);
+
+        return isset($columns[strtolower($strColumn)]);
+    }
+
+    /**
+     * @param $value
+     */
+    private function isUniqueValue(string $strTable, string $strColumn, $value, ?int $intId = null): bool
+    {
+        $qb = $this->connection->createQueryBuilder();
+
+        $qb->select('id')
+            ->from($strTable, 't')
+            ->where($strColumn.' = ?')
+            ->setParameter(0, $value)
+        ;
+
+        if (null !== $intId) {
+            $qb->andWhere('id != ?');
+            $qb->setParameter(1, $intId);
+        }
+
+        $qb->setMaxResults(1);
+        $stmt = $qb->execute();
+
+        return $stmt->fetchAllAssociative() ? false : true;
     }
 }

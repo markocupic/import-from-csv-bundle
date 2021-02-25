@@ -3,6 +3,7 @@ services:
   Markocupic\ImportFromCsvBundle\Import\ImportFromCsv:
     arguments:
       - '@contao.framework'
+      - '@database_connection'
       - '@translator'
       - '@session'
       - '@security.encoder_factory'
