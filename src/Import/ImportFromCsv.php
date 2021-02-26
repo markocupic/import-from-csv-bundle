@@ -245,7 +245,7 @@ class ImportFromCsv
 
                 // Create field object
                 $objField = $this->fieldFactory->getField($tablename, $fieldname, $arrRecord);
-                $objField->setValue($value);
+                $objField->setValue(trim((string) $value));
 
                 // Get the DCA of the current field
 
@@ -295,20 +295,17 @@ class ImportFromCsv
                     if ($arrDcaField['eval']['multiple']) {
                         // Convert CSV fields
                         if (isset($arrDcaField['eval']['csv'])) {
-                            if (empty($objField->getValue())) {
-                                $objField->setValue([]);
-                            } elseif (empty(trim($objField->getValue()))) {
+                            if (null === $objField->getValue() || '' === $objField->getValue()) {
                                 $objField->setValue([]);
                             } else {
                                 $objField->setValue(explode($arrDcaField['eval']['csv'], $objField->getValue()));
                             }
-                        } elseif ('' !== $objField->getValue() && \is_array($stringUtilAdapter->deserialize($objField->getValue()))) {
-                            // The value is a serialized array
-                            $objField->setValue($stringUtilAdapter->deserialize($objField->getValue()));
+                        } elseif (false !== strpos($objField->getValue(), $strArrayDelimiter)) {
+                            // Value is e.g. 3||4
+                            $objField->setValue(explode($strArrayDelimiter, $objField->getValue()));
                         } else {
-                            // Add option values like this: value1||value2||value3
-                            $value = '' !== $objField->getValue() ? explode($strArrayDelimiter, $objField->getValue()) : [];
-                            $objField->setValue($value);
+                            // The value is a serialized array or simple value e.g 3
+                            $objField->setValue($stringUtilAdapter->deserialize($objField->getValue(), true));
                         }
 
                         $inputAdapter->setPost($objField->getName(), $objField->getValue());
@@ -561,11 +558,12 @@ class ImportFromCsv
                 ;
 
                 if (!$count) {
-                    $arrRecipient = [];
-                    $arrRecipient['tstamp'] = time();
-                    $arrRecipient['pid'] = $newsletterId;
-                    $arrRecipient['email'] = $email;
-                    $arrRecipient['active'] = '1';
+
+                    $set = [];
+                    $set['tstamp'] = time();
+                    $set['pid'] = $newsletterId;
+                    $set['email'] = $email;
+                    $set['active'] = '1';
 
                     if (true !== $blnTestMode) {
                         $this->connection->insert('tl_newsletter_recipients', $set);

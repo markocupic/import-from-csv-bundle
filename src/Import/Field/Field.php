@@ -61,7 +61,7 @@ class Field
         return $this->record;
     }
 
-    public function getValue(): ?string
+    public function getValue()
     {
         return $this->fieldvalue;
     }
@@ -91,7 +91,7 @@ class Field
         return $this->arrErrors;
     }
 
-    public function setValue(?string $value): void
+    public function setValue($value): void
     {
         $this->fieldvalue = $value;
     }
