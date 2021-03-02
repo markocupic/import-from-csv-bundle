@@ -14,6 +14,7 @@
     }
   ],
   "require": {
+    "php": ">7.2",
     "contao/core-bundle": "^4.9",
     "league/csv": "^9.1"
   },
