@@ -15,7 +15,8 @@
   ],
   "require": {
     "contao/core-bundle": "^4.9",
-    "league/csv": "^9.1"
+    "league/csv": "^9.1",
+    "doctrine/dbal": "^2.11"
   },
   "require-dev": {
     "contao/manager-plugin": "^2.3",
