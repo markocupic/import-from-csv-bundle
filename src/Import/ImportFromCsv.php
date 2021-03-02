@@ -508,7 +508,7 @@ class ImportFromCsv
     {
         $stmt = $this->connection->executeQuery('SHOW INDEX FROM '.$tablename." WHERE Key_name = 'PRIMARY'");
 
-        while (($row = $stmt->fetchAssociative()) !== false) {
+        while (($row = $stmt->fetchAll()) !== false) {
             if (!empty($row['Column_name'])) {
                 return $row['Column_name'];
             }
@@ -558,7 +558,6 @@ class ImportFromCsv
                 ;
 
                 if (!$count) {
-
                     $set = [];
                     $set['tstamp'] = time();
                     $set['pid'] = $newsletterId;
@@ -608,6 +607,6 @@ class ImportFromCsv
         $qb->setMaxResults(1);
         $stmt = $qb->execute();
 
-        return $stmt->fetchAllAssociative() ? false : true;
+        return $stmt->fetchAll() ? false : true;
     }
 }

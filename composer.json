@@ -25,9 +25,6 @@
     "symfony/phpunit-bridge": "4.4.*",
     "contao/easy-coding-standard": "^3.0"
   },
-  "conflict": {
-    "doctrine/dbal": "<2.11"
-  },
   "autoload": {
     "psr-4": {
       "Markocupic\\ImportFromCsvBundle\\": "src/"
