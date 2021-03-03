@@ -508,7 +508,7 @@ class ImportFromCsv
     {
         $stmt = $this->connection->executeQuery('SHOW INDEX FROM '.$tablename." WHERE Key_name = 'PRIMARY'");
 
-        while (($row = $stmt->fetchAll()) !== false) {
+        foreach ($stmt->fetchAll() as $row)  {
             if (!empty($row['Column_name'])) {
                 return $row['Column_name'];
             }
@@ -607,6 +607,6 @@ class ImportFromCsv
         $qb->setMaxResults(1);
         $stmt = $qb->execute();
 
-        return $stmt->fetchAll() ? false : true;
+        return !empty($stmt->fetchAll()) ? false : true;
     }
 }
