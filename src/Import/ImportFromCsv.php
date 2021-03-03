@@ -547,17 +547,20 @@ class ImportFromCsv
         // Add new member to newsletter recipient list
         if ('tl_member' === $objField->getTablename() && '' !== $email && '' !== $newsletter) {
             foreach ($stringUtilAdapter->deserialize($newsletter, true) as $newsletterId) {
-                $stmt = $this->connection->executeQuery(
-                    'SELECT id FROM tl_newsletter_recipients WHERE email = ? AND pid = (SELECT pid FROM tl_newsletter_recipients WHERE id = ?) AND id != ?',
+                $qb = $this->connection->createQueryBuilder();
+                $qb->select('id')
+                    ->from('tl_newsletter_recipients', 't')
+                    ->where($qb->expr()->like('t.email', ':email'))
+                    ->andWhere('t.pid = :pid')
+                    ->setParameters(
                         [
-                            $email,
-                            $newsletterId,
-                            $newsletterId,
+                            'pid' => $newsletterId,
+                            'email' => $email,
                         ]
                     )
                 ;
 
-                if (!$stmt->fetch()) {
+                if (!$qb->execute()->rowCount()) {
                     $set = [];
                     $set['tstamp'] = time();
                     $set['pid'] = $newsletterId;
@@ -605,8 +608,7 @@ class ImportFromCsv
         }
 
         $qb->setMaxResults(1);
-        $stmt = $qb->execute();
 
-        return !empty($stmt->fetchAll()) ? false : true;
+        return $qb->execute()->rowCount() ? false : true;
     }
 }
