@@ -90,7 +90,6 @@ class TlImportFromCsv
         $this->twig = $twig;
         $this->importer = $importer;
         $this->projectDir = $projectDir;
-
     }
 
     /**
