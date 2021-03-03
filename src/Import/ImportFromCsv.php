@@ -188,7 +188,7 @@ class ImportFromCsv
 
         // Truncate table
         if ('truncate_table' === $this->arrData['importMode'] && false === $blnTestMode) {
-            $this->connection->executeStatement('TRUNCATE TABLE '.$tablename);
+            $this->connection->executeQuery('TRUNCATE TABLE '.$tablename);
         }
 
         if (\count($this->arrData['selectedFields']) < 1) {
@@ -508,7 +508,7 @@ class ImportFromCsv
     {
         $stmt = $this->connection->executeQuery('SHOW INDEX FROM '.$tablename." WHERE Key_name = 'PRIMARY'");
 
-        foreach ($stmt->fetchAll() as $row)  {
+        foreach ($stmt->fetchAll() as $row) {
             if (!empty($row['Column_name'])) {
                 return $row['Column_name'];
             }
@@ -547,7 +547,7 @@ class ImportFromCsv
         // Add new member to newsletter recipient list
         if ('tl_member' === $objField->getTablename() && '' !== $email && '' !== $newsletter) {
             foreach ($stringUtilAdapter->deserialize($newsletter, true) as $newsletterId) {
-                $count = $this->connection->executeStatement(
+                $stmt = $this->connection->executeQuery(
                     'SELECT id FROM tl_newsletter_recipients WHERE email = ? AND pid = (SELECT pid FROM tl_newsletter_recipients WHERE id = ?) AND id != ?',
                         [
                             $email,
@@ -557,7 +557,7 @@ class ImportFromCsv
                     )
                 ;
 
-                if (!$count) {
+                if (!$stmt->fetch()) {
                     $set = [];
                     $set['tstamp'] = time();
                     $set['pid'] = $newsletterId;
