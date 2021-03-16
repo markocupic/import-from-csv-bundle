@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\ImportFromCsvBundle\Import;
 
 use Contao\BackendUser;
+use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\Database;
