@@ -336,6 +336,13 @@ class TlImportFromCsv
         return $arrOptions;
     }
 
+    /**
+     * @Callback(table="tl_import_from_csv", target="edit.buttons")
+     *
+     * @param array $arrButtons
+     * @param DC_Table $dc
+     * @return array
+     */
     public function buttonsCallback(array $arrButtons, DC_Table $dc): array
     {
         /** @var Input $inputAdapter */

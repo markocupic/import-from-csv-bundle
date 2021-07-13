@@ -24,7 +24,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 	),
 	'edit'        => array(
 		'buttons_callback' => array(
-			array(TlImportFromCsv::class, 'buttonsCallback'),
+            // Trigger buttons callbacks using annotations
 		),
 	),
 	'list'        => array(
@@ -38,18 +38,15 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 		'global_operations' => array(),
 		'operations'        => array(
 			'edit'   => array(
-				'label' => &$GLOBALS['TL_LANG']['MSC']['edit'],
 				'href'  => 'act=edit',
 				'icon'  => 'edit.gif',
 			),
 			'delete' => array(
-				'label'      => &$GLOBALS['TL_LANG']['MSC']['delete'],
 				'href'       => 'act=delete',
 				'icon'       => 'delete.gif',
 				'attributes' => 'onclick="if (!confirm(\'' . $GLOBALS['TL_LANG']['MSC']['deleteConfirm'] . '\')) return false; Backend.getScrollOffset();"',
 			),
 			'show'   => array(
-				'label' => &$GLOBALS['TL_LANG']['MSC']['show'],
 				'href'  => 'act=show',
 				'icon'  => 'show.gif',
 			),
