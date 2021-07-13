@@ -11,6 +11,13 @@ services:
       - '%kernel.project_dir%'
     public: true
 
+  Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper:
+    arguments:
+      - '@contao.framework'
+      - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsv'
+      - '%kernel.project_dir%'
+    public: true
+
   Markocupic\ImportFromCsvBundle\Import\Field\FieldFactory:
     arguments:
       - '@Markocupic\ImportFromCsvBundle\Import\Field\Field'
@@ -22,7 +29,7 @@ services:
   Markocupic\ImportFromCsvBundle\Cron\Cron:
     arguments:
       - '@contao.framework'
-      - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsv'
+      - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper'
       - '@monolog.logger.contao'
     public: true
 
@@ -33,6 +40,6 @@ services:
       - '@session'
       - '@translator'
       - '@twig'
-      - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsv'
+      - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper'
       - '%kernel.project_dir%'
     public: true

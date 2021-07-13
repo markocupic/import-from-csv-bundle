@@ -16,21 +16,19 @@ namespace Markocupic\ImportFromCsvBundle\Cron;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Monolog\ContaoContext;
-use Contao\File;
 use Contao\FilesModel;
-use Contao\StringUtil;
-use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
+use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
 class Cron
 {
-    const CRON_MINUTELY = 'minutely';
-    const CRON_HOURLY = 'hourly';
-    const CRON_DAILY = 'daily';
-    const CRON_WEEKLY = 'weekly';
-    const CRON_MONTHLY = 'monthly';
+    public const CRON_MINUTELY = 'minutely';
+    public const CRON_HOURLY = 'hourly';
+    public const CRON_DAILY = 'daily';
+    public const CRON_WEEKLY = 'weekly';
+    public const CRON_MONTHLY = 'monthly';
 
     /**
      * @var ContaoFramework
@@ -38,19 +36,19 @@ class Cron
     private $framework;
 
     /**
-     * @var ImportFromCsv
+     * @var ImportFromCsvHelper
      */
-    private $importFromCsv;
+    private $importFromCsvHelper;
 
     /**
      * @var LoggerInterface|null
      */
     private $logger;
 
-    public function __construct(ContaoFramework $framework, ImportFromCsv $importFromCsv, LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, ImportFromCsvHelper $importFromCsvHelper, LoggerInterface $logger = null)
     {
         $this->framework = $framework;
-        $this->importFromCsv = $importFromCsv;
+        $this->importFromCsvHelper = $importFromCsvHelper;
         $this->logger = $logger;
     }
 
@@ -81,37 +79,31 @@ class Cron
 
     public function initialize(string $cronLevel): void
     {
-        $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
+        /** @var ImportFromCsvModel $importFromCsvModelAdapter */
+        $importFromCsvModelAdapter = $this->framework->getAdapter(ImportFromCsvModel::class);
 
-        if (null !== ($objImportModel = ImportFromCsvModel::findBy(['enableCron = ?', 'cronLevel = ?'], ['1', $cronLevel]))) {
+        /** @var FilesModel $filesModelAdapter */
+        $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
+
+        if (null !== ($objImportModel = $importFromCsvModelAdapter->findBy(['enableCron = ?', 'cronLevel = ?'], ['1', $cronLevel]))) {
             while ($objImportModel->next()) {
                 $strTable = $objImportModel->import_table;
-                $importMode = $objImportModel->import_mode;
-                $arrSelectedFields = $stringUtilAdapter->deserialize($objImportModel->selected_fields, true);
-                $strDelimiter = $objImportModel->field_separator;
-                $strEnclosure = $objImportModel->field_enclosure;
-                $intOffset = (int) $objImportModel->offset;
-                $intLimit = (int) $objImportModel->limit;
-                $arrSkipValidationFields = $stringUtilAdapter->deserialize($objImportModel->skipValidationFields, true);
-                $objFile = FilesModel::findByUuid($objImportModel->fileSRC);
-                $blnTestMode = false;
 
-                // call the import class if file exists
-                if (is_file(TL_ROOT.'/'.$objFile->path)) {
-                    $objFile = new File($objFile->path);
+                if (null !== ($objFile = $filesModelAdapter->findByUuid($objImportModel->fileSRC))) {
 
-                    if ('csv' === strtolower($objFile->extension)) {
-                        $this->importFromCsv->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strDelimiter, $strEnclosure, '||', $blnTestMode, $arrSkipValidationFields, $intOffset, $intLimit);
-
+                    // Use helper class to launch the import process
+                    if (true === $this->importFromCsvHelper->importFromModel($objImportModel->current())) {
                         // Log new insert
                         if (null !== $this->logger) {
                             $level = LogLevel::INFO;
                             $strText = sprintf('Cron %s: Imported csv file "%s" into %s.', $cronLevel, $objFile->path, $strTable);
                             $this->logger->log(
                                 $level,
-                                $strText, [
+                                $strText,
+                                [
                                     'contao' => new ContaoContext(__METHOD__, $level),
-                                ]);
+                                ]
+                            );
                         }
                     }
                 }

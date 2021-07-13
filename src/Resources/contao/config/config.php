@@ -18,7 +18,6 @@ use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
  * Back end modules
  */
 $GLOBALS['BE_MOD']['system']['import_from_csv'] = array(
-	'icon'   => 'bundles/markocupicimportfromcsvbundle/file-import-icon-16.png',
 	'tables' => array('tl_import_from_csv')
 );
 
