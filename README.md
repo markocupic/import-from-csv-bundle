@@ -1,4 +1,4 @@
-![Alt text](docs/logo.png?raw=true "logo")
+![Logo](https://github.com/markocupic/markocupic/blob/main/logo.png)
 
 # Import from CSV (Backend Modul für Contao 4.x)
 
