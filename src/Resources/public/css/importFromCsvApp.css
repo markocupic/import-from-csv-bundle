@@ -2,202 +2,204 @@
  * Operations
  */
 a.csvImport > img {
-    width: 16px;
-    aspect-ratio: auto 16 / 16;
-    height: 16px;
+  width: 16px;
+  aspect-ratio: auto 16/16;
+  height: 16px;
 }
 
 [v-cloak], .ifcb-import-from-csv-app.ifcb-status-preparing {
-    display: none;
+  display: none;
 }
 
 .ifcb-status-ready .ifcb-progress-bar-container, .ifcb-status-ready .ifcb-import-report-box {
-    visibility: hidden;
+  visibility: hidden;
 }
 
 /**
  * Detailview
  */
 .ifcb-file-content-box {
-    max-height: 300px;
-    overflow-x: hidden;
-    padding: 5px;
-    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    border: 1px solid #ddd;
+  max-height: 300px;
+  overflow-x: hidden;
+  padding: 5px;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  border: 1px solid #ddd;
 }
 
 .ifcb-file-content-box li {
-    font-size: 9px;
-    line-height: 15px;
-    white-space: pre-wrap;
-    word-break: break-word;
+  font-size: 9px;
+  line-height: 15px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .ifcb-m-1 {
-    margin: 15px;
+  margin: 15px;
 }
 
 .ifcb-mt-1 {
-    margin-top: 15px;
+  margin-top: 15px;
 }
 
 .ifcb-me-1 {
-    margin-right: 15px;
+  margin-right: 15px;
 }
 
 .ifcb-mb-1 {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 .ifcb-ms-1 {
-    margin-left: 15px;
+  margin-left: 15px;
 }
 
 .ifcb-d-flex {
-    display: flex;
+  display: flex;
 }
 
 .ifcb-d-block {
-    display: block;
+  display: block;
 }
 
 .ifcb-brand-logo {
-    width: 150px;
+  width: 150px;
 }
 
 .ifcb-help-text a {
-    color: blue;
+  color: blue;
 }
 
 .ifcb-custom-header-back, .ifcb-edit-header {
-    padding: 3px 0 3px 21px;
-    background-position: left center;
-    background-repeat: no-repeat;
-    margin-left: 15px;
+  padding: 3px 0 3px 21px;
+  background-position: left center;
+  background-repeat: no-repeat;
+  margin-left: 15px;
 }
 
 .ifcb-custom-header-back {
-    background-image: url('../../../system/themes/flexible/icons/back.svg');
+  background-image: url("../../../system/themes/flexible/icons/back.svg");
 }
 
 .ifcb-edit-header {
-    background-image: url('../../../system/themes/flexible/icons/edit.svg');
+  background-image: url("../../../system/themes/flexible/icons/edit.svg");
 }
 
 .ifcb-import-from-csv-app .widget {
-    margin: 15px;
+  margin: 15px;
 }
 
 .ifcb-import-from-csv-app .tl_submit_container button:not([disabled]).ifcb-import-button {
-    color: #fff;
-    background: #cc0000;
-    text-shadow: 0 0 #fff;
+  color: #fff;
+  background: #cc0000;
+  text-shadow: 0 0 #fff;
 }
 
 .ifcb-import-from-csv-app .tl_submit_container button:not([disabled]).ifcb-import-button:hover {
-    background: #000000;
+  background: #000000;
 }
 
 .ifcb-import-from-csv-app .tl_submit_container button:not([disabled]).ifcb-import-test-button {
-    color: #ffffff;
-    background: #4CAF50;
-    text-shadow: 0 0 #fff;
+  color: #ffffff;
+  background: #4CAF50;
+  text-shadow: 0 0 #fff;
 }
 
 .ifcb-import-from-csv-app .tl_submit_container button:not([disabled]).ifcb-import-test-button:hover {
-    background: #000000;
+  background: #000000;
 }
 
 .ifcb-import-from-csv-app .ifcb-progress-bar-container {
-    margin: 15px 0;
-    background-color: #e5e5e5;
+  margin: 15px 0;
+  background-color: #e5e5e5;
 }
 
 .ifcb-import-from-csv-app .ifcb-progress-bar-inner {
-    height: 30px;
-    width: 0;
-    background-color: #4CAF50;
-    transition: width 1.5s ease;
-    line-height: 1.5;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  height: 30px;
+  width: 0;
+  background-color: #4CAF50;
+  transition: width 1.5s ease;
+  line-height: 1.5;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ifcb-import-from-csv-app button.tl_submit.ifcb-display-errors-btn {
-    background-color: #cc0000;
-    border: 1px solid #cc0000 !important;
-    color: #fff;
-    padding: 4px 8px;
-    height: auto;
+  background-color: #cc0000;
+  border: 1px solid #cc0000 !important;
+  color: #fff;
+  padding: 4px 8px;
+  height: auto;
 }
 
 .ifcb-import-from-csv-app button.tl_submit.ifcb-display-errors-btn.hideSuccess {
-    background-color: #4CAF50;
-    color: #fff;
-    border-color: #4CAF50 !important;
+  background-color: #4CAF50;
+  color: #fff;
+  border-color: #4CAF50 !important;
 }
 
 .ifcb-import-from-csv-app .ifcb-import-report-box {
-    margin: 15px 0;
-    padding: 15px;
-    max-height: 400px;
-    overflow-y: scroll;
-    background-color: #fbfbfb;
+  margin: 15px 0;
+  padding: 15px;
+  max-height: 400px;
+  overflow-y: scroll;
+  background-color: #fbfbfb;
 }
 
 .ifcb-import-from-csv-app .ifcb-status-box {
-    min-height: 30px;
-    color: #b4b4b4;
+  min-height: 30px;
+  color: #b4b4b4;
 }
 
 .ifcb-import-from-csv-app .ifcb-import-report-table {
-    width: 100%;
+  width: 100%;
 }
 
 .ifcb-import-from-csv-app .ifcb-import-report-table td.ifcb-td-title {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 .ifcb-import-from-csv-app .ifcb-import-report-table td {
-    border: 1px solid #e1e1e1;
-    padding: 4px;
-    font-size: 10px;
-    width: 50%;
+  border: 1px solid #e1e1e1;
+  padding: 4px;
+  font-size: 10px;
+  width: 50%;
 }
 
 .ifcb-import-from-csv-app .ifcb-import-report-table tr.ifcb-import-success.hiddenRow {
-    display: none;
+  display: none;
 }
 
 .ifcb-import-from-csv-app .ifcb-import-report-table tr.ifcb-delim td {
-    border: none;
+  border: none;
 }
 
 .ifcb-import-from-csv-app .ifcb-import-report-table .ifcb-import-success td, ul.ifcb-import-summary li.ifcb-import-success {
-    color: #008000 !important;
+  color: #008000 !important;
 }
 
 .ifcb-import-from-csv-app .ifcb-import-summary {
-    margin: 16px 0;
-    line-height: 1.5;
+  margin: 16px 0;
+  line-height: 1.5;
 }
 
 .ifcb-import-from-csv-app .ifcb-import-report-table * {
-    font-weight: normal !important;
-    font-size: 10px !important;
+  font-weight: normal !important;
+  font-size: 10px !important;
 }
 
 .ifcb-import-from-csv-app .ifcb-import-summary .ifcb-import-failed {
-    color: red !important;
+  color: red !important;
 }
 
 .ifcb-import-from-csv-app .ifcb-import-report-table .ifcb-import-failed td {
-    color: red !important;
+  color: red !important;
 }
 
 .ifcb-import-from-csv-app .ifcb-import-report-table .ifcb-delim td {
-    border-left-width: 0;
-    border-right-width: 0;
+  border-left-width: 0;
+  border-right-width: 0;
 }
+
+/*# sourceMappingURL=aa.css.map */
