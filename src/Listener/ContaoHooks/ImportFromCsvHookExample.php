@@ -12,29 +12,29 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-/**
- * Run in a custom namespace, so the class can be replaced.
- */
-
 namespace Markocupic\ImportFromCsvBundle\Listener\ContaoHooks;
 
+use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Markocupic\ImportFromCsvBundle\Import\Field\Field;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
 
 /**
- * Class ImportFromCsvHookExample.
+ * @Hook(ImportFromCsvHookExample::HOOK, priority=ImportFromCsvHookExample::PRIORITY)
  */
 class ImportFromCsvHookExample
 {
+    public const HOOK = 'importFromCsv';
+    public const PRIORITY = 100;
+
     /**
-     * cURL error messages.
+     * @var string
      */
     private $curlErrorMsg;
 
     public function addGeolocation(Field $objField, int $line, ImportFromCsv $objBackendModule = null): void
     {
         // tl_member
-        if ('tl_member' === $objField->getTablename()) {
+        if ('tl_super_member' === $objField->getTablename()) {
             // Get geolocation from a given address
             if ('geolocation' === $objField->getName()) {
                 // Do custom validation and skip the Contao-Widget-Input-Validation
@@ -53,7 +53,7 @@ class ImportFromCsvHookExample
                 // Get Position from GoogleMaps
                 $arrPos = $this->curlGetCoordinates(sprintf('http://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false', $strAddress));
 
-                if (\is_array($arrPos['results'][0]['geometry'])) {
+                if (null !== $arrPos && \is_array($arrPos['results'][0]['geometry'])) {
                     $latPos = $arrPos['results'][0]['geometry']['location']['lat'];
                     $lngPos = $arrPos['results'][0]['geometry']['location']['lng'];
 
@@ -72,18 +72,14 @@ class ImportFromCsvHookExample
 
     /**
      * Curl helper method.
-     *
-     * @param $url
-     *
-     * @return bool|mixed
      */
-    public function curlGetCoordinates($url)
+    private function curlGetCoordinates(string $url): ?array
     {
         // is cURL installed on the webserver?
         if (!\function_exists('curl_init')) {
             $this->curlErrorMsg = 'Sorry cURL is not installed on your webserver!';
 
-            return false;
+            return null;
         }
 
         // Set a timout to avoid the OVER_QUERY_LIMIT

@@ -1,24 +1,39 @@
-# Import from CSV
+![Alt text](docs/logo.png?raw=true "logo")
 
-Backend Modul für Contao 4
+# Import from CSV (Backend Modul für Contao 4.x)
 
-Mit dem Modul lassen sich in einem Rutsch über eine CSV Datei massenhaft Datensätze importieren. Sehr praktisch, wenn z.B. sehr viele Benutzer oder Mitglieder generiert werden müssen.
-Die CSV Datei wird am besten in einem Tabellenkalkulationsprogramm  (MS-EXCEL o.ä.) erstellt und dann als kommaseparierte Datei (CSV) abgespeichert.
-Ein Beispiel für diese Datei findet sich im Verzeichnis vendor/markocupic/import-from-csv-bundle/docs/example.csv.
+Mit dem Modul lassen sich in einem Rutsch über eine CSV Datei massenhaft Datensätze importieren.
+  Sehr praktisch, wenn z.B. sehr viele Benutzer oder Mitglieder generiert werden müssen.
+Die CSV Datei wird am besten in einem Tabellenkalkulationsprogramm  (MS-EXCEL o.ä.) erstellt
+  und dann als kommaseparierte Datei (CSV) abgespeichert.
+Ein Beispiel für diese Datei findet sich im Verzeichnis [docs](docs/import-file.csv).
 
 ## Warnung!
-
-Achtung! Das Modul bietet einen grossen Nutzen. Der Anwender sollte aber wissen, was er tut, da bei falscher Anwendung Datensätze gelöscht oder unbrauchbar gemacht werden können und Contao danach nicht mehr funktionstüchtig ist.
+Achtung! Das Modul bietet einen grossen Nutzen.
+  Der Anwender sollte aber wissen, was er tut, da bei falscher Anwendung Datensätze gelöscht oder
+  unbrauchbar gemacht werden können und Contao danach nicht mehr funktionstüchtig ist.
 
 ## Aufbau CSV-Importdatei
+Mit MS-Excel oder einem Texteditor lässt sich eine (kommaseparierte) Textdatei anlegen (csv).
+  In die erste Zeile gehören zwingend die Feldnamen. Die einzelnen Felder müssen durch ein Trennzeichen
+  (üblicherweise das Semikolon ";") abgegrenzt werden. Feldinhalt, der in der Datenbank als serialisiertes
+  Array abgelegt wird (z.B. Gruppenzugehörigkeiten, Newsletter-Abos, etc.), muss durch zwei aufeinanderfolgende
+  pipe-Zeichen abgegrenzt werden z.B. "2||5". Feldbegrenzer und Feldtrennzeichen können individuell festgelegt werden.
 
-Mit MS-Excel oder einem Texteditor lässt sich eine (kommaseparierte) Textdatei anlegen (csv). In die erste Zeile gehören zwingend die Feldnamen. Die einzelnen Felder müssen durch ein Trennzeichen (üblicherweise das Semikolon ";") abgegrenzt werden. Feldinhalt, der in der Datenbank als serialisiertes Array abgelegt wird (z.B. Gruppenzugehörigkeiten, Newsletter-Abos, etc.), muss durch zwei aufeinanderfolgende pipe-Zeichen abgegrenzt werden z.B. "2||5". Feldbegrenzer und Feldtrennzeichen können individuell festgelegt werden.
-
-Wichtig! Jeder Datensatz gehört in eine neue Zeile. Zeilenumbrüche im Datensatz verunmöglichen den Import. Die erstellte csv-Datei muss über die Dateiverwaltung auf den Webserver geladen werden und kann nachher bei der Import-Konfiguration ausgewählt werden.
+Wichtig! Jeder Datensatz gehört in eine neue Zeile. Zeilenumbrüche im Datensatz verunmöglichen den Import.
+ Die erstellte csv-Datei muss über die Dateiverwaltung auf den Webserver geladen werden und kann nachher bei
+ der Import-Konfiguration ausgewählt werden.
 
 Beim Importvorgang werden die Inhalte auf Gültigkeit überprüft. Als Grundlage dienen die DCA-Settings der Zieltabelle.
 
-Achtung! Das Modul sollte nur genutzt werden, wenn man sich seiner Sache sehr sicher ist. Gelöschte Daten können nur wiederhergestellt werden, wenn vorher ein Datenbankbackup erstellt worden ist.
+**Achtung! Das Modul sollte nur genutzt werden, wenn man sich seiner Sache sehr sicher ist. Gelöschte Daten können nur wiederhergestellt werden, wenn vorher ein Datenbankbackup erstellt worden ist.**
+
+
+## Einstellungen
+
+
+### Kommaseparierte Datei erstellen und hochladen
+Als Erstes muss eine CSV-Datei erstellt werden. In die Kopfzeile gehören die Feldnamen.
 
 ```
 firstname;lastname;dateOfBirth;gender;company;street;postal;city;state;country;phone;mobile;fax;email;website;language;login;username;password;groups
@@ -27,29 +42,23 @@ Fritz;Nimmersatt;1978-05-29;male;Webdesign AG;Entenweg 10;6208;Oberkirch;Kanton 
 Annina;Meile;1878-05-29;female;Webdesign AG;Nashonrstrasse 2;6208;Oberkirch;Kanton Luzern;ch;043 921 99 99;079 620 93 91;047 789 56 89;a-meile@me.ch;www.annina-meile.ch;de;1;anninameile;topsecret3;1
 ```
 
-## Einstellungen
-
 ### Datentabelle für Import auswählen (Pflichtfeld)
-
-Wählen Sie die Tabelle, in die die Datensätze geschrieben werden sollen.
+Wählen Sie die Tabelle, in die die Datensätze importiert werden sollen.
 
 ### Felder für Importvorgang auswählen  (Pflichtfeld)
-
 In der Datenbanktabelle wird nur in die ausgewählten Felder geschrieben. Meistens macht es Sinn, hier alle Felder auszuwählen.
 
 ### Felder getrennt von (Pflichtfeld)
-
 Geben Sie an, durch welches Zeichen in der CSV Datei die Feldinhalte voneinander getrennt sind.
 
 ### Felder eingeschlossen von (Pflichtfeld)
-
 Kontrollieren Sie, ob in der CSV Datei die Feldinhalte noch zusätzlich von einem Zeichen eingeschlossen sind. Oft ist das das doppelte Anführungszeichen. => "
 
 ### Import Modus (Pflichtfeld)
-Legen Sie fest, ob die Datensätze aus der CSV Datei in der Zieltabelle angehängt werden oder die Zieltabelle vorher geleert werden soll (alter table). Achtung! Gelöschte Datensätze lassen sich, wenn kein Backup vorhanden, nicht mehr wiederherstellen.
+Legen Sie fest, ob die Datensätze aus der CSV Datei in der Zieltabelle angehängt werden oder die Zieltabelle vorher
+  geleert werden soll (alter table). Achtung! Gelöschte Datensätze lassen sich, wenn kein Backup vorhanden ist, nicht mehr wiederherstellen.
 
 ### Datei auswählen (Pflichtfeld)
-
 Abschliessend wählen Sie die Datei aus, aus der in die Datenbank geschrieben werden soll.
 Tipp: Wenn Sie die Datei ausgewählt haben, klicken Sie voher auf "Speichern" um eine Vorschau des Dateiinhalts zu bekommen.
 
@@ -60,43 +69,35 @@ Alle [NEWLINE] tags in der CSV Datei werden beim Import-Vorgang in \r\n bzw. \n 
 Auf Wunsch kann CRON aktiviert werden. Der Import kann dadurch in einem festgelegten Intervall automatisch ausgeführt werden.
 
 ## Importmechanismus über Hook anpassen
-
 Mit einem updatesicheren Hook lässt sich die Validierung umgehen oder anpassen. Im folgenden Beispiel sollen die Geokoordinaten beim Import anhand von Strasse, Stadt und Länderkürzel automatisch per Curl-Request von GoogleMaps bezogen werden. Auch lassen sich Fehlermeldungen generieren, wenn z.B. keine Geokoordinaten ermittelt werden konnten. Dadurch wird der Datensatz übersprungen und nicht in die Datenbank geschrieben.
 
 
 Aufbau einer möglichen Hook-Klasse:
 
 ```php
+
 <?php
+
+// src/EventListener/MyImportFromCsvHook.php
 
 declare(strict_types=1);
 
-/*
- * This file is part of Import From CSV Bundle.
- *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
- * @license MIT
- * For the full copyright and license information,
- * please view the LICENSE file that was distributed with this source code.
- * @link https://github.com/markocupic/import-from-csv-bundle
- */
+namespace App\EventListener;
 
-/**
- * Run in a custom namespace, so the class can be replaced.
- */
-
-namespace Markocupic\ImportFromCsvBundle\Listener\ContaoHooks;
-
+use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Markocupic\ImportFromCsvBundle\Import\Field\Field;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
 
 /**
- * Class ImportFromCsvHookExample.
+ * @Hook(MyImportFromCsvHook::HOOK, priority=MyImportFromCsvHook::PRIORITY)
  */
-class ImportFromCsvHookExample
+class MyImportFromCsvHook
 {
+    public const HOOK = 'importFromCsv';
+    public const PRIORITY = 100;
+
     /**
-     * cURL error messages.
+     * @var string
      */
     private $curlErrorMsg;
 
@@ -122,7 +123,7 @@ class ImportFromCsvHookExample
                 // Get Position from GoogleMaps
                 $arrPos = $this->curlGetCoordinates(sprintf('http://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false', $strAddress));
 
-                if (\is_array($arrPos['results'][0]['geometry'])) {
+                if (null !== $arrPos && \is_array($arrPos['results'][0]['geometry'])) {
                     $latPos = $arrPos['results'][0]['geometry']['location']['lat'];
                     $lngPos = $arrPos['results'][0]['geometry']['location']['lng'];
 
@@ -141,18 +142,14 @@ class ImportFromCsvHookExample
 
     /**
      * Curl helper method.
-     *
-     * @param $url
-     *
-     * @return bool|mixed
      */
-    public function curlGetCoordinates($url)
+    private function curlGetCoordinates(string $url): ?array
     {
         // is cURL installed on the webserver?
         if (!\function_exists('curl_init')) {
             $this->curlErrorMsg = 'Sorry cURL is not installed on your webserver!';
 
-            return false;
+            return null;
         }
 
         // Set a timout to avoid the OVER_QUERY_LIMIT
@@ -185,5 +182,5 @@ class ImportFromCsvHookExample
 
 
 
-Viel Spass mit "Import From CSV"!!!
+Viel Spass mit "Import From CSV Bundle"!!!
 

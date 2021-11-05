@@ -50,12 +50,3 @@ if (TL_MODE !== 'BE')
 	$GLOBALS['TL_CRON']['weekly']['importFromCsv'] = array(Cron::class, 'initWeekly');
 	$GLOBALS['TL_CRON']['monthly']['importFromCsv'] = array(Cron::class, 'initMonthly');
 }
-
-/**
- * HOOKS
- */
-if (TL_MODE == 'BE' && Input::get('do') === 'import_from_csv')
-{
-	// Hook (example)
-	// $GLOBALS['TL_HOOKS']['importFromCsv'][] = array('Markocupic\ImportFromCsvBundle\Listener\ContaoHooks\ImportFromCsvHookExample', 'addGeolocation');
-}
