@@ -94,7 +94,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 		),
 		'field_enclosure'      => array(
 			'inputType' => 'text',
-			'eval'      => array('mandatory' => false, 'maxlength' => 2),
+			'eval'      => array('mandatory' => false, 'useRawRequestData' => true, 'maxlength' => 1),
 			'sql'       => "varchar(255) NOT NULL default '\"'",
 		),
 		'import_mode'          => array(
