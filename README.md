@@ -8,6 +8,10 @@ Die CSV Datei wird am besten in einem Tabellenkalkulationsprogramm  (MS-EXCEL o.
   und dann als kommaseparierte Datei (CSV) abgespeichert.
 Ein Beispiel für diese Datei findet sich im Verzeichnis [docs](docs/import-file.csv).
 
+
+![preview animated](https://github.com/markocupic/markocupic/blob/main/import-from-csv-bundle.gif)
+
+
 ## Warnung!
 Achtung! Das Modul bietet einen grossen Nutzen.
   Der Anwender sollte aber wissen, was er tut, da bei falscher Anwendung Datensätze gelöscht oder
