@@ -32,15 +32,8 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-/**
- * Class TlImportFromCsv.
- */
 class TlImportFromCsv
 {
-    /**
-     * @var bool
-     */
-    private $reportTableMode = false;
 
     /**
      * @var ContaoFramework
@@ -134,7 +127,6 @@ class TlImportFromCsv
 
         $objFilesModel = $filesModelAdapter->findByUuid($objDb->fileSRC);
 
-        // Only launch the import script if file exists
         if (null === $objFilesModel || !is_file($this->projectDir.'/'.$objFilesModel->path)) {
             return '';
         }
@@ -148,51 +140,6 @@ class TlImportFromCsv
                 'rows' => $objFile->getContentAsArray(),
             ]
         );
-    }
-
-    /**
-     * @Callback(table="tl_import_from_csv", target="fields.report.input_field")
-     *
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function generateReportMarkup(): string
-    {
-        /*
-         * $bag = $this->session->getBag('markocupic_import_from_csv');
-         * $arrHead = [
-         * // Title
-         * 'lang_title' => $this->translator->trans('tl_import_from_csv.importOverview', [], 'contao_default'),
-         * // Labels
-         * 'lang_datarecords' => $this->translator->trans('tl_import_from_csv.datarecords', [], 'contao_default'),
-         * 'lang_successfull_inserts' => $this->translator->trans('tl_import_from_csv.successfullInserts', [], 'contao_default'),
-         * 'lang_failed_inserts' => $this->translator->trans('tl_import_from_csv.failedInserts', [], 'contao_default'),
-         * 'lang_show_errors_btn' => $this->translator->trans('tl_import_from_csv.showErrorsButton', [], 'contao_default'),
-         * 'lang_show_all_btn' => $this->translator->trans('tl_import_from_csv.showAllButton', [], 'contao_default'),
-         * // Values
-         * 'count_rows' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['rows'],
-         * 'count_success' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['success'],
-         * 'count_errors' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['errors'],
-         * 'int_offset' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['offset'],
-         * 'int_limit' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['limit'],
-         * 'is_testmode' => $bag[ImportFromCsv::SESSION_BAG_KEY]['status']['blnTestMode'] > 0 ? true : false,
-         * ];
-         *
-         * $arrReport = $bag[ImportFromCsv::SESSION_BAG_KEY]['report'];
-         * $arrRows = \is_array($arrReport) ? $arrReport : [];
-         *
-         * unset($bag[ImportFromCsv::SESSION_BAG_KEY]);
-         * $this->session->set('contao_backend', $bag);
-         *
-         * return $this->twig->render(
-         * '@MarkocupicImportFromCsv/ImportFromCsv/import_report.html.twig',
-         * [
-         * 'head' => $arrHead,
-         * 'rows' => $arrRows,
-         * ]
-         * );
-         * */
     }
 
     /**
@@ -259,11 +206,4 @@ class TlImportFromCsv
         return $arrOptions;
     }
 
-    /**
-     * @Callback(table="tl_import_from_csv", target="edit.buttons")
-     */
-    public function buttonsCallback(array $arrButtons, DC_Table $dc): array
-    {
-        return $arrButtons;
-    }
 }
