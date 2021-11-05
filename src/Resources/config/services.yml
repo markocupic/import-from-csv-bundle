@@ -1,45 +1,28 @@
 services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: true
+    bind:
+      $projectDir: '%kernel.project_dir%'
+      $csrfTokenName: '%contao.csrf_token_name%'
+      $perRequest: '%markocupic_import_from_csv.per_request%'
 
-  Markocupic\ImportFromCsvBundle\Import\ImportFromCsv:
+  _instanceof:
+    Symfony\Bundle\FrameworkBundle\Controller\AbstractController:
+      calls:
+        - [ setContainer, [ '@service_container' ] ]
+
+  Markocupic\ImportFromCsvBundle\:
+    resource: ../../
+    exclude: ../../{DependencyInjection,Resources}
+
+  # Add a session bag
+  Markocupic\ImportFromCsvBundle\Session\Attribute\ArrayAttributeBag:
     arguments:
-      - '@contao.framework'
-      - '@database_connection'
-      - '@translator'
-      - '@session'
-      - '@security.encoder_factory'
-      - '@Markocupic\ImportFromCsvBundle\Import\Field\FieldFactory'
-      - '%kernel.project_dir%'
-    public: true
+      - _markocupic_import_from_csv_attributes
+    calls:
+      - [setName, [markocupic_import_from_csv]]
 
-  Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper:
-    arguments:
-      - '@contao.framework'
-      - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsv'
-      - '%kernel.project_dir%'
-    public: true
 
-  Markocupic\ImportFromCsvBundle\Import\Field\FieldFactory:
-    arguments:
-      - '@Markocupic\ImportFromCsvBundle\Import\Field\Field'
-    public: true
 
-  Markocupic\ImportFromCsvBundle\Import\Field\Field:
-    public: true
-
-  Markocupic\ImportFromCsvBundle\Cron\Cron:
-    arguments:
-      - '@contao.framework'
-      - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper'
-      - '@monolog.logger.contao'
-    public: true
-
-  Markocupic\ImportFromCsvBundle\Dca\TlImportFromCsv:
-    arguments:
-      - '@contao.framework'
-      - '@request_stack'
-      - '@session'
-      - '@translator'
-      - '@twig'
-      - '@Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper'
-      - '%kernel.project_dir%'
-    public: true

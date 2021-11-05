@@ -11,6 +11,7 @@
  */
 
 use Contao\Input;
+use Markocupic\ImportFromCsvBundle\Contao\Controller\CsvImportController;
 use Markocupic\ImportFromCsvBundle\Cron\Cron;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 
@@ -18,7 +19,9 @@ use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
  * Back end modules
  */
 $GLOBALS['BE_MOD']['system']['import_from_csv'] = array(
-	'tables' => array('tl_import_from_csv')
+	'tables' => array('tl_import_from_csv'),
+	// Add a custom controller
+    'csvImport' => array(CsvImportController::class, 'csvImport')
 );
 
 /**
@@ -26,8 +29,9 @@ $GLOBALS['BE_MOD']['system']['import_from_csv'] = array(
  */
 if (TL_MODE === 'BE' && Input::get('do') === 'import_from_csv')
 {
-	$GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicimportfromcsv/import_from_csv.js';
-	$GLOBALS['TL_CSS'][] = 'bundles/markocupicimportfromcsv/import_from_csv.css';
+	$GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicimportfromcsv/js/vue@2.6.14.js';
+    $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicimportfromcsv/js/importFromCsvApp.js';
+	$GLOBALS['TL_CSS'][] = 'bundles/markocupicimportfromcsv/css/importFromCsvApp.css';
 }
 
 /**
@@ -52,6 +56,6 @@ if (TL_MODE !== 'BE')
  */
 if (TL_MODE == 'BE' && Input::get('do') === 'import_from_csv')
 {
-	// disable Hook (example)
+	// Hook (example)
 	// $GLOBALS['TL_HOOKS']['importFromCsv'][] = array('Markocupic\ImportFromCsvBundle\Listener\ContaoHooks\ImportFromCsvHookExample', 'addGeolocation');
 }

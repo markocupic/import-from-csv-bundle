@@ -10,8 +10,6 @@
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-use Markocupic\ImportFromCsvBundle\Dca\TlImportFromCsv;
-
 $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 	'config'      => array(
 		'dataContainer' => 'Table',
@@ -23,8 +21,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 		// Trigger onload- and onsubmit callbacks using annotations
 	),
 	'edit'        => array(
-		'buttons_callback' => array(
-            // Trigger buttons callbacks using annotations
+		'buttons_callback' => array(// Trigger buttons callbacks using annotations
 		),
 	),
 	'list'        => array(
@@ -37,49 +34,55 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 		),
 		'global_operations' => array(),
 		'operations'        => array(
-			'edit'   => array(
-				'href'  => 'act=edit',
-				'icon'  => 'edit.gif',
+			'edit'      => array(
+				'href' => 'act=edit',
+				'icon' => 'edit.gif',
 			),
-			'delete' => array(
+			'delete'    => array(
 				'href'       => 'act=delete',
 				'icon'       => 'delete.gif',
 				'attributes' => 'onclick="if (!confirm(\'' . $GLOBALS['TL_LANG']['MSC']['deleteConfirm'] . '\')) return false; Backend.getScrollOffset();"',
 			),
-			'show'   => array(
-				'href'  => 'act=show',
-				'icon'  => 'show.gif',
+			'show'      => array(
+				'href' => 'act=show',
+				'icon' => 'show.gif',
+			),
+			'csvImport' => array(
+				'href' => 'key=csvImport',
+				'icon' => 'bundles/markocupicimportfromcsv/database.svg',
 			),
 		),
 	),
 	'palettes'    => array(
-		'default'      => '{manual},explanation;{settings},import_table,selected_fields,field_separator,field_enclosure,import_mode,fileSRC,skipValidationFields,listLines;{limitAndOffset_settings},offset,limit;{cron_settings},enableCron',
-		'report'       => 'report',
+		'default'      => 'title;{manual},explanation;{settings},import_table,selected_fields,field_separator,field_enclosure,import_mode,fileSRC,skipValidationFields,listLines;{limitAndOffset_settings},offset,limit;{cron_settings},enableCron',
 		'__selector__' => array('enableCron'),
 	),
 	'subpalettes' => array(
 		'enableCron' => 'cronLevel',
 	),
 	'fields'      => array(
-		'id'                   => array(
+		'id'          => array(
 			'label'  => array('ID'),
 			'search' => true,
 			'sql'    => "int(10) unsigned NOT NULL auto_increment",
 		),
-		'tstamp'               => array(
+		'title'       => array
+		(
+			'exclude'   => true,
+			'inputType' => 'text',
+			'search'    => true,
+			'eval'      => array('mandatory' => true, 'decodeEntities' => true, 'maxlength' => 255, 'tl_class' => 'w50'),
+			'sql'       => "varchar(255) NOT NULL default ''"
+		),
+		'tstamp'      => array(
 			'sql' => "int(10) unsigned NOT NULL default '0'",
 		),
-		'explanation'          => array(
-			// Triger input_field callback using annotations
+		'explanation' => array(
 			'eval' => array('tl_class' => 'clr', 'doNotShow' => true),
 		),
-		'report'               => array(
-			// Triger input_field callback using annotations
-			'eval'  => array('tl_class' => 'clr', 'doNotShow' => true),
-		),
+
 		'import_table'         => array(
 			'inputType' => 'select',
-			// Triger options callback using annotations
 			'eval'      => array('multiple' => false, 'mandatory' => true, 'includeBlankOption' => true, 'submitOnChange' => true),
 			'sql'       => "varchar(255) NOT NULL default ''",
 		),
@@ -103,13 +106,11 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 		),
 		'selected_fields'      => array(
 			'inputType' => 'checkbox',
-			// Triger options callback using annotations
 			'eval'      => array('multiple' => true, 'mandatory' => true),
 			'sql'       => "blob NULL",
 		),
 		'skipValidationFields' => array(
 			'inputType' => 'select',
-			// Triger options callback using annotations
 			'eval'      => array('multiple' => true, 'chosen' => true, 'mandatory' => false),
 			'sql'       => "blob NULL",
 		),
@@ -119,7 +120,6 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 			'sql'       => "binary(16) NULL",
 		),
 		'listLines'            => array(
-			// Triger input_field callback using annotations
 			'eval' => array('tl_class' => 'clr', 'doNotShow' => true),
 		),
 		'offset'               => array(

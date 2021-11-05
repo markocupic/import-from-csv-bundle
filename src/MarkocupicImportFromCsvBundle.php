@@ -14,13 +14,25 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle;
 
+use Markocupic\ImportFromCsvBundle\DependencyInjection\Compiler\AddSessionBagsPass;
+use Markocupic\ImportFromCsvBundle\DependencyInjection\MarkocupicImportFromCsvExtension;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-/**
- * Configures the import-from-csv-bundle bundle.
- *
- * @author Marko Cupic <https://github.com/markocupic>
- */
 class MarkocupicImportFromCsvBundle extends Bundle
 {
+    public function getContainerExtension(): MarkocupicImportFromCsvExtension
+    {
+        return new MarkocupicImportFromCsvExtension();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+
+        $container->addCompilerPass(new AddSessionBagsPass());
+    }
 }

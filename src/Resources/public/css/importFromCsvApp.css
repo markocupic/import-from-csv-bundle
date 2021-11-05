@@ -1,0 +1,178 @@
+/**
+ * Operations
+ */
+a.csvImport > img {
+    width: 16px;
+    aspect-ratio: auto 16 / 16;
+    height: 16px;
+}
+
+.ifcb-m-1 {
+    margin: 15px;
+}
+
+.ifcb-mt-1 {
+    margin-top: 15px;
+}
+
+.ifcb-me-1 {
+    margin-right: 15px;
+}
+
+.ifcb-mb-1 {
+    margin-bottom: 15px;
+}
+
+.ifcb-ms-1 {
+    margin-left: 15px;
+}
+
+.ifcb-d-flex {
+    display: flex;
+}
+
+.ifcb-d-block {
+    display: block;
+}
+
+.ifcb-brand-logo {
+    width: 150px;
+}
+
+.ifcb-help-text a {
+    color: blue;
+}
+
+.ifcb-custom-header-back, .ifcb-edit-header {
+    padding: 3px 0 3px 21px;
+    background-position: left center;
+    background-repeat: no-repeat;
+    margin-left: 15px;
+}
+
+.ifcb-custom-header-back {
+    background-image: url('../../../system/themes/flexible/icons/back.svg');
+}
+
+.ifcb-edit-header {
+    background-image: url('../../../system/themes/flexible/icons/edit.svg');
+}
+
+
+.ifcb-import-from-csv-app .widget {
+    margin: 15px;
+}
+
+.ifcb-import-from-csv-app .tl_submit_container button:not([disabled]).ifcb-import-button {
+    color: #fff;
+    background: #cc0000;
+    text-shadow: 0 0 #fff;
+}
+
+.ifcb-import-from-csv-app .tl_submit_container button:not([disabled]).ifcb-import-button:hover {
+    background: #000000;
+}
+
+.ifcb-import-from-csv-app .tl_submit_container button:not([disabled]).ifcb-import-test-button {
+    color: #ffffff;
+    background: #4CAF50;
+    text-shadow: 0 0 #fff;
+}
+
+.ifcb-import-from-csv-app .tl_submit_container button:not([disabled]).ifcb-import-test-button:hover {
+    background: #000000;
+}
+
+.ifcb-import-from-csv-app .ifcb-progress-bar-container {
+    margin: 15px 0;
+    background-color: #e5e5e5;
+}
+
+.ifcb-import-from-csv-app .ifcb-progress-bar-inner {
+    height: 30px;
+    width: 0;
+    background-color: #4CAF50;
+    transition: width .9s ease;
+    line-height: 1.5;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ifcb-import-from-csv-app button.tl_submit.ifcb-display-errors-btn {
+    background-color: #cc0000;
+    border: 1px solid #cc0000 !important;
+    color: #fff;
+    padding: 4px 8px;
+    height: auto;
+}
+
+.ifcb-import-from-csv-app button.tl_submit.ifcb-display-errors-btn.hideSuccess {
+    background-color: #4CAF50;
+    color: #fff;
+    border-color: #4CAF50 !important;
+}
+
+.ifcb-import-from-csv-app .ifcb-import-report-box {
+    margin: 15px 0;
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: scroll;
+    background-color: #fbfbfb;
+}
+
+.ifcb-import-from-csv-app .ifcb-status-box {
+    min-height: 30px;
+    color: #b4b4b4;
+}
+
+.ifcb-import-from-csv-app .ifcb-import-report-table {
+    width: 100%;
+}
+
+.ifcb-import-from-csv-app .ifcb-import-report-table td.ifcb-td-title {
+    font-weight: bold;
+}
+
+.ifcb-import-from-csv-app .ifcb-import-report-table td {
+    border: 1px solid #e1e1e1;
+    padding: 4px;
+    font-size: 10px;
+    width: 50%;
+}
+
+.ifcb-import-from-csv-app .ifcb-import-report-table tr.ifcb-import-success.hiddenRow {
+    display: none;
+}
+
+.ifcb-import-from-csv-app .ifcb-import-report-table tr.ifcb-delim td {
+    border: none;
+}
+
+.ifcb-import-from-csv-app .ifcb-import-report-table .ifcb-import-success td, ul.ifcb-import-summary li.ifcb-import-success {
+    color: #008000 !important;
+}
+
+.ifcb-import-from-csv-app .ifcb-import-summary {
+    margin: 16px 0;
+    line-height: 1.5;
+}
+
+.ifcb-import-from-csv-app .ifcb-import-report-table * {
+    font-weight: normal !important;
+    font-size: 10px !important;
+}
+
+.ifcb-import-from-csv-app .ifcb-import-summary .ifcb-import-failed {
+    color: red !important;
+}
+
+.ifcb-import-from-csv-app .ifcb-import-report-table .ifcb-import-failed td {
+    color: red !important;
+}
+
+.ifcb-import-from-csv-app .ifcb-import-report-table .ifcb-delim td {
+    border-left-width: 0;
+    border-right-width: 0;
+}

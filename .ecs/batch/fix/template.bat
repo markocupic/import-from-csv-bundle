@@ -7,6 +7,6 @@ cd..
 cd..
 cd..
 :: templates
-vendor\bin\ecs check vendor/markocupic/import-from-csv-bundle/src/Resources/contao/templates --fix --config vendor/markocupic/import-from-csv-bundle/.ecs/config/template.php
+vendor\bin\ecs check vendor/markocupic/import-from-csv-bundle/src/Resources/views --fix --config vendor/markocupic/import-from-csv-bundle/.ecs/config/template.php
 ::
 cd vendor/markocupic/import-from-csv-bundle/.ecs./batch/fix

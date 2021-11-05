@@ -18,7 +18,9 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\File;
 use Contao\FilesModel;
 use Contao\StringUtil;
+use League\Csv\Reader;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Class ImportFromCsv.
@@ -31,6 +33,11 @@ class ImportFromCsvHelper
     private $framework;
 
     /**
+     * @var RequestStack
+     */
+    private $requestStack;
+
+    /**
      * @var ImportFromCsv
      */
     private $importFromCsv;
@@ -40,19 +47,42 @@ class ImportFromCsvHelper
      */
     private $projectDir;
 
-    public function __construct(ContaoFramework $framework, ImportFromCsv $importFromCsv, string $projectDir)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, ImportFromCsv $importFromCsv, string $projectDir)
     {
         $this->framework = $framework;
+        $this->requestStack = $requestStack;
         $this->importFromCsv = $importFromCsv;
         $this->projectDir = $projectDir;
     }
 
+    public function countRows(ImportFromCsvModel $model): ?int
+    {
+        $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
+
+        $objFile = $filesModelAdapter->findByUuid($model->fileSRC);
+
+        if ($objFile) {
+            $objCsvReader = Reader::createFromPath($this->projectDir.'/'.$objFile->path, 'r');
+            $objCsvReader->setHeaderOffset(0);
+            $count = (int) $objCsvReader->count();
+            $count -= (int)$model->offset;
+            $limit = (int) $model->limit;
+
+            if ($count < 1) {
+                return 0;
+            }
+
+            if ($limit > $count) {
+                return $count;
+            }
+
+            return $limit;
+        }
+    }
+
     public function importFromModel(ImportFromCsvModel $model, bool $isTestMode = false): bool
     {
-        /** @var \StringUtil $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
-
-        /** @var FilesModel $filesModelAdapter */
         $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
 
         $strTable = $model->import_table;
@@ -71,10 +101,19 @@ class ImportFromCsvHelper
 
             if ('csv' === strtolower($objFile->extension)) {
                 $this->importFromCsv->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strDelimiter, $strEnclosure, '||', $isTestMode, $arrSkipValidationFields, $intOffset, $intLimit);
+
                 return true;
             }
         }
 
         return false;
+    }
+
+    public function getReport()
+    {
+        $session = $this->requestStack->getCurrentRequest()->getSession();
+        $bag = $session->getBag('markocupic_import_from_csv');
+
+        return $bag->all();
     }
 }

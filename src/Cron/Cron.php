@@ -90,7 +90,6 @@ class Cron
                 $strTable = $objImportModel->import_table;
 
                 if (null !== ($objFile = $filesModelAdapter->findByUuid($objImportModel->fileSRC))) {
-
                     // Use helper class to launch the import process
                     if (true === $this->importFromCsvHelper->importFromModel($objImportModel->current())) {
                         // Log new insert

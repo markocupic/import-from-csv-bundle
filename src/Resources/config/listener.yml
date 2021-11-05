@@ -1,6 +1,0 @@
-services:
-
-  Markocupic\ImportFromCsvBundle\Cron\Cron:
-    arguments:
-      - '@contao.framework'
-    public: true

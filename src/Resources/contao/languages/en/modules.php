@@ -1,12 +1,13 @@
 <?php
 
-/**
- * Import from csv bundle: Backend module for Contao CMS
- * Copyright (c) 2008-2020 Marko Cupic
- * @package import-from-csv-bundle
- * @author Marko Cupic m.cupic@gmx.ch, 2020
- * @link https://github.com/markocupic/resource-booking-bundle
+/*
+ * This file is part of Import From CSV Bundle.
+ *
+ * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
+ * @license MIT
+ * For the full copyright and license information,
+ * please view the LICENSE file that was distributed with this source code.
+ * @link https://github.com/markocupic/import-from-csv-bundle
  */
-
 
 $GLOBALS['TL_LANG']['MOD']['import_from_csv'] = array('CSV database-import');

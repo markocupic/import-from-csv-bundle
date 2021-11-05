@@ -1,12 +1,20 @@
 <?php
 
-/**
- * Import from csv bundle: Backend module for Contao CMS
- * Copyright (c) 2008-2020 Marko Cupic
- * @package import-from-csv-bundle
- * @author Marko Cupic m.cupic@gmx.ch, 2020
- * @link https://github.com/markocupic/resource-booking-bundle
+/*
+ * This file is part of Import From CSV Bundle.
+ *
+ * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
+ * @license MIT
+ * For the full copyright and license information,
+ * please view the LICENSE file that was distributed with this source code.
+ * @link https://github.com/markocupic/import-from-csv-bundle
  */
+
+// Keys
+$GLOBALS['TL_LANG']['tl_import_from_csv']['csvImport'] = ['Launch import with ID %s', 'Launch import with ID %s'];
+
+// Global operations
+$GLOBALS['TL_LANG']['tl_import_from_csv']['new'] = array('Add new import', 'Add a new import');
 
 // Legends
 $GLOBALS['TL_LANG']['tl_import_from_csv']['manual'] = 'Manual/Help';
@@ -15,6 +23,7 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['limitAndOffset_settings'] = "Offset a
 $GLOBALS['TL_LANG']['tl_import_from_csv']['cron_settings'] = "Cron settings";
 
 // Fields
+$GLOBALS['TL_LANG']['tl_import_from_csv']['title'] = ["Title", "Enter a title please."];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['import_table'] = array('Import data into this table', 'Choose a table for import.');
 $GLOBALS['TL_LANG']['tl_import_from_csv']['import_mode'] = array('Import mode', 'Decide if the table will be truncated before importing the data from the csv-file.');
 $GLOBALS['TL_LANG']['tl_import_from_csv']['field_enclosure'] = array('Field enclosure', 'Character with which  the field-content is enclosed. Normally it is a double quote: => "');
@@ -32,21 +41,24 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['cronLevel'] = array("Cron level", "Se
 $GLOBALS['TL_LANG']['tl_import_from_csv']['truncate_table'] = array('truncate the target table before importing data');
 $GLOBALS['TL_LANG']['tl_import_from_csv']['append_entries'] = array('only append data into the target table');
 
-// Global operations
-$GLOBALS['TL_LANG']['tl_import_from_csv']['new'][0] = 'Add new import';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['new'][1] = 'Add a new import';
-
 // Buttons
-$GLOBALS['TL_LANG']['tl_import_from_csv']['runImportButton'] = 'Launch import process';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['testRunImportButton'] = 'Launch  import in test mode';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['showErrorsButton'] = 'Show failed inserts only';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['runImportBtn'] = 'Launch import process';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['testRunImportBtn'] = 'Launch  import in test mode';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['showErrorsBtn'] = 'Show failed inserts only';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['showAllButton'] = 'Show all inserts';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['btnImport'] = 'Start import process';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['btnImportTest'] = 'Test import';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['editItemTitle'] = 'edit import';
 
 // Messages
 $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'] = 'Datarecords';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['successfullInserts'] = 'Successful inserts';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['failedInserts'] = 'Failed inserts';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['infoText'] = "A comma-separated text file (csv) can be created with MS Excel or a simple text editor. Write the field names in the first line. The individual fields should be separated by a separator (usually the semicolon ";"). Field content that is stored in the database as a serialized array (e.g. group membership) must be separated by two consecutive pipe characters, e.g. \"2 || 5\". Field delimiters and field separators can be set individually. Important! Write each data record on a new line. Line breaks in the csv will cause an error during the import process.<br><br>Load the created csv file into the filesystem using the fileuploader in the Contao backend. The content will be checked for validity during the import process.<br>Attention! The module should only be used if you are very sure of what you are doing. Deleted data can only be restored if a database backup has been created beforehand.<br><br>Find more help under: https://github.com/markocupic/import-from-csv-bundle";
+$GLOBALS['TL_LANG']['tl_import_from_csv']['infoText'] = '<span>An introduction and many tips can be found on the <a href="https://github.com/markocupic/import-from-csv-bundle">project website</a>.</span>';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['importOverview'] = "Import overview";
 $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecordInsertFailed'] = "Insert failed!";
 $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecordInsertSucceed'] = "Insert succeed!";
+$GLOBALS['TL_LANG']['tl_import_from_csv']['confirmStartImport'] = "Do you really want to start the import process?";
+$GLOBALS['TL_LANG']['tl_import_from_csv']['exceptionMsg'] = 'An unexpected error occurred during the import process. Please switch to the Contao Debug-Mode to find out more.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['importProcessCompleted'] = 'Import process completed. You can close the window now.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['importProcessStarted'] = 'Import process started. Please do not close this window until the import has succeeded.';

@@ -18,7 +18,6 @@ use Contao\BackendUser;
 use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\Database;
 use Contao\Date;
 use Contao\File;
 use Contao\FrontendUser;
@@ -27,7 +26,6 @@ use Contao\StringUtil;
 use Contao\System;
 use Contao\Widget;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Schema\Table;
 use League\Csv\Exception;
 use League\Csv\Reader;
 use League\Csv\Statement;
@@ -42,8 +40,6 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class ImportFromCsv
 {
-    const SESSION_BAG_KEY = 'import_from_csv';
-
     /**
      * @var array
      */
@@ -82,12 +78,12 @@ class ImportFromCsv
     /**
      * @var string
      */
-    private $rootDir;
+    private $projectDir;
 
     /**
      * ImportFromCsv constructor.
      */
-    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, SessionInterface $session, EncoderFactoryInterface $encoderFactory, FieldFactory $fieldFactory, string $rootDir)
+    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, SessionInterface $session, EncoderFactoryInterface $encoderFactory, FieldFactory $fieldFactory, string $projectDir)
     {
         $this->framework = $framework;
         $this->connection = $connection;
@@ -95,7 +91,7 @@ class ImportFromCsv
         $this->session = $session;
         $this->encoderFactory = $encoderFactory;
         $this->fieldFactory = $fieldFactory;
-        $this->rootDir = $rootDir;
+        $this->projectDir = $projectDir;
     }
 
     /**
@@ -115,11 +111,20 @@ class ImportFromCsv
         /** @var $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
-        if (TL_MODE === 'BE') {
-            $bag = $this->session->getBag('contao_backend');
-            $bag[self::SESSION_BAG_KEY]['report'][] = $htmlReport;
-            $this->session->set('contao_backend', $bag);
-        }
+        /** @var $controllerAdapter */
+        $controllerAdapter = $this->framework->getAdapter(Controller::class);
+
+        // Load language file
+        $controllerAdapter->loadLanguageFile('tl_import_from_csv');
+
+        $bag = $this->session->getBag('markocupic_import_from_csv');
+        $data['rows'] = '';
+        $data['summary'] = [
+            'rows' => 0,
+            'success' => 0,
+            'errors' => 0,
+        ];
+        $bag->replace($data);
 
         if ('' === $strDelimiter) {
             $strDelimiter = ';';
@@ -150,7 +155,7 @@ class ImportFromCsv
         }
 
         // Get the League\Csv\Reader object
-        $objCsvReader = Reader::createFromPath($this->rootDir.'/'.$objCsvFile->path, 'r');
+        $objCsvReader = Reader::createFromPath($this->projectDir.'/'.$objCsvFile->path, 'r');
 
         // Set the CSV header offset
         $objCsvReader->setHeaderOffset(0);
@@ -249,7 +254,6 @@ class ImportFromCsv
                 $objField->setValue(trim((string) $value));
 
                 // Get the DCA of the current field
-
                 $arrDcaField = $this->getDca($objField->getTablename(), $objField->getName());
                 $objField->setDca($arrDcaField);
 
@@ -357,7 +361,7 @@ class ImportFromCsv
                         $doNotSave = true;
 
                         $value = sprintf(
-                            '"%s" => <span class="errMsg">%s</span>',
+                            '"%s" => <span class="ifcb-error-msg">%s</span>',
                             $objField->getValue(),
                             $objWidget->getErrorsAsString()
                         );
@@ -444,12 +448,12 @@ class ImportFromCsv
 
             // Generate html markup for the import report table
             $htmlReport = '';
-            $cssClass = 'allOk';
+            $cssClass = 'ifcb-import-success';
 
             if ($doNotSave) {
-                $cssClass = 'error';
+                $cssClass = 'ifcb-import-failed';
                 $htmlReport .= sprintf(
-                    '<tr class="%s"><td class="tdTitle" colspan="2">#%s %s</td></tr>',
+                    '<tr class="%s"><td class="ifcb-td-title" colspan="2">#%s %s</td></tr>',
                     $cssClass,
                     $line,
                     $this->translator->trans('tl_import_from_csv.datarecordInsertFailed', [], 'contao_default')
@@ -459,7 +463,7 @@ class ImportFromCsv
                 ++$insertError;
             } else {
                 $htmlReport .= sprintf(
-                    '<tr class="%s"><td class="tdTitle" colspan="2">#%s %s</td></tr>',
+                    '<tr class="%s"><td class="ifcb-td-title" colspan="2">#%s %s</td></tr>',
                     $cssClass,
                     $line,
                     $this->translator->trans('tl_import_from_csv.datarecordInsertSucceed', [], 'contao_default')
@@ -471,34 +475,29 @@ class ImportFromCsv
                     $v = serialize($v);
                 }
                 $htmlReport .= sprintf(
-                    '<tr class="%s"><td>%s</td><td>%s</td></tr>',
+                    '<tr class="%s" ><td class="col_0">%s</td><td class="col_1">%s</td></tr>',
                     $cssClass,
                     $stringUtilAdapter->substr($k, 30),
                     $stringUtilAdapter->substrHtml($v, 90)
                 );
             }
 
-            $htmlReport .= '<tr class="delim"><td>&nbsp;</td><td>&nbsp;</td></tr>';
+            $htmlReport .= '<tr class="ifcb-delim"><td class="col_0">&nbsp;</td><td class="col_1">&nbsp;</td></tr>';
 
-            if (TL_MODE === 'BE') {
-                $bag = $this->session->getBag('contao_backend');
-                $bag[self::SESSION_BAG_KEY]['report'][] = $htmlReport;
-                $this->session->set('contao_backend', $bag);
-            }
+            $bag = $this->session->getBag('markocupic_import_from_csv');
+            $data = $bag->all();
+            $data['rows'] .= $htmlReport;
+            $bag->replace($data);
         }// end foreach
 
-        if (TL_MODE === 'BE') {
-            $bag = $this->session->getBag('contao_backend');
-            $bag[self::SESSION_BAG_KEY]['status'] = [
-                'blnTestMode' => $blnTestMode,
-                'rows' => $countInserts,
-                'success' => $countInserts - $insertError,
-                'errors' => $insertError,
-                'offset' => $intOffset > 0 ? $intOffset : '-',
-                'limit' => $intLimit > 0 ? $intLimit : '-',
-            ];
-            $this->session->set(self::SESSION_BAG_KEY, $bag);
-        }
+        $bag = $this->session->getBag('markocupic_import_from_csv');
+        $data = $bag->all();
+        $data['summary'] = [
+            'rows' => $countInserts,
+            'success' => $countInserts - $insertError,
+            'errors' => $insertError,
+        ];
+        $bag->replace($data);
     }
 
     /**
@@ -539,6 +538,43 @@ class ImportFromCsv
     }
 
     /**
+     * @param $value
+     */
+    private function isUniqueValue(string $strTable, string $strColumn, $value, ?int $intId = null): bool
+    {
+        $qb = $this->connection->createQueryBuilder();
+
+        $qb->select('id')
+            ->from($strTable, 't')
+            ->where('t.'.$strColumn.' = :value')
+            ->setParameter('value', $value)
+        ;
+
+        if (null !== $intId) {
+            $qb->andWhere('t.id != :id');
+            $qb->setParameter('id', $intId);
+        }
+
+        $qb->setMaxResults(1);
+
+        return $qb->execute()->rowCount() ? false : true;
+    }
+
+    private function hasColumn(string $strColumn, string $strTable): bool
+    {
+        $schemaManager = $this->connection->getSchemaManager();
+
+        // If the database table itself return false
+        if (!$schemaManager->tablesExist([$strTable])) {
+            return false;
+        }
+
+        $columns = $schemaManager->listTableColumns($strTable);
+
+        return isset($columns[strtolower($strColumn)]);
+    }
+
+    /**
      * @throws \Doctrine\DBAL\Exception
      */
     private function addNewMemberToNewsletterRecipientList(Field $objField, string $newsletter, string $email): void
@@ -568,48 +604,11 @@ class ImportFromCsv
                     $set['email'] = $email;
                     $set['active'] = '1';
 
-                    if (true !== $blnTestMode) {
+                    if (true !== $this->arrData['blnTestMode']) {
                         $this->connection->insert('tl_newsletter_recipients', $set);
                     }
                 }
             }
         }
-    }
-
-    private function hasColumn(string $strColumn, string $strTable): bool
-    {
-        $schemaManager = $this->connection->getSchemaManager();
-
-        // If the database table itself return false
-        if (!$schemaManager->tablesExist([$strTable])) {
-            return false;
-        }
-
-        $columns = $schemaManager->listTableColumns($strTable);
-
-        return isset($columns[strtolower($strColumn)]);
-    }
-
-    /**
-     * @param $value
-     */
-    private function isUniqueValue(string $strTable, string $strColumn, $value, ?int $intId = null): bool
-    {
-        $qb = $this->connection->createQueryBuilder();
-
-        $qb->select('id')
-            ->from($strTable, 't')
-            ->where('t.'.$strColumn.' = :value')
-            ->setParameter('value', $value)
-        ;
-
-        if (null !== $intId) {
-            $qb->andWhere('t.id != :id');
-            $qb->setParameter('id', $intId);
-        }
-
-        $qb->setMaxResults(1);
-
-        return $qb->execute()->rowCount() ? false : true;
     }
 }

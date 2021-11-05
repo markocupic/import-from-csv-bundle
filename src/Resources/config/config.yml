@@ -1,0 +1,4 @@
+markocupic_import_from_csv:
+  per_request: 25
+
+
