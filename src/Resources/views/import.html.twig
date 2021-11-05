@@ -3,13 +3,13 @@
     <a href="{{ editHref }}" class="ifcb-edit-header" title="{{ lang.tl_import_from_csv.editItemTitle }}" accesskey="c">{{ lang.tl_import_from_csv.editItemTitle }}</a>
 </div>
 
-<form action="{{ form.action }}" id="ifcbImportFromCsvApp" v-class="status" class="ifcb-import-from-csv-app tl_form tl_edit_form" method="get">
+<form action="{{ form.action }}" v-cloak id="ifcbImportFromCsvApp" v-bind:class="status" class="ifcb-import-from-csv-app tl_form tl_edit_form" method="get">
     <div class="tl_formbody_edit">
         <input type="hidden" name="id" value="{{ form.input.id }}">
         <input type="hidden" name="token" value="{{ form.input.token }}">
 
         <div class="widget">
-            <h2>{{ model.title }}</h2>
+            <h2>{{ model.title }} [{{ model.import_table }}]</h2>
             <br>
             <ul class="ifcb-import-summary">
                 <li>Offset: {{ model.offset }}</li>
@@ -30,10 +30,6 @@
                 </button>
             </div>
 
-            <div v-if="status == 'error'" class="tl_message">
-                <p class="tl_error">{{ lang.tl_import_from_csv.exceptionMsg }}</p>
-            </div>
-
             <div class="ifcb-progress-bar-container">
                 <div id="importProgress" class="ifcb-progress-bar-inner">
                     <span class="ifcb-percentage"></span>
@@ -41,9 +37,9 @@
             </div>
 
             <div class="ifcb-status-box tl_message">
-                <p v-if="status == 'pending'" class="tl_info">{{ lang.tl_import_from_csv.importProcessStarted }}</p>
-                <p v-if="status == 'error'" class="tl_error">{{ lang.tl_import_from_csv.exceptionMsg }}</p>
-                <p v-if="status == 'completed'" class="tl_confirm">{{ lang.tl_import_from_csv.importProcessCompleted }}</p>
+                <p v-if="status == 'ifcb-status-pending'" class="tl_info">{{ lang.tl_import_from_csv.importProcessStarted }}</p>
+                <p v-if="status == 'ifcb-status-error'" class="tl_error">{{ lang.tl_import_from_csv.exceptionMsg }}</p>
+                <p v-if="status == 'ifcb-status-completed'" class="tl_confirm">{{ lang.tl_import_from_csv.importProcessCompleted }}</p>
             </div>
 
             <div class="ifcb-import-report-box">

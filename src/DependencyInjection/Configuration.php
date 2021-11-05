@@ -2,6 +2,16 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is part of Import From CSV Bundle.
+ *
+ * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
+ * @license MIT
+ * For the full copyright and license information,
+ * please view the LICENSE file that was distributed with this source code.
+ * @link https://github.com/markocupic/import-from-csv-bundle
+ */
+
 namespace Markocupic\ImportFromCsvBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -9,7 +19,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
-    const ROOT_KEY = 'markocupic_import_from_csv';
+    public const ROOT_KEY = 'markocupic_import_from_csv';
 
     public function getConfigTreeBuilder()
     {
@@ -17,7 +27,7 @@ class Configuration implements ConfigurationInterface
 
         $treeBuilder->getRootNode()
             ->children()
-                ->integerNode('per_request')
+                ->integerNode('max_inserts_per_request')
                     ->defaultValue(25)
                 ->end()
             ->end()

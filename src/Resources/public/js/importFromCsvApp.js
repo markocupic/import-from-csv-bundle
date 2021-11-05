@@ -18,7 +18,8 @@ class importFromCsvApp {
       data: {
         items: [],
         isTestMode: false,
-        status: 'waiting',
+        status: 'ifcb-status-preparing',
+        urlStack: [],
         requestsDone: 0,
         requestsNeeded: 0,
         options: {
@@ -49,7 +50,6 @@ class importFromCsvApp {
       created: function created() {
         // Override defaults
         this.options = {...this.options, ...options}
-
         this.$nextTick(function () {
           // Code that will run only after the
           // entire view has been rendered
@@ -70,13 +70,16 @@ class importFromCsvApp {
             }).then(response => {
             if (response.status === 200) {
               response.json().then(res => {
-                Object.keys(res.data).forEach(key => {
-                  this.model[key] = res.data[key];
+                Object.keys(res.data.model).forEach(key => {
+                  this.model[key] = res.data.model[key];
                 });
-                this.requestsNeeded = this.model.urls.length;
+                this.urlStack = res.data.urlStack;
+                this.requestsNeeded = this.urlStack.length;
               });
             }
             return response;
+          }).then(response => {
+            setTimeout(() => this.status = 'ifcb-status-ready', 1000);
           }).catch(error => {
             console.error("There was en error: " + error);
           });
@@ -91,21 +94,20 @@ class importFromCsvApp {
           }
 
           let url = '';
-          if (this.model.urls.length) {
-            this.status = 'pending';
-            url = this.model.urls.shift();
+          if (this.urlStack.length) {
+            this.status = 'ifcb-status-pending';
+            url = this.urlStack.shift();
           } else {
-            this.status = 'completed';
+            this.status = 'ifcb-status-completed';
             return;
           }
 
-          fetch(url + '&isTestMode=' + isTestMode,
-            {
-              method: "GET",
-              headers: {
-                'x-requested-with': 'XMLHttpRequest'
-              },
-            }).then(response => {
+          fetch(url + '&isTestMode=' + isTestMode, {
+            method: "GET",
+            headers: {
+              'x-requested-with': 'XMLHttpRequest'
+            },
+          }).then(response => {
             if (response.status === 200) {
               response.json().then(res => {
                 this.report.rows = this.report.rows + res.data.rows;
@@ -117,12 +119,12 @@ class importFromCsvApp {
               });
             } else {
               // Abort import request loop, if there was an exception
-              this.status = 'error';
+              this.status = 'ifcb-status-error';
               return;
             }
             return response;
           }).then(response => {
-            this.runImport(isTestMode);
+            setTimeout(() => this.runImport(isTestMode), 200);
           }).catch(error => {
             console.error("There was en error: " + error);
           });
@@ -159,7 +161,7 @@ class importFromCsvApp {
           const bar = document.getElementById('importProgress');
           const percentage = document.querySelector('#importProgress .ifcb-percentage');
           if (bar) {
-            let perc = Math.ceil((this.requestsNeeded - this.model.urls.length) / this.requestsNeeded * 100);
+            let perc = Math.ceil((this.requestsNeeded - this.urlStack.length) / this.requestsNeeded * 100);
             if (this.requestsNeeded === 0) {
               let perc = 100;
             }

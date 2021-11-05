@@ -1,18 +1,13 @@
-<div class="widget parsedFile">
-    <p></p>
+<div class="widget">
     <label>
-        <h2>{{ headline }}</h2>
+        <h3>{{ headline }}</h3>
     </label>
 
     <div class="ifcb-file-content-box">
         <ul>
-
             {% for row in rows %}
-
-                <li><pre>{{ row }}</pre></li>
-
+                <li>{{ row }}</li>
             {% endfor %}
-
         </ul>
     </div>
 </div>

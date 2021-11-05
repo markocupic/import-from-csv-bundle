@@ -7,13 +7,30 @@ a.csvImport > img {
     height: 16px;
 }
 
+[v-cloak], .ifcb-import-from-csv-app.ifcb-status-preparing {
+    display: none;
+}
+
+.ifcb-status-ready .ifcb-progress-bar-container, .ifcb-status-ready .ifcb-import-report-box {
+    visibility: hidden;
+}
+
 /**
  * Detailview
  */
-.ifcb-file-content-box{
-    max-height:300px;
-    overflow: auto;
-    padding: 15px;
+.ifcb-file-content-box {
+    max-height: 300px;
+    overflow-x: hidden;
+    padding: 5px;
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    border: 1px solid #ddd;
+}
+
+.ifcb-file-content-box li {
+    font-size: 9px;
+    line-height: 15px;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .ifcb-m-1 {
@@ -67,7 +84,6 @@ a.csvImport > img {
     background-image: url('../../../system/themes/flexible/icons/edit.svg');
 }
 
-
 .ifcb-import-from-csv-app .widget {
     margin: 15px;
 }
@@ -101,7 +117,7 @@ a.csvImport > img {
     height: 30px;
     width: 0;
     background-color: #4CAF50;
-    transition: width .9s ease;
+    transition: width 1.5s ease;
     line-height: 1.5;
     color: #ffffff;
     display: flex;

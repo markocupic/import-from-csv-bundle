@@ -156,12 +156,12 @@ class ImportController extends AbstractController
             throw new \Exception('Import from csv model not found.');
         }
 
-        $arrData = $objModel->row();
+        $arrData['model'] = $objModel->row();
 
         $objFile = FilesModel::findByUuid($objModel->fileSRC);
-        $arrData['fileSRC'] = $objFile ? $objFile->path : '';
-        $arrData['selected_fields'] = StringUtil::deserialize($objModel->selected_fields, true);
-        $arrData['skipValidationFields'] = StringUtil::deserialize($objModel->skipValidationFields, true);
+        $arrData['model']['fileSRC'] = $objFile ? $objFile->path : '';
+        $arrData['model']['selected_fields'] = StringUtil::deserialize($objModel->selected_fields, true);
+        $arrData['model']['skipValidationFields'] = StringUtil::deserialize($objModel->skipValidationFields, true);
 
         $count = 0;
         $offset = (int) $objModel->offset;
@@ -202,10 +202,11 @@ class ImportController extends AbstractController
             );
         }
 
-        $arrData['limit'] = $objModel->limit;
-        $arrData['offset'] = $objModel->offset;
-        $arrData['urls'] = $arrUrl;
-        $arrData['count'] = $count;
+        $arrData['model']['limit'] = $objModel->limit;
+        $arrData['model']['offset'] = $objModel->offset;
+        $arrData['model']['count'] = $count;
+        $arrData['urlStack'] = $arrUrl;
+
         $json = ['data' => $arrData];
 
         return new JsonResponse($json);

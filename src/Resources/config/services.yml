@@ -6,7 +6,7 @@ services:
     bind:
       $projectDir: '%kernel.project_dir%'
       $csrfTokenName: '%contao.csrf_token_name%'
-      $perRequest: '%markocupic_import_from_csv.per_request%'
+      $perRequest: '%markocupic_import_from_csv.max_inserts_per_request%'
 
   _instanceof:
     Symfony\Bundle\FrameworkBundle\Controller\AbstractController:
