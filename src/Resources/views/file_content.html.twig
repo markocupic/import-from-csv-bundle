@@ -4,12 +4,12 @@
         <h2>{{ headline }}</h2>
     </label>
 
-    <div class="fileContentBox">
+    <div class="ifcb-file-content-box">
         <ul>
 
             {% for row in rows %}
 
-                <li>{{ row }}</li>
+                <li><pre>{{ row }}</pre></li>
 
             {% endfor %}
 

@@ -7,6 +7,15 @@ a.csvImport > img {
     height: 16px;
 }
 
+/**
+ * Detailview
+ */
+.ifcb-file-content-box{
+    max-height:300px;
+    overflow: auto;
+    padding: 15px;
+}
+
 .ifcb-m-1 {
     margin: 15px;
 }

@@ -29,8 +29,8 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 			'fields' => array('tstamp DESC'),
 		),
 		'label'             => array(
-			'fields' => array('import_table'),
-			'format' => '%s',
+			'fields' => array('title', 'import_table'),
+			'format' => '%s [%s]',
 		),
 		'global_operations' => array(),
 		'operations'        => array(
@@ -94,8 +94,8 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 		),
 		'field_enclosure'      => array(
 			'inputType' => 'text',
-			'eval'      => array('mandatory' => false, 'maxlength' => 1),
-			'sql'       => "varchar(255) NOT NULL default ''",
+			'eval'      => array('mandatory' => false, 'maxlength' => 2),
+			'sql'       => "varchar(255) NOT NULL default '\"'",
 		),
 		'import_mode'          => array(
 			'inputType' => 'select',
