@@ -160,7 +160,7 @@ class ImportController extends AbstractController
 
         $objFile = FilesModel::findByUuid($objModel->fileSRC);
         $arrData['model']['fileSRC'] = $objFile ? $objFile->path : '';
-        $arrData['model']['selected_fields'] = StringUtil::deserialize($objModel->selected_fields, true);
+        $arrData['model']['selectedFields'] = StringUtil::deserialize($objModel->selectedFields, true);
         $arrData['model']['skipValidationFields'] = StringUtil::deserialize($objModel->skipValidationFields, true);
 
         $count = 0;

@@ -87,7 +87,7 @@ class Cron
 
         if (null !== ($objImportModel = $importFromCsvModelAdapter->findBy(['enableCron = ?', 'cronLevel = ?'], ['1', $cronLevel]))) {
             while ($objImportModel->next()) {
-                $strTable = $objImportModel->import_table;
+                $strTable = $objImportModel->importTable;
 
                 if (null !== ($objFile = $filesModelAdapter->findByUuid($objImportModel->fileSRC))) {
                     // Use helper class to launch the import process

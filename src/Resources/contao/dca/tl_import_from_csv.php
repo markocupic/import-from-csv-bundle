@@ -18,21 +18,15 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 				'id' => 'primary',
 			),
 		),
-		// Trigger onload- and onsubmit callbacks using annotations
-	),
-	'edit'        => array(
-		'buttons_callback' => array(// Trigger buttons callbacks using annotations
-		),
 	),
 	'list'        => array(
 		'sorting'           => array(
 			'fields' => array('tstamp DESC'),
 		),
 		'label'             => array(
-			'fields' => array('title', 'import_table'),
+			'fields' => array('title', 'importTable'),
 			'format' => '%s [%s]',
 		),
-		'global_operations' => array(),
 		'operations'        => array(
 			'edit'      => array(
 				'href' => 'act=edit',
@@ -54,7 +48,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 		),
 	),
 	'palettes'    => array(
-		'default'      => 'title;{manual},explanation;{settings},import_table,selected_fields,field_separator,field_enclosure,import_mode,fileSRC,listLines,skipValidationFields;{limitAndOffset_settings},offset,limit;{cron_settings},enableCron',
+		'default'      => '{title_legend},title;{docs_legend},explanation;{settings_legend},importTable,selectedFields,fieldSeparator,fieldEnclosure,importMode,fileSRC,listLines,skipValidationFields;{limitAndOffset_legend},offset,limit;{cron_legend},enableCron',
 		'__selector__' => array('enableCron'),
 	),
 	'subpalettes' => array(
@@ -62,8 +56,6 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 	),
 	'fields'      => array(
 		'id'          => array(
-			'label'  => array('ID'),
-			'search' => true,
 			'sql'    => "int(10) unsigned NOT NULL auto_increment",
 		),
 		'title'       => array
@@ -80,31 +72,30 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 		'explanation' => array(
 			'eval' => array('tl_class' => 'clr', 'doNotShow' => true),
 		),
-
-		'import_table'         => array(
+		'importTable'         => array(
 			'inputType' => 'select',
 			'eval'      => array('multiple' => false, 'mandatory' => true, 'includeBlankOption' => true, 'submitOnChange' => true),
 			'sql'       => "varchar(255) NOT NULL default ''",
 		),
-		'field_separator'      => array(
+		'fieldSeparator'      => array(
 			'inputType' => 'text',
 			'default'   => ';',
 			'eval'      => array('mandatory' => true, 'maxlength' => 1),
 			'sql'       => "varchar(255) NOT NULL default ''",
 		),
-		'field_enclosure'      => array(
+		'fieldEnclosure'      => array(
 			'inputType' => 'text',
 			'eval'      => array('mandatory' => false, 'useRawRequestData' => true, 'maxlength' => 1),
 			'sql'       => "varchar(255) NOT NULL default '\"'",
 		),
-		'import_mode'          => array(
+		'importMode'          => array(
 			'inputType' => 'select',
 			'options'   => array('append_entries', 'truncate_table'),
 			'reference' => $GLOBALS['TL_LANG']['tl_import_from_csv'],
 			'eval'      => array('multiple' => false, 'mandatory' => true),
 			'sql'       => "varchar(255) NOT NULL default ''",
 		),
-		'selected_fields'      => array(
+		'selectedFields'      => array(
 			'inputType' => 'checkbox',
 			'eval'      => array('multiple' => true, 'mandatory' => true),
 			'sql'       => "blob NULL",

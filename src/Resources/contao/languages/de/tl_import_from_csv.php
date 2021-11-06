@@ -17,18 +17,19 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['csvImport'] = ['Import mit ID %s durc
 $GLOBALS['TL_LANG']['tl_import_from_csv']['new'] = ["Neuen Importdatensatz anlegen", "Einen neuen Importdatensatz anlegen"];
 
 // Legends
-$GLOBALS['TL_LANG']['tl_import_from_csv']['manual'] = "Anleitung/Hilfe";
-$GLOBALS['TL_LANG']['tl_import_from_csv']['settings'] = "Einstellungen";
-$GLOBALS['TL_LANG']['tl_import_from_csv']['limitAndOffset_settings'] = "Offset und Limit (max_execution_time)";
-$GLOBALS['TL_LANG']['tl_import_from_csv']['cron_settings'] = "Cron Einstellungen";
+$GLOBALS['TL_LANG']['tl_import_from_csv']['title_legend'] = "Titel Einstellungen";
+$GLOBALS['TL_LANG']['tl_import_from_csv']['docs_legend'] = "HowTo/Hilfe";
+$GLOBALS['TL_LANG']['tl_import_from_csv']['settings_legend'] = "Einstellungen";
+$GLOBALS['TL_LANG']['tl_import_from_csv']['limitAndOffset_legend'] = "Offset und Limit (max_execution_time)";
+$GLOBALS['TL_LANG']['tl_import_from_csv']['cron_legend'] = "Cron Einstellungen";
 
 //Fields
 $GLOBALS['TL_LANG']['tl_import_from_csv']['title'] = ["Titel", "Geben Sie einen Titel ein."];
-$GLOBALS['TL_LANG']['tl_import_from_csv']['import_table'] = ["Datentabelle für Import auswählen", "Wählen Sie eine Tabelle, in welche die Daten importiert werden sollen, aus."];
-$GLOBALS['TL_LANG']['tl_import_from_csv']['import_mode'] = ["Import-Modus", "Entscheiden Sie, ob die Tabelle vor dem Import gelöscht werden soll oder die Daten an die bestehenden Einträge angehängt werden sollen."];
-$GLOBALS['TL_LANG']['tl_import_from_csv']['field_enclosure'] = ["Felder eingeschlossen von", "Zeichen, von welchem die Felder in der csv-Datei eingeschlossen sind. Normalerweise ein doppeltes Anführungszeichen: => \""];
-$GLOBALS['TL_LANG']['tl_import_from_csv']['field_separator'] = ["Felder getrennt von", "Zeichen, mit dem die Felder in der csv-Datei voneinander getrennt sind. Normalerweise ein Semikolon: => ;"];
-$GLOBALS['TL_LANG']['tl_import_from_csv']['selected_fields'] = ["Felder für Importvorgang auswählen."];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['importTable'] = ["Datentabelle für Import auswählen", "Wählen Sie eine Tabelle, in welche die Daten importiert werden sollen, aus."];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['importMode'] = ["Import-Modus", "Entscheiden Sie, ob die Tabelle vor dem Import gelöscht werden soll oder die Daten an die bestehenden Einträge angehängt werden sollen."];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['fieldEnclosure'] = ["Felder eingeschlossen von", "Zeichen, von welchem die Felder in der csv-Datei eingeschlossen sind. Normalerweise ein doppeltes Anführungszeichen: => \""];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['fieldSeparator'] = ["Felder getrennt von", "Zeichen, mit dem die Felder in der csv-Datei voneinander getrennt sind. Normalerweise ein Semikolon: => ;"];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['selectedFields'] = ["Felder für Importvorgang auswählen.", "Wählen Sie die Felder aus, die Sie importieren möchten."];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['fileSRC'] = ["csv-Datei auswählen"];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['fileContent'] = ["Datei-Inhalt"];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['skipValidationFields'] = ["Validierung für diese Felder überspringen", "Geben Sie an für welche Felder die Validierung übersprungen werden soll."];

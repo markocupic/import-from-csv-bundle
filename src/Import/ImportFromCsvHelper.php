@@ -65,7 +65,7 @@ class ImportFromCsvHelper
             $objCsvReader = Reader::createFromPath($this->projectDir.'/'.$objFile->path, 'r');
             $objCsvReader->setHeaderOffset(0);
             $count = (int) $objCsvReader->count();
-            $count -= (int)$model->offset;
+            $count -= (int) $model->offset;
             $limit = (int) $model->limit;
 
             if ($count < 1) {
@@ -85,11 +85,11 @@ class ImportFromCsvHelper
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
         $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
 
-        $strTable = $model->import_table;
-        $importMode = $model->import_mode;
-        $arrSelectedFields = $stringUtilAdapter->deserialize($model->selected_fields, true);
-        $strDelimiter = $model->field_separator;
-        $strEnclosure = $model->field_enclosure;
+        $strTable = $model->importTable;
+        $importMode = $model->importMode;
+        $arrSelectedFields = $stringUtilAdapter->deserialize($model->selectedFields, true);
+        $strDelimiter = $model->fieldSeparator;
+        $strEnclosure = $model->fieldEnclosure;
         $intOffset = (int) $model->offset;
         $intLimit = (int) $model->limit;
         $arrSkipValidationFields = $stringUtilAdapter->deserialize($model->skipValidationFields, true);

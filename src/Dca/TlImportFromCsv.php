@@ -18,7 +18,6 @@ use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\ServiceAnnotation\Callback;
 use Contao\Database;
-use Contao\DC_Table;
 use Contao\File;
 use Contao\FilesModel;
 use Contao\Input;
@@ -34,7 +33,6 @@ use Twig\Error\SyntaxError;
 
 class TlImportFromCsv
 {
-
     /**
      * @var ContaoFramework
      */
@@ -143,7 +141,7 @@ class TlImportFromCsv
     }
 
     /**
-     * @Callback(table="tl_import_from_csv", target="fields.import_table.options")
+     * @Callback(table="tl_import_from_csv", target="fields.importTable.options")
      */
     public function optionsCbGetTables(): array
     {
@@ -159,7 +157,7 @@ class TlImportFromCsv
     }
 
     /**
-     * @Callback(table="tl_import_from_csv", target="fields.selected_fields.options")
+     * @Callback(table="tl_import_from_csv", target="fields.selectedFields.options")
      * @Callback(table="tl_import_from_csv", target="fields.skipValidationFields.options")
      */
     public function optionsCbSelectedFields(): array
@@ -179,13 +177,13 @@ class TlImportFromCsv
             ->execute($inputAdapter->get('id'))
         ;
 
-        if ('' === $objDb->import_table) {
+        if ('' === $objDb->importTable) {
             return [];
         }
 
-        $controllerAdapter->loadDataContainer($objDb->import_table);
+        $controllerAdapter->loadDataContainer($objDb->importTable);
 
-        $arrFields = $GLOBALS['TL_DCA'][$objDb->import_table]['fields'];
+        $arrFields = $GLOBALS['TL_DCA'][$objDb->importTable]['fields'];
 
         if (!isset($arrFields) || !\is_array($arrFields)) {
             return [];
@@ -205,5 +203,4 @@ class TlImportFromCsv
 
         return $arrOptions;
     }
-
 }

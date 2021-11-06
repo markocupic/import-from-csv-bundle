@@ -1,20 +1,21 @@
 {
   "name": "markocupic/import-from-csv-bundle",
-  "description": "Import datarecords from a CSV spreadsheet. Backend extension for the Contao Open Source CMS",
+  "description": "Backend extension for the Contao Open Source CMS. Import datarecords from a CSV spreadsheet.",
   "keywords": [
     "contao",
-    "import from csv"
+    "import from csv",
+    "spreadsheet"
   ],
   "type": "contao-module",
   "license": "MIT",
   "authors": [
     {
       "name": "Marko Cupic",
-      "homepage": "https://github.com/markocupic"
+      "homepage": "https://github.com/markocupic/import-from-csv-bundle"
     }
   ],
   "require": {
-    "php": ">7.2",
+    "php": "^7.3||^8.0",
     "contao/core-bundle": "^4.9",
     "league/csv": "^9.1"
   },
@@ -34,10 +35,9 @@
       "Markocupic\\ImportFromCsvBundle\\": "src/"
     },
     "exclude-from-classmap": [
-      "src/Resources/contao/config",
-      "src/Resources/contao/dca",
-      "src/Resources/contao/languages",
-      "src/Resources/contao/manual"
+      "src/Resources/config",
+      "src/Resources/dca",
+      "src/Resources/languages"
     ]
   },
   "extra": {
