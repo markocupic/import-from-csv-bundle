@@ -14,18 +14,23 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Controller;
 
+use Contao\BackendUser;
 use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Security\Authentication\Token\TokenChecker;
 use Contao\FilesModel;
 use Contao\StringUtil;
+use League\Csv\Exception;
 use League\Csv\Reader;
+use Markocupic\ImportFromCsvBundle\ApiToken\ApiTokenManager;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -34,6 +39,18 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class ImportController extends AbstractController
 {
+    public const API_NAME = 'ifcb_api';
+
+    /**
+     * @var ApiTokenManager
+     */
+    private $apiTokenManager;
+
+    /**
+     * @var Security
+     */
+    private $security;
+
     /**
      * @var ImportFromCsvHelper
      */
@@ -79,8 +96,10 @@ class ImportController extends AbstractController
      */
     private $perRequest;
 
-    public function __construct(ImportFromCsvHelper $importFromCsvHelper, ContaoFramework $framework, TranslatorInterface $translator, ContaoCsrfTokenManager $csrfTokenManager, TokenChecker $tokenChecker, RequestStack $requestStack, string $projectDir, string $csrfTokenName, int $perRequest)
+    public function __construct(ApiTokenManager $apiTokenManager, Security $security, ImportFromCsvHelper $importFromCsvHelper, ContaoFramework $framework, TranslatorInterface $translator, ContaoCsrfTokenManager $csrfTokenManager, TokenChecker $tokenChecker, RequestStack $requestStack, string $projectDir, string $csrfTokenName, int $perRequest)
     {
+        $this->apiTokenManager = $apiTokenManager;
+        $this->security = $security;
         $this->importFromCsvHelper = $importFromCsvHelper;
         $this->framework = $framework;
         $this->translator = $translator;
@@ -94,15 +113,23 @@ class ImportController extends AbstractController
 
     /**
      * @Route("/contao/csv_import", name="markocupic_csv_import")
+     *
+     * @throws \Exception
      */
     public function csvImport(): JsonResponse
     {
+        $this->framework->initialize(false);
+
         $request = $this->requestStack->getCurrentRequest();
         $token = $request->query->get('token');
         $id = $request->query->get('id');
         $offset = $request->query->get('offset');
         $limit = $request->query->get('limit');
         $isTestMode = 'false' === $request->query->get('isTestMode') ? false : true;
+
+        if (!$this->isAuthorized()) {
+            throw new AccessDeniedException('Invalid/expired or missing JWT API token');
+        }
 
         if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($this->csrfTokenName, $token))) {
             throw new \Exception('Invalid token!');
@@ -136,6 +163,8 @@ class ImportController extends AbstractController
 
     /**
      * @Route("/contao/get_model_data", name="markocupic_csv_import_get_model_data")
+     *
+     * @throws Exception
      */
     public function getModelData(): JsonResponse
     {
@@ -145,11 +174,14 @@ class ImportController extends AbstractController
         $token = $request->query->get('token');
         $id = $request->query->get('id');
 
+        if (!$this->isAuthorized()) {
+            throw new AccessDeniedException('Invalid/expired or missing JWT API token');
+        }
+
         if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($this->csrfTokenName, $token))) {
             throw new \Exception('Invalid token!');
         }
 
-        $this->framework->initialize(false);
         $objModel = ImportFromCsvModel::findByPk($id);
 
         if (null === $objModel) {
@@ -210,5 +242,29 @@ class ImportController extends AbstractController
         $json = ['data' => $arrData];
 
         return new JsonResponse($json);
+    }
+
+    /**
+     * Check if api token is valid
+     */
+    private function isAuthorized(): bool
+    {
+        if ($this->apiTokenManager->hasToken() && $this->apiTokenManager->isValid($this->apiTokenManager->getTokenFromRequest())) {
+            $arrClaims = $this->apiTokenManager->getClaims($this->apiTokenManager->getTokenFromRequest());
+
+            if ($arrClaims['sub'] && $arrClaims['allowed_api'] && self::API_NAME === $arrClaims['allowed_api']) {
+                $user = $this->security->getUser();
+
+                if ($user instanceof BackendUser) {
+                    if ((int) $arrClaims['sub'] === (int) $user->id) {
+                        if ((int) $arrClaims['exp'] >= time()) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }

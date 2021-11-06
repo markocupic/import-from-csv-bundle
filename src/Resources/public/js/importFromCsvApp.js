@@ -24,7 +24,8 @@ class importFromCsvApp {
         requestsNeeded: 0,
         options: {
           id: null,
-          token: '',
+          csrfToken: '',
+          apiToken: '',
         },
         model: {
           urls: [],
@@ -61,7 +62,7 @@ class importFromCsvApp {
 
         getData: function getData() {
 
-          fetch('contao/get_model_data?id=' + this.options.id + '&token=' + this.options.token,
+          fetch('contao/get_model_data?id=' + this.options.id + '&token=' + this.options.csrfToken + '&apiToken=' + this.options.apiToken,
             {
               method: "GET",
               headers: {
@@ -102,7 +103,7 @@ class importFromCsvApp {
             return;
           }
 
-          fetch(url + '&isTestMode=' + isTestMode, {
+          fetch(url + '&isTestMode=' + isTestMode + '&token=' + this.options.csrfToken + '&apiToken=' + this.options.apiToken, {
             method: "GET",
             headers: {
               'x-requested-with': 'XMLHttpRequest'
