@@ -1,4 +1,0 @@
-# config/routes.yml
-markocupic_import_from_csv.controller:
-    resource: ../../../src/Controller
-    type: annotation

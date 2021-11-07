@@ -41,8 +41,8 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
 				'href' => 'act=show',
 				'icon' => 'show.gif',
 			),
-			'csvImport' => array(
-				'href' => 'key=csvImport',
+			'renderAppAction' => array(
+				'href' => 'key=renderAppAction',
 				'icon' => 'bundles/markocupicimportfromcsv/database.svg',
 			),
 		),

@@ -14,38 +14,24 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Contao\Controller;
 
-use Contao\BackendUser;
 use Contao\Controller;
 use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Security\Authentication\Token\TokenChecker;
 use Contao\DataContainer;
-use Markocupic\ImportFromCsvBundle\ApiToken\ApiTokenManager;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as TwigEnvironment;
 
-class CsvImportController extends AbstractController
+class RenderAppController
 {
     /**
      * @var ContaoFramework
      */
     private $framework;
-
-    /**
-     * @var Security
-     */
-    private $security;
-
-    /**
-     * @var ApiTokenManager
-     */
-    private $apiTokenManager;
 
     /**
      * @var ImportFromCsvHelper
@@ -87,11 +73,9 @@ class CsvImportController extends AbstractController
      */
     private $csrfTokenName;
 
-    public function __construct(ContaoFramework $framework, Security $security, ApiTokenManager $apiTokenManager, ImportFromCsvHelper $importFromCsvHelper, TranslatorInterface $translator, ContaoCsrfTokenManager $csrfTokenManager, TokenChecker $tokenChecker, TwigEnvironment $twig, RequestStack $requestStack, string $projectDir, string $csrfTokenName)
+    public function __construct(ContaoFramework $framework, ImportFromCsvHelper $importFromCsvHelper, TranslatorInterface $translator, ContaoCsrfTokenManager $csrfTokenManager, TokenChecker $tokenChecker, TwigEnvironment $twig, RequestStack $requestStack, string $projectDir, string $csrfTokenName)
     {
         $this->framework = $framework;
-        $this->security = $security;
-        $this->apiTokenManager = $apiTokenManager;
         $this->importFromCsvHelper = $importFromCsvHelper;
         $this->translator = $translator;
         $this->csrfTokenManager = $csrfTokenManager;
@@ -102,18 +86,10 @@ class CsvImportController extends AbstractController
         $this->csrfTokenName = $csrfTokenName;
     }
 
-    public function csvImport(DataContainer $dc): Response
+    public function renderAppAction(DataContainer $dc): Response
     {
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
         $importFromCsvModelAdapter = $this->framework->getAdapter(ImportFromCsvModel::class);
-
-        $user = $this->security->getUser();
-
-        if (!$user instanceof BackendUser) {
-            throw new \Exception('Access denied. Access is allowed to authorized Contao backend users only.');
-        }
-
-        $apiToken = $this->apiTokenManager->createTokenFromBackendUser($user);
 
         // Load language file
         $controllerAdapter->loadLanguageFile('tl_import_from_csv');
@@ -142,7 +118,6 @@ class CsvImportController extends AbstractController
                     'input' => [
                         'id' => $request->query->get('id'),
                         'csrfToken' => $csrfToken,
-                        'apiToken' => $apiToken,
                     ],
                 ],
             ]

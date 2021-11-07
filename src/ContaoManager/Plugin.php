@@ -23,12 +23,8 @@ use Symfony\Component\Config\Loader\LoaderResolverInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouteCollection;
 
-/**
- * Plugin for the Contao Manager.
- *
- * @author Marko Cupic
- */
-class Plugin implements BundlePluginInterface, RoutingPluginInterface
+
+class Plugin implements BundlePluginInterface
 {
     /**
      * {@inheritdoc}
@@ -50,16 +46,5 @@ class Plugin implements BundlePluginInterface, RoutingPluginInterface
         $loader->load('@MarkocupicSacEventEvaluation/Resources/config/config.yml');
     }
 
-    /**
-     * @throws \Exception
-     *
-     * @return RouteCollection|null
-     */
-    public function getRouteCollection(LoaderResolverInterface $resolver, KernelInterface $kernel)
-    {
-        return $resolver
-            ->resolve(__DIR__.'/../Resources/config/routes.yml')
-            ->load(__DIR__.'/../Resources/config/routes.yml')
-            ;
-    }
+
 }

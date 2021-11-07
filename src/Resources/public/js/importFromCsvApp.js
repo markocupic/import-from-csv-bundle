@@ -25,7 +25,6 @@ class importFromCsvApp {
         options: {
           id: null,
           csrfToken: '',
-          apiToken: '',
         },
         model: {
           urls: [],
@@ -54,15 +53,15 @@ class importFromCsvApp {
         this.$nextTick(function () {
           // Code that will run only after the
           // entire view has been rendered
-          this.getData();
-        })
+          this.appMountAction();
+        });
       },
 
       methods: {
 
-        getData: function getData() {
+        appMountAction: function appMount() {
 
-          fetch('contao/get_model_data?id=' + this.options.id + '&token=' + this.options.csrfToken + '&apiToken=' + this.options.apiToken,
+          fetch('contao?do=import_from_csv&key=appMountAction&id=' + this.options.id + '&token=' + this.options.csrfToken,
             {
               method: "GET",
               headers: {
@@ -86,7 +85,7 @@ class importFromCsvApp {
           });
         },
 
-        runImport: function runImport(isTestMode) {
+        importAction: function importAction(isTestMode) {
 
           this.disableButtons();
 
@@ -103,7 +102,7 @@ class importFromCsvApp {
             return;
           }
 
-          fetch(url + '&isTestMode=' + isTestMode + '&token=' + this.options.csrfToken + '&apiToken=' + this.options.apiToken, {
+          fetch(url + '&isTestMode=' + isTestMode + '&token=' + this.options.csrfToken, {
             method: "GET",
             headers: {
               'x-requested-with': 'XMLHttpRequest'
@@ -125,7 +124,7 @@ class importFromCsvApp {
             }
             return response;
           }).then(response => {
-            setTimeout(() => this.runImport(isTestMode), 200);
+            setTimeout(() => this.importAction(isTestMode), 200);
           }).catch(error => {
             console.error("There was en error: " + error);
           });

@@ -107,7 +107,7 @@
         <div
             class="tl_submit_container">
             <button
-                v-on:click.prevent="runImport('true')"
+                v-on:click.prevent="importAction('true')"
                 type="submit"
                 id="btnTest"
                 name="runImportTest"
@@ -116,7 +116,7 @@
                 {{ lang.tl_import_from_csv.btnImportTest }}
             </button>
             <button
-                v-on:click.prevent="runImport('false')"
+                v-on:click.prevent="importAction('false')"
                 type="submit"
                 id="btnImport"
                 name="runImport"
@@ -134,6 +134,5 @@
     new importFromCsvApp('#ifcbImportFromCsvApp', {
         id: {{ form.input.id }},
         csrfToken: '{{ form.input.csrfToken }}',
-        apiToken: '{{ form.input.apiToken }}',
     });
 </script>

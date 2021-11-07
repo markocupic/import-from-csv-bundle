@@ -10,8 +10,10 @@
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-use Contao\Input;
-use Markocupic\ImportFromCsvBundle\Contao\Controller\CsvImportController;
+use Markocupic\ImportFromCsvBundle\Contao\Controller\AccessTokenProviderController;
+use Markocupic\ImportFromCsvBundle\Contao\Controller\AppMountController;
+use Markocupic\ImportFromCsvBundle\Contao\Controller\ImportController;
+use Markocupic\ImportFromCsvBundle\Contao\Controller\RenderAppController;
 use Markocupic\ImportFromCsvBundle\Cron\Cron;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 
@@ -19,20 +21,17 @@ use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
  * Back end modules
  */
 $GLOBALS['BE_MOD']['system']['import_from_csv'] = array(
-	'tables' => array('tl_import_from_csv'),
-	// Add a custom controller
-    'csvImport' => array(CsvImportController::class, 'csvImport')
+    'tables'          => array('tl_import_from_csv'),
+    // Add custom controllers
+    'renderAppAction' => array(RenderAppController::class, 'renderAppAction'),
+    'appMountAction'  => array(AppMountController::class, 'appMountAction'),
+    'importAction'    => array(ImportController::class, 'importAction'),
+    'javascript'      => [
+        'bundles/markocupicimportfromcsv/js/vue@2.6.14.js',
+        'bundles/markocupicimportfromcsv/js/importFromCsvApp.js',
+    ],
+    'stylesheet'      => ['bundles/markocupicimportfromcsv/css/importFromCsvApp.css'],
 );
-
-/**
- * Stylesheet & javascript
- */
-if (TL_MODE === 'BE' && Input::get('do') === 'import_from_csv')
-{
-	$GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicimportfromcsv/js/vue@2.6.14.js';
-    $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicimportfromcsv/js/importFromCsvApp.js';
-	$GLOBALS['TL_CSS'][] = 'bundles/markocupicimportfromcsv/css/importFromCsvApp.css';
-}
 
 /**
  * Models
@@ -42,11 +41,10 @@ $GLOBALS['TL_MODELS']['tl_import_from_csv'] = ImportFromCsvModel::class;
 /**
  * Cronjobs
  */
-if (TL_MODE !== 'BE')
-{
-	$GLOBALS['TL_CRON']['minutely']['importFromCsv'] = array(Cron::class, 'initMinutely');
-	$GLOBALS['TL_CRON']['hourly']['importFromCsv']= array(Cron::class, 'initHourly');
-	$GLOBALS['TL_CRON']['daily']['importFromCsv'] = array(Cron::class, 'initDaily');
-	$GLOBALS['TL_CRON']['weekly']['importFromCsv'] = array(Cron::class, 'initWeekly');
-	$GLOBALS['TL_CRON']['monthly']['importFromCsv'] = array(Cron::class, 'initMonthly');
+if (TL_MODE !== 'BE') {
+    $GLOBALS['TL_CRON']['minutely']['importFromCsv'] = array(Cron::class, 'initMinutely');
+    $GLOBALS['TL_CRON']['hourly']['importFromCsv'] = array(Cron::class, 'initHourly');
+    $GLOBALS['TL_CRON']['daily']['importFromCsv'] = array(Cron::class, 'initDaily');
+    $GLOBALS['TL_CRON']['weekly']['importFromCsv'] = array(Cron::class, 'initWeekly');
+    $GLOBALS['TL_CRON']['monthly']['importFromCsv'] = array(Cron::class, 'initMonthly');
 }
