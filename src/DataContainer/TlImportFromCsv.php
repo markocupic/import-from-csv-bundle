@@ -12,7 +12,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-namespace Markocupic\ImportFromCsvBundle\Dca;
+namespace Markocupic\ImportFromCsvBundle\DataContainer;
 
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
