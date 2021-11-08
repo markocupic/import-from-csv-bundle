@@ -26,7 +26,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as TwigEnvironment;
 
-class RenderAppController
+class RenderBackendAppController
 {
     /**
      * @var ContaoFramework

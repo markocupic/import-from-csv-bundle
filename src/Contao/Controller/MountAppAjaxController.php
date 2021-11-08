@@ -28,7 +28,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Csrf\CsrfToken;
 
-class AppMountController extends AbstractController
+class MountAppAjaxController extends AbstractController
 {
     /**
      * @var ContaoFramework
@@ -155,6 +155,7 @@ class AppMountController extends AbstractController
         $json = ['data' => $arrData];
 
         $response = new JsonResponse($json);
+
         throw new ResponseException($response);
     }
 }

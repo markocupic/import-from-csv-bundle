@@ -26,7 +26,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Csrf\CsrfToken;
 
-class ImportController extends AbstractController
+class ImportAjaxController extends AbstractController
 {
     /**
      * @var ImportFromCsvHelper
@@ -87,8 +87,6 @@ class ImportController extends AbstractController
             throw new \Exception('Invalid token!');
         }
 
-
-
         if (null !== ($objImportModel = $importFromCsvModelAdapter->findByPk($id))) {
             if (null !== $filesModelAdapter->findByUuid($objImportModel->fileSRC)) {
                 $objImportModel->offset = $offset;
@@ -99,6 +97,7 @@ class ImportController extends AbstractController
                     $arrData['data'] = $this->importFromCsvHelper->getReport();
 
                     $response = new JsonResponse($arrData);
+
                     throw new ResponseException($response);
                 }
             }
@@ -108,6 +107,7 @@ class ImportController extends AbstractController
         $arrData['data'] = $this->importFromCsvHelper->getReport();
 
         $response = new JsonResponse($arrData);
+
         throw new ResponseException($response);
     }
 }

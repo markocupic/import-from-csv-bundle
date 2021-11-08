@@ -11,9 +11,9 @@
  */
 
 use Markocupic\ImportFromCsvBundle\Contao\Controller\AccessTokenProviderController;
-use Markocupic\ImportFromCsvBundle\Contao\Controller\AppMountController;
-use Markocupic\ImportFromCsvBundle\Contao\Controller\ImportController;
-use Markocupic\ImportFromCsvBundle\Contao\Controller\RenderAppController;
+use Markocupic\ImportFromCsvBundle\Contao\Controller\MountAppAjaxController;
+use Markocupic\ImportFromCsvBundle\Contao\Controller\ImportAjaxController;
+use Markocupic\ImportFromCsvBundle\Contao\Controller\RenderBackendAppController;
 use Markocupic\ImportFromCsvBundle\Cron\Cron;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 
@@ -23,9 +23,9 @@ use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 $GLOBALS['BE_MOD']['system']['import_from_csv'] = array(
     'tables'          => array('tl_import_from_csv'),
     // Add custom controllers
-    'renderAppAction' => array(RenderAppController::class, 'renderAppAction'),
-    'appMountAction'  => array(AppMountController::class, 'appMountAction'),
-    'importAction'    => array(ImportController::class, 'importAction'),
+    'renderAppAction' => array(RenderBackendAppController::class, 'renderAppAction'),
+    'appMountAction'  => array(MountAppAjaxController::class, 'appMountAction'),
+    'importAction'    => array(ImportAjaxController::class, 'importAction'),
     'javascript'      => [
         'bundles/markocupicimportfromcsv/js/vue@2.6.14.js',
         'bundles/markocupicimportfromcsv/js/importFromCsvApp.js',
