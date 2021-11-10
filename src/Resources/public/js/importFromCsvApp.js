@@ -85,11 +85,16 @@ class importFromCsvApp {
           });
         },
 
-        importAction: function importAction(isTestMode) {
+        importAction: function importAction(isTestMode, isInitial = false) {
+
+          if (isInitial === true && this.status !== 'ifcb-status-ready') {
+            console.error('The import cannot be called twice.');
+            return;
+          }
 
           this.disableButtons();
 
-          if (isTestMode === 'true') {
+          if (isTestMode === true) {
             this.isTestMode = true;
           }
 
@@ -124,14 +129,14 @@ class importFromCsvApp {
             }
             return response;
           }).then(response => {
-            setTimeout(() => this.importAction(isTestMode), 200);
+            setTimeout(() => this.importAction(isTestMode, false), 200);
           }).catch(error => {
             console.error("There was en error: " + error);
           });
         },
 
         disableButtons: function disableButtons() {
-          let buttons = document.querySelectorAll('form#ifcbImportFromCsvApp .tl_submit_container button');
+          let buttons = document.querySelectorAll('#ifcbImportFromCsvApp .tl_submit_container button');
           if (buttons) {
             buttons.forEach(function (button) {
               button.setAttribute('disabled', true);

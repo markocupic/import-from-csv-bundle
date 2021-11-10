@@ -14,7 +14,7 @@
 <div id="ifcbImportFromCsvApp" v-cloak>
 
     <div
-        v-if="status == 'ifcb-status-preparing'"
+        v-if="status === 'ifcb-status-preparing'"
         class="ifcb-loader-box">
         <div
             class="ifcb-loader">
@@ -80,11 +80,11 @@
 
                 <div
                     class="ifcb-status-box tl_message">
-                    <p v-if="status == 'ifcb-status-pending'"
+                    <p v-if="status === 'ifcb-status-pending'"
                        class="tl_info">{{ lang.tl_import_from_csv.importProcessStarted }}</p>
-                    <p v-if="status == 'ifcb-status-error'"
+                    <p v-if="status === 'ifcb-status-error'"
                        class="tl_error">{{ lang.tl_import_from_csv.exceptionMsg }}</p>
-                    <p v-if="status == 'ifcb-status-completed'"
+                    <p v-if="status === 'ifcb-status-completed'"
                        class="tl_confirm">{{ lang.tl_import_from_csv.importProcessCompleted }}</p>
                 </div>
 
@@ -105,7 +105,7 @@
             <div
                 class="tl_submit_container">
                 <button
-                    v-on:click.prevent="importAction('true')"
+                    v-on:click.prevent="importAction(true,true)"
                     type="submit"
                     id="btnTest"
                     name="runImportTest"
@@ -114,7 +114,7 @@
                     {{ lang.tl_import_from_csv.btnImportTest }}
                 </button>
                 <button
-                    v-on:click.prevent="importAction('false')"
+                    v-on:click.prevent="importAction(false,true)"
                     type="submit"
                     id="btnImport"
                     name="runImport"
