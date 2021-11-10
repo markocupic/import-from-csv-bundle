@@ -30,7 +30,10 @@ $GLOBALS['BE_MOD']['system']['import_from_csv'] = array(
         'bundles/markocupicimportfromcsv/js/vue@2.6.14.js',
         'bundles/markocupicimportfromcsv/js/importFromCsvApp.js',
     ],
-    'stylesheet'      => ['bundles/markocupicimportfromcsv/css/importFromCsvApp.css'],
+    'stylesheet'      => [
+        'bundles/markocupicimportfromcsv/css/importFromCsvApp.css',
+        'bundles/markocupicimportfromcsv/css/loader.css'
+    ],
 );
 
 /**

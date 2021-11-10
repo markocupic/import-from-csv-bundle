@@ -10,4 +10,4 @@
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-$GLOBALS['TL_LANG']['MOD']['import_from_csv'] = ["CSV Datenbankimport"];
+$GLOBALS['TL_LANG']['MOD']['import_from_csv'] = ['CSV Datenbankimport'];

@@ -1,3 +1,10 @@
+$green: #4CAF50;
+$red: #cc0000;
+$black: #000000;
+$gray: #dddddd;
+$gray-light: #fbfbfb;
+$text-color: #b4b4b4;
+
 /**
  * Operations
  */
@@ -23,7 +30,7 @@ a.renderAppAction > img {
   overflow-x: hidden;
   padding: 5px;
   font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  border: 1px solid #ddd;
+  border: 1px solid $gray;
 }
 
 .ifcb-file-content-box li {
@@ -92,12 +99,12 @@ a.renderAppAction > img {
 
   .ifcb-progress-bar-container {
     margin: 15px 0;
-    background-color: #e5e5e5;
+    background-color: $gray;
 
     .ifcb-progress-bar-inner {
       height: 30px;
       width: 0;
-      background-color: #4CAF50;
+      background-color: $green;
       transition: width 1.5s ease;
       line-height: 1.5;
       color: #ffffff;
@@ -108,17 +115,17 @@ a.renderAppAction > img {
   }
 
   button.tl_submit.ifcb-display-errors-btn {
-    background-color: #cc0000;
-    border: 1px solid #cc0000 !important;
-    color: #fff;
+    background-color: $red;
+    border: 1px solid $red !important;
+    color: #ffffff;
     padding: 4px 8px;
     height: auto;
   }
 
   button.tl_submit.ifcb-display-errors-btn.hideSuccess {
-    background-color: #4CAF50;
+    background-color: $green;
     color: #fff;
-    border-color: #4CAF50 !important;
+    border-color: $green !important;
   }
 
   .ifcb-import-report-box {
@@ -126,7 +133,7 @@ a.renderAppAction > img {
     padding: 15px;
     max-height: 400px;
     overflow-y: scroll;
-    background-color: #fbfbfb;
+    background-color: $gray-light;
 
     .ifcb-import-report-table {
       width: 100%;
@@ -137,7 +144,7 @@ a.renderAppAction > img {
       }
 
       td {
-        border: 1px solid #e1e1e1;
+        border: 1px solid $gray;
         padding: 4px;
         font-size: 10px;
         width: 50%;
@@ -148,11 +155,11 @@ a.renderAppAction > img {
       }
 
       tr.ifcb-import-success td {
-        color: #008000 !important;
+        color: $green !important;
       }
 
       tr.ifcb-import-failed td {
-        color: red !important;
+        color: $red !important;
       }
 
       tr.ifcb-delim td {
@@ -172,7 +179,7 @@ a.renderAppAction > img {
 
   .ifcb-status-box {
     min-height: 30px;
-    color: #b4b4b4;
+    color: $text-color;
   }
 
   .ifcb-import-summary {
@@ -180,7 +187,7 @@ a.renderAppAction > img {
     line-height: 1.5;
 
     li.ifcb-import-failed {
-      color: red !important;
+      color: $red !important;
     }
 
     li.ifcb-import-success {
@@ -191,22 +198,22 @@ a.renderAppAction > img {
   .tl_submit_container {
     button:not([disabled]).ifcb-import-button {
       color: #fff;
-      background: #cc0000;
+      background: $red;
       text-shadow: 0 0 #fff;
     }
 
     button:not([disabled]).ifcb-import-button:hover {
-      background: #000000;
+      background: $black;
     }
 
     button:not([disabled]).ifcb-import-test-button {
       color: #ffffff;
-      background: #4CAF50;
+      background: $green;
       text-shadow: 0 0 #fff;
     }
 
     button:not([disabled]).ifcb-import-test-button:hover {
-      background: #000000;
+      background: $black;
     }
   }
 

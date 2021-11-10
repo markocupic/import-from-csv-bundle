@@ -79,7 +79,7 @@ class importFromCsvApp {
             }
             return response;
           }).then(response => {
-            setTimeout(() => this.status = 'ifcb-status-ready', 1000);
+            setTimeout(() => this.status = 'ifcb-status-ready', 2000);
           }).catch(error => {
             console.error("There was en error: " + error);
           });

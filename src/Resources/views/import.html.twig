@@ -10,126 +10,124 @@
        accesskey="c">{{ lang.tl_import_from_csv.editItemTitle }}</a>
 </div>
 
-<form
-    action="{{ form.action }}"
-    v-cloak
-    id="ifcbImportFromCsvApp"
-    v-bind:class="status"
-    class="ifcb-import-from-csv-app tl_form tl_edit_form"
-    method="get">
+
+<div id="ifcbImportFromCsvApp" v-cloak>
+
     <div
-        class="tl_formbody_edit">
-        <input
-            type="hidden"
-            name="id"
-            value="{{ form.input.id }}">
-        <input
-            type="hidden"
-            name="token"
-            value="{{ form.input.csrfToken }}">
+        v-if="status == 'ifcb-status-preparing'"
+        class="ifcb-loader-box">
+        <div
+            class="ifcb-loader">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+
+    <form
+        action="{{ form.action }}"
+        v-bind:class="status"
+        class="ifcb-import-from-csv-app tl_form tl_edit_form"
+        method="get">
 
         <div
-            class="widget">
-            <h2>{{ model.title }}
-                [{{ model.importTable }}
-                ]</h2>
-            <br>
-            <ul class="ifcb-import-summary">
-                <li>
-                    Offset: {{ model.offset }}</li>
-                <li>
-                    Limit: {{ model.limit }}</li>
-                <li>{{ lang.tl_import_from_csv.datarecords }}
-                    : {{ head.countRows }}</li>
-                <li class="ifcb-import-success">{{ lang.tl_import_from_csv.successfullInserts }}
-                    :
-                    ${
-                    report.summary.success
-                    }
-                </li>
-                <li class="ifcb-import-failed">{{ lang.tl_import_from_csv.failedInserts }}
-                    :
-                    ${
-                    report.summary.errors
-                    }
-                </li>
-                <li v-if="isTestMode">
-                    Testmode:
-                    ON
-                </li>
-            </ul>
+            class="tl_formbody_edit">
+            <input
+                type="hidden"
+                name="id"
+                value="{{ form.input.id }}">
+            <input
+                type="hidden"
+                name="token"
+                value="{{ form.input.csrfToken }}">
 
             <div
-                v-if="report.summary.errors>0">
-                <button
-                    v-on:click.prevent="filterInsertListing($event)"
-                    class="tl_submit ifcb-display-errors-btn"
-                    data-lbl-error-only="{{ lang.tl_import_from_csv.showErrorsBtn }}"
-                    data-lbl-all="{{ lang.tl_import_from_csv.showAllBtn }}">
-                    {{ lang.tl_import_from_csv.showErrorsBtn }}
-                </button>
-            </div>
+                class="widget">
+                <h2>{{ model.title }}
+                    [{{ model.importTable }}
+                    ]</h2>
+                <br>
+                <ul class="ifcb-import-summary">
+                    <li>Offset: {{ model.offset }}</li>
+                    <li>Limit: {{ model.limit }}</li>
+                    <li>{{ lang.tl_import_from_csv.datarecords }}: {{ head.countRows }}</li>
+                    <li class="ifcb-import-success">{{ lang.tl_import_from_csv.successfullInserts }}: ${ report.summary.success }
+                    </li>
+                    <li class="ifcb-import-failed">{{ lang.tl_import_from_csv.failedInserts }}: ${ report.summary.errors }</li>
+                    <li v-if="isTestMode">Testmode: ON</li>
+                </ul>
 
-            <div
-                class="ifcb-progress-bar-container">
                 <div
-                    id="importProgress"
-                    class="ifcb-progress-bar-inner">
+                    v-if="report.summary.errors>0">
+                    <button
+                        v-on:click.prevent="filterInsertListing($event)"
+                        class="tl_submit ifcb-display-errors-btn"
+                        data-lbl-error-only="{{ lang.tl_import_from_csv.showErrorsBtn }}"
+                        data-lbl-all="{{ lang.tl_import_from_csv.showAllBtn }}">
+                        {{ lang.tl_import_from_csv.showErrorsBtn }}
+                    </button>
+                </div>
+
+                <div
+                    class="ifcb-progress-bar-container">
+                    <div
+                        id="importProgress"
+                        class="ifcb-progress-bar-inner">
                     <span
                         class="ifcb-percentage"></span>
+                    </div>
+                </div>
+
+                <div
+                    class="ifcb-status-box tl_message">
+                    <p v-if="status == 'ifcb-status-pending'"
+                       class="tl_info">{{ lang.tl_import_from_csv.importProcessStarted }}</p>
+                    <p v-if="status == 'ifcb-status-error'"
+                       class="tl_error">{{ lang.tl_import_from_csv.exceptionMsg }}</p>
+                    <p v-if="status == 'ifcb-status-completed'"
+                       class="tl_confirm">{{ lang.tl_import_from_csv.importProcessCompleted }}</p>
+                </div>
+
+                <div
+                    class="ifcb-import-report-box">
+                    <table
+                        class="ifcb-import-report-table">
+                        <tbody
+                            v-html="report.rows"></tbody>
+                    </table>
                 </div>
             </div>
 
-            <div
-                class="ifcb-status-box tl_message">
-                <p v-if="status == 'ifcb-status-pending'"
-                   class="tl_info">{{ lang.tl_import_from_csv.importProcessStarted }}</p>
-                <p v-if="status == 'ifcb-status-error'"
-                   class="tl_error">{{ lang.tl_import_from_csv.exceptionMsg }}</p>
-                <p v-if="status == 'ifcb-status-completed'"
-                   class="tl_confirm">{{ lang.tl_import_from_csv.importProcessCompleted }}</p>
-            </div>
-
-            <div
-                class="ifcb-import-report-box">
-                <table
-                    class="ifcb-import-report-table">
-                    <tbody
-                        v-html="report.rows"></tbody>
-                </table>
-            </div>
         </div>
 
-    </div>
-
-    <div
-        class="tl_formbody_submit">
         <div
-            class="tl_submit_container">
-            <button
-                v-on:click.prevent="importAction('true')"
-                type="submit"
-                id="btnTest"
-                name="runImportTest"
-                class="tl_submit ifcb-import-test-button"
-                accesskey="p">
-                {{ lang.tl_import_from_csv.btnImportTest }}
-            </button>
-            <button
-                v-on:click.prevent="importAction('false')"
-                type="submit"
-                id="btnImport"
-                name="runImport"
-                class="tl_submit ifcb-import-button"
-                accesskey="s"
-                onclick="return confirm('{{ lang.tl_import_from_csv.confirmStartImport }}')">
-                {{ lang.tl_import_from_csv.btnImport }}
-            </button>
+            class="tl_formbody_submit">
+            <div
+                class="tl_submit_container">
+                <button
+                    v-on:click.prevent="importAction('true')"
+                    type="submit"
+                    id="btnTest"
+                    name="runImportTest"
+                    class="tl_submit ifcb-import-test-button"
+                    accesskey="p">
+                    {{ lang.tl_import_from_csv.btnImportTest }}
+                </button>
+                <button
+                    v-on:click.prevent="importAction('false')"
+                    type="submit"
+                    id="btnImport"
+                    name="runImport"
+                    class="tl_submit ifcb-import-button"
+                    accesskey="s"
+                    onclick="return confirm('{{ lang.tl_import_from_csv.confirmStartImport }}')">
+                    {{ lang.tl_import_from_csv.btnImport }}
+                </button>
+            </div>
         </div>
-    </div>
 
-</form>
-
+    </form>
+</div>
 <script>
     new importFromCsvApp('#ifcbImportFromCsvApp', {
         id: {{ form.input.id }},

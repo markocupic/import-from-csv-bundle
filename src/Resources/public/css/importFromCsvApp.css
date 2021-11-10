@@ -23,7 +23,7 @@ a.renderAppAction > img {
   overflow-x: hidden;
   padding: 5px;
   font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  border: 1px solid #ddd;
+  border: 1px solid #dddddd;
 }
 
 .ifcb-file-content-box li {
@@ -89,7 +89,7 @@ a.renderAppAction > img {
 }
 .ifcb-import-from-csv-app .ifcb-progress-bar-container {
   margin: 15px 0;
-  background-color: #e5e5e5;
+  background-color: #dddddd;
 }
 .ifcb-import-from-csv-app .ifcb-progress-bar-container .ifcb-progress-bar-inner {
   height: 30px;
@@ -105,7 +105,7 @@ a.renderAppAction > img {
 .ifcb-import-from-csv-app button.tl_submit.ifcb-display-errors-btn {
   background-color: #cc0000;
   border: 1px solid #cc0000 !important;
-  color: #fff;
+  color: #ffffff;
   padding: 4px 8px;
   height: auto;
 }
@@ -129,7 +129,7 @@ a.renderAppAction > img {
   font-size: 10px !important;
 }
 .ifcb-import-from-csv-app .ifcb-import-report-box .ifcb-import-report-table td {
-  border: 1px solid #e1e1e1;
+  border: 1px solid #dddddd;
   padding: 4px;
   font-size: 10px;
   width: 50%;
@@ -138,10 +138,10 @@ a.renderAppAction > img {
   font-weight: bold;
 }
 .ifcb-import-from-csv-app .ifcb-import-report-box .ifcb-import-report-table tr.ifcb-import-success td {
-  color: #008000 !important;
+  color: #4CAF50 !important;
 }
 .ifcb-import-from-csv-app .ifcb-import-report-box .ifcb-import-report-table tr.ifcb-import-failed td {
-  color: red !important;
+  color: #cc0000 !important;
 }
 .ifcb-import-from-csv-app .ifcb-import-report-box .ifcb-import-report-table tr.ifcb-delim td {
   border-left-width: 0;
@@ -162,7 +162,7 @@ a.renderAppAction > img {
   line-height: 1.5;
 }
 .ifcb-import-from-csv-app .ifcb-import-summary li.ifcb-import-failed {
-  color: red !important;
+  color: #cc0000 !important;
 }
 .ifcb-import-from-csv-app .ifcb-import-summary li.ifcb-import-success {
   color: #008000 !important;
