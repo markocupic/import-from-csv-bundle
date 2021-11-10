@@ -10,11 +10,11 @@
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-// Keys
-$GLOBALS['TL_LANG']['tl_import_from_csv']['csvImport'] = ['Import mit ID %s durchführen', 'Import mit ID %s durchführen'];
-
 // Global operations
 $GLOBALS['TL_LANG']['tl_import_from_csv']['new'] = ['Neuen Importdatensatz anlegen', 'Einen neuen Importdatensatz anlegen'];
+
+// Operations
+$GLOBALS['TL_LANG']['tl_import_from_csv']['renderAppAction'] =  ['Import mit ID %s durchführen', 'Import mit ID %s durchführen'];
 
 // Legends
 $GLOBALS['TL_LANG']['tl_import_from_csv']['title_legend'] = 'Titel Einstellungen';
