@@ -16,6 +16,13 @@ a.renderAppAction > img {
 }
 
 /**
+ * Fields
+ */
+.ifcb-sql-descr {
+  color: #999999;
+}
+
+/**
  * Detailview
  */
 .ifcb-file-content-box {
@@ -23,11 +30,12 @@ a.renderAppAction > img {
   overflow-x: hidden;
   padding: 5px;
   font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  border: 1px solid #dddddd;
+  background-color: #000000;
+  color: #fb77ec;
 }
 
-.ifcb-file-content-box li {
-  font-size: 9px;
+.ifcb-file-content-box li code {
+  font-size: 11px;
   line-height: 15px;
   white-space: pre-wrap;
   word-break: break-word;
@@ -89,12 +97,12 @@ a.renderAppAction > img {
 }
 .ifcb-import-from-csv-app .ifcb-progress-bar-container {
   margin: 15px 0;
-  background-color: #dddddd;
+  background-color: #fbfbfb;
 }
 .ifcb-import-from-csv-app .ifcb-progress-bar-container .ifcb-progress-bar-inner {
   height: 30px;
   width: 0;
-  background-color: #4CAF50;
+  background-color: #5eaf4c;
   transition: width 1.5s ease;
   line-height: 1.5;
   color: #ffffff;
@@ -103,23 +111,23 @@ a.renderAppAction > img {
   justify-content: center;
 }
 .ifcb-import-from-csv-app button.tl_submit.ifcb-display-errors-btn {
-  background-color: #cc0000;
-  border: 1px solid #cc0000 !important;
+  background-color: red;
+  border: 1px solid red !important;
   color: #ffffff;
   padding: 4px 8px;
   height: auto;
 }
 .ifcb-import-from-csv-app button.tl_submit.ifcb-display-errors-btn.hideSuccess {
-  background-color: #4CAF50;
+  background-color: #5eaf4c;
   color: #fff;
-  border-color: #4CAF50 !important;
+  border-color: #5eaf4c !important;
 }
 .ifcb-import-from-csv-app .ifcb-import-report-box {
   margin: 15px 0;
   padding: 15px;
   max-height: 400px;
   overflow-y: scroll;
-  background-color: #fbfbfb;
+  background-color: #000000;
 }
 .ifcb-import-from-csv-app .ifcb-import-report-box .ifcb-import-report-table {
   width: 100%;
@@ -129,7 +137,7 @@ a.renderAppAction > img {
   font-size: 10px !important;
 }
 .ifcb-import-from-csv-app .ifcb-import-report-box .ifcb-import-report-table td {
-  border: 1px solid #dddddd;
+  border: 0;
   padding: 4px;
   font-size: 10px;
   width: 50%;
@@ -138,10 +146,10 @@ a.renderAppAction > img {
   font-weight: bold;
 }
 .ifcb-import-from-csv-app .ifcb-import-report-box .ifcb-import-report-table tr.ifcb-import-success td {
-  color: #4CAF50 !important;
+  color: #5eaf4c !important;
 }
 .ifcb-import-from-csv-app .ifcb-import-report-box .ifcb-import-report-table tr.ifcb-import-failed td {
-  color: #cc0000 !important;
+  color: red !important;
 }
 .ifcb-import-from-csv-app .ifcb-import-report-box .ifcb-import-report-table tr.ifcb-delim td {
   border-left-width: 0;
@@ -162,14 +170,14 @@ a.renderAppAction > img {
   line-height: 1.5;
 }
 .ifcb-import-from-csv-app .ifcb-import-summary li.ifcb-import-failed {
-  color: #cc0000 !important;
+  color: red !important;
 }
 .ifcb-import-from-csv-app .ifcb-import-summary li.ifcb-import-success {
   color: #008000 !important;
 }
 .ifcb-import-from-csv-app .tl_submit_container button:not([disabled]).ifcb-import-button {
   color: #fff;
-  background: #cc0000;
+  background: red;
   text-shadow: 0 0 #fff;
 }
 .ifcb-import-from-csv-app .tl_submit_container button:not([disabled]).ifcb-import-button:hover {
@@ -177,7 +185,7 @@ a.renderAppAction > img {
 }
 .ifcb-import-from-csv-app .tl_submit_container button:not([disabled]).ifcb-import-test-button {
   color: #ffffff;
-  background: #4CAF50;
+  background: #5eaf4c;
   text-shadow: 0 0 #fff;
 }
 .ifcb-import-from-csv-app .tl_submit_container button:not([disabled]).ifcb-import-test-button:hover {

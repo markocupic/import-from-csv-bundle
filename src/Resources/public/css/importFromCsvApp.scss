@@ -1,7 +1,10 @@
-$green: #4CAF50;
-$red: #cc0000;
+$green: #5eaf4c;
+$red: red;
 $black: #000000;
-$gray: #dddddd;
+$gray: #262626;
+$gray-dark: #cccccc;
+$gray-darkest: #999999;
+
 $gray-light: #fbfbfb;
 $text-color: #b4b4b4;
 
@@ -23,6 +26,13 @@ a.renderAppAction > img {
 }
 
 /**
+ * Fields
+ */
+.ifcb-sql-descr {
+  color: $gray-darkest;
+}
+
+/**
  * Detailview
  */
 .ifcb-file-content-box {
@@ -30,11 +40,12 @@ a.renderAppAction > img {
   overflow-x: hidden;
   padding: 5px;
   font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  border: 1px solid $gray;
+  background-color: #000000;
+  color: #fb77ec;
 }
 
-.ifcb-file-content-box li {
-  font-size: 9px;
+.ifcb-file-content-box li code {
+  font-size: 11px;
   line-height: 15px;
   white-space: pre-wrap;
   word-break: break-word;
@@ -99,7 +110,7 @@ a.renderAppAction > img {
 
   .ifcb-progress-bar-container {
     margin: 15px 0;
-    background-color: $gray;
+    background-color: $gray-light;
 
     .ifcb-progress-bar-inner {
       height: 30px;
@@ -133,7 +144,7 @@ a.renderAppAction > img {
     padding: 15px;
     max-height: 400px;
     overflow-y: scroll;
-    background-color: $gray-light;
+    background-color: #000000;
 
     .ifcb-import-report-table {
       width: 100%;
@@ -144,7 +155,7 @@ a.renderAppAction > img {
       }
 
       td {
-        border: 1px solid $gray;
+        border: 0;
         padding: 4px;
         font-size: 10px;
         width: 50%;
@@ -159,7 +170,7 @@ a.renderAppAction > img {
       }
 
       tr.ifcb-import-failed td {
-        color: $red !important;
+        color: red !important;
       }
 
       tr.ifcb-delim td {

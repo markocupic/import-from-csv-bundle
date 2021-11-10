@@ -18,12 +18,14 @@ use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\ServiceAnnotation\Callback;
 use Contao\Database;
+use Contao\DataContainer;
 use Contao\File;
 use Contao\FilesModel;
-use Contao\Input;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper;
+use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as TwigEnvironment;
@@ -106,27 +108,16 @@ class TlImportFromCsv
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generateFileContentMarkup(): string
+    public function generateFileContentMarkup(DataContainer $dc): string
     {
-        /** @var Database $databaseAdapter */
-        $databaseAdapter = $this->framework->getAdapter(Database::class);
-
-        /** @var FilesModel $filesModelAdapter */
         $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
+        $importFromCsvModelAdapter = $this->framework->getAdapter(ImportFromCsvModel::class);
 
-        /** @var Input $inputAdapter */
-        $inputAdapter = $this->framework->getAdapter(Input::class);
-
-        $objDb = $databaseAdapter
-            ->getInstance()
-            ->prepare('SELECT fileSRC FROM tl_import_from_csv WHERE id=?')
-            ->execute($inputAdapter->get('id'))
-        ;
-
-        $objFilesModel = $filesModelAdapter->findByUuid($objDb->fileSRC);
+        $objModel = $importFromCsvModelAdapter->findByPk($dc->activeRecord->id);
+        $objFilesModel = $filesModelAdapter->findByUuid($objModel->fileSRC);
 
         if (null === $objFilesModel || !is_file($this->projectDir.'/'.$objFilesModel->path)) {
-            return '';
+            return (new Response(''))->getContent();
         }
 
         $objFile = new File($objFilesModel->path, true);
@@ -160,30 +151,20 @@ class TlImportFromCsv
      * @Callback(table="tl_import_from_csv", target="fields.selectedFields.options")
      * @Callback(table="tl_import_from_csv", target="fields.skipValidationFields.options")
      */
-    public function optionsCbSelectedFields(): array
+    public function optionsCbSelectedFields(DataContainer $dc): array
     {
-        /** @var Database $databaseAdapter */
-        $databaseAdapter = $this->framework->getAdapter(Database::class);
-
-        /** @var Input $inputAdapter */
-        $inputAdapter = $this->framework->getAdapter(Input::class);
-
-        /** @var Controller $controllerAdapter */
+        $importFromCsvModelAdapter = $this->framework->getAdapter(ImportFromCsvModel::class);
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
-        $objDb = $databaseAdapter
-            ->getInstance()
-            ->prepare('SELECT * FROM tl_import_from_csv WHERE id = ?')
-            ->execute($inputAdapter->get('id'))
-        ;
+        $objModel = $importFromCsvModelAdapter->findByPk($dc->activeRecord->id);
 
-        if ('' === $objDb->importTable) {
+        if (null === $objModel || '' === $objModel->importTable) {
             return [];
         }
 
-        $controllerAdapter->loadDataContainer($objDb->importTable);
+        $controllerAdapter->loadDataContainer($objModel->importTable);
 
-        $arrFields = $GLOBALS['TL_DCA'][$objDb->importTable]['fields'];
+        $arrFields = $GLOBALS['TL_DCA'][$objModel->importTable]['fields'];
 
         if (!isset($arrFields) || !\is_array($arrFields)) {
             return [];
@@ -198,7 +179,7 @@ class TlImportFromCsv
 
             $sql = $arrField['sql'] ?? '';
 
-            $arrOptions[$fieldname] = sprintf('%s [%s]', $fieldname, $sql);
+            $arrOptions[$fieldname] = sprintf('%s <span class="ifcb-sql-descr">[%s]</span>', $fieldname, $sql);
         }
 
         return $arrOptions;
