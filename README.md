@@ -9,8 +9,8 @@ Die CSV Datei wird am besten in einem Tabellenkalkulationsprogramm  (MS-EXCEL o.
 Ein Beispiel für diese Datei findet sich im Verzeichnis [docs](docs/import-file.csv).
 
 
-![preview animated](https://github.com/markocupic/markocupic/blob/main/import-from-csv-bundle/import-from-csv-bundle.gif)
-
+![preview animated](https://github.com/markocupic/import-from-csv-bundle/blob/5.0/docs/import-from-csv-bundle.mp4)
+https://github.com/markocupic/import-from-csv-bundle/blob/5.0/docs/import-from-csv-bundle.mp4
 
 ## Warnung!
 Achtung! Das Modul bietet einen grossen Nutzen.
