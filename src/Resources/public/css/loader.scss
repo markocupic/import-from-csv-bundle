@@ -1,10 +1,20 @@
 // Big thanks to https://loading.io/css/
-$green: #4CAF50;
+$main-color: #eeeeee;
 
-.ifcb-loader-box {
+.ifcb-flex-center {
   display: flex;
   justify-content: center;
-  height: 100px;
+}
+
+.ifcb-flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.ifcb-loader-box {
+  height: 210px;
+  color: #999;
+  padding-top: 100px;
 }
 
 .ifcb-loader {
@@ -19,7 +29,7 @@ $green: #4CAF50;
   position: absolute;
   left: 8px;
   width: 16px;
-  background: $green;
+  background: $main-color;
   animation: ifcb-loader 1.2s cubic-bezier(0, 0.5, 0.5, 1) infinite;
 }
 

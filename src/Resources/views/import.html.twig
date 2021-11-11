@@ -10,17 +10,27 @@
        accesskey="c">{{ lang.tl_import_from_csv.editItemTitle }}</a>
 </div>
 
-
-<div id="ifcbImportFromCsvApp" v-cloak>
-
+<div
+    id="ifcbImportFromCsvApp"
+    v-cloak>
     <div
         v-if="status === 'ifcb-status-preparing'"
-        class="ifcb-loader-box">
+        class="ifcb-loader-box ifcb-flex-column">
         <div
-            class="ifcb-loader">
-            <div></div>
-            <div></div>
-            <div></div>
+            class="ifcb-flex-center">
+            <div
+                class="ifcb-loader">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+        <div
+            class="ifcb-flex-center">
+            <div>
+                ... {{ lang.tl_import_from_csv.loadingApplication }}
+                ...
+            </div>
         </div>
     </div>
 
@@ -40,7 +50,6 @@
                 type="hidden"
                 name="token"
                 value="{{ form.input.csrfToken }}">
-
             <div
                 class="widget">
                 <h2>{{ model.title }}
@@ -48,13 +57,28 @@
                     ]</h2>
                 <br>
                 <ul class="ifcb-import-summary">
-                    <li>Offset: {{ model.offset }}</li>
-                    <li>Limit: {{ model.limit }}</li>
-                    <li>{{ lang.tl_import_from_csv.datarecords }}: {{ head.countRows }}</li>
-                    <li class="ifcb-import-success">{{ lang.tl_import_from_csv.successfullInserts }}: ${ report.summary.success }
+                    <li>
+                        Offset: {{ model.offset }}</li>
+                    <li>
+                        Limit: {{ model.limit }}</li>
+                    <li>{{ lang.tl_import_from_csv.datarecords }}
+                        : {{ head.countRows }}</li>
+                    <li class="ifcb-import-success">{{ lang.tl_import_from_csv.successfullInserts }}
+                        :
+                        ${
+                        report.summary.success
+                        }
                     </li>
-                    <li class="ifcb-import-failed">{{ lang.tl_import_from_csv.failedInserts }}: ${ report.summary.errors }</li>
-                    <li v-if="isTestMode">Testmode: ON</li>
+                    <li class="ifcb-import-failed">{{ lang.tl_import_from_csv.failedInserts }}
+                        :
+                        ${
+                        report.summary.errors
+                        }
+                    </li>
+                    <li v-if="isTestMode">
+                        Testmode:
+                        ON
+                    </li>
                 </ul>
 
                 <div
@@ -89,6 +113,7 @@
                 </div>
 
                 <div
+                    v-if="report.rows"
                     class="ifcb-import-report-box">
                     <table
                         class="ifcb-import-report-table">

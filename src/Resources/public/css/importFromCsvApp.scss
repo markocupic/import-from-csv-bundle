@@ -166,7 +166,7 @@ a.renderAppAction > img {
       }
 
       tr.ifcb-import-success td {
-        color: $green !important;
+        color: lighten($green,10) !important;
       }
 
       tr.ifcb-import-failed td {
@@ -210,21 +210,22 @@ a.renderAppAction > img {
     button:not([disabled]).ifcb-import-button {
       color: #fff;
       background: $red;
-      text-shadow: 0 0 #fff;
+      border-color: $red;
     }
 
     button:not([disabled]).ifcb-import-button:hover {
-      background: $black;
+      background: darken($red,15);
+      border-color: darken($red,15);
     }
 
     button:not([disabled]).ifcb-import-test-button {
-      color: #ffffff;
-      background: $green;
-      text-shadow: 0 0 #fff;
+      //color: #ffffff;
+      //background: $green;
+      //text-shadow: 0 0 #fff;
     }
 
     button:not([disabled]).ifcb-import-test-button:hover {
-      background: $black;
+      //background: $black;
     }
   }
 

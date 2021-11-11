@@ -63,3 +63,4 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['confirmStartImport'] = 'Do you really
 $GLOBALS['TL_LANG']['tl_import_from_csv']['exceptionMsg'] = 'An unexpected error occurred during the import process. Please switch to the Contao Debug-Mode to find out more.';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['importProcessCompleted'] = 'Import process completed. You can close the window now.';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['importProcessStarted'] = 'Import process started. Please do not close this window until the import has succeeded.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['loadingApplication'] = 'loading application';

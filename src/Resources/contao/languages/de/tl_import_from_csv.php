@@ -63,3 +63,4 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['confirmStartImport'] = 'Sind Sie sich
 $GLOBALS['TL_LANG']['tl_import_from_csv']['exceptionMsg'] = 'Während des Importvorganges ist es zu einem unerwarteten Fehler gekommen. Bitte wechseln Sie in den Contao Debug-Modus, um mehr zu erfahren.';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['importProcessCompleted'] = 'Importvorgang abgeschlossen. Sie dürfen das Fenster jetzt schliessen.';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['importProcessStarted'] = 'Importvorgang gestartet. Bitte dieses Fenster nicht schliessen, bevor der Import nicht abgeschlossen ist.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['loadingApplication'] = 'lade App';
