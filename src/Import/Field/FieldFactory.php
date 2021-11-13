@@ -26,8 +26,8 @@ class FieldFactory
         $this->field = $field;
     }
 
-    public function getField(string $tablename, string $fieldname, array $record): Field
+    public function getField(string $tableName, string $fieldName, array $record): Field
     {
-        return $this->field->create($tablename, $fieldname, $record);
+        return $this->field->create($tableName, $fieldName, $record);
     }
 }

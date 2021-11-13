@@ -179,7 +179,7 @@ class ImportFromCsv
         // Store the options in $this->arrData
         $this->arrData = [
             'objCsvFile' => $objCsvFile,
-            'tablename' => $tableName,
+            'tableName' => $tableName,
             'primaryKey' => $strPrimaryKey,
             'importMode' => $strImportMode,
             'selectedFields' => $arrSelectedFields,
@@ -223,7 +223,7 @@ class ImportFromCsv
             $stmt = $stmt->limit($intLimit);
         }
 
-        // Get each line as an associative array -> array('fieldname1' => 'value1',  'fieldname2' => 'value2')
+        // Get each line as an associative array -> array('fieldName1' => 'value1',  'fieldName2' => 'value2')
         // and store each record in the db
         $arrRecords = $stmt->process($objCsvReader);
 
