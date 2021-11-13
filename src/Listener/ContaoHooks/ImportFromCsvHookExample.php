@@ -34,7 +34,7 @@ class ImportFromCsvHookExample
     public function __invoke(Field $objField, int $line, ImportFromCsv $objBackendModule = null): void
     {
         // tl_member
-        if ('tl_super_member' === $objField->getTablename()) {
+        if ('tl_super_member' === $objField->getTableName()) {
             // Get geolocation from a given address
             if ('geolocation' === $objField->getName()) {
                 // Do custom validation and skip the Contao-Widget-Input-Validation
@@ -51,7 +51,7 @@ class ImportFromCsvHookExample
                 $strAddress = $strStreet.',+'.$strCity.',+'.$strCountry;
 
                 // Get Position from GoogleMaps
-                $arrPos = $this->curlGetCoordinates(sprintf('http://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false', $strAddress));
+                $arrPos = $this->curlGetCoordinates(sprintf('https://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false', $strAddress));
 
                 if (null !== $arrPos && \is_array($arrPos['results'][0]['geometry'])) {
                     $latPos = $arrPos['results'][0]['geometry']['location']['lat'];

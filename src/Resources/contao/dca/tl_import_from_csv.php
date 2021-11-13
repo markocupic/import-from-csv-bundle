@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection ALL */
 
 /*
  * This file is part of Import From CSV Bundle.

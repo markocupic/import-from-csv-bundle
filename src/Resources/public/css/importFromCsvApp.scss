@@ -129,8 +129,12 @@ a.renderAppAction > img {
     background-color: $red;
     border: 1px solid $red !important;
     color: #ffffff;
-    padding: 4px 8px;
+    padding: 8px;
     height: auto;
+  }
+  button.tl_submit.ifcb-display-errors-btn:hover {
+    background-color: darken($red,20);
+    border-color: darken($red,20) !important;
   }
 
   button.tl_submit.ifcb-display-errors-btn.hideSuccess {

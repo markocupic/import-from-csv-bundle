@@ -33,7 +33,7 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['selectedFields'] = ['Select the field
 $GLOBALS['TL_LANG']['tl_import_from_csv']['fileSRC'] = ['Select CSV file', 'Select a CSV file for the import.'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['fileContent'] = ['File content','Watch the CSV file content.'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['skipValidationFields'] = ['Skip validation for these fields', 'Select field that will not be validated.'];
-$GLOBALS['TL_LANG']['tl_import_from_csv']['offset'] = ['Skip entries', 'Please select the number of entries that will be skiped during the import process.'];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['offset'] = ['Skip entries', 'Please select the number of entries that will be skipped during the import process.'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['limit'] = ['Limit entries', 'Please select the number of entries that will be imported (0 = all).'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['enableCron'] = ['Enable cron', 'Run import as a cronjob.'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['cronLevel'] = ['Cron level', 'Select a cron level'];
@@ -53,7 +53,7 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['editItemTitle'] = 'edit import';
 
 // Messages
 $GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'] = 'Datarecords';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['successfullInserts'] = 'Successful inserts';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['successfulInserts'] = 'Successful inserts';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['failedInserts'] = 'Failed inserts';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['infoText'] = '<span>An introduction and many tips can be found on the <a href="https://github.com/markocupic/import-from-csv-bundle">project website</a>.</span>';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['importOverview'] = 'Import overview';

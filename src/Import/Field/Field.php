@@ -16,39 +16,66 @@ namespace Markocupic\ImportFromCsvBundle\Import\Field;
 
 class Field
 {
-    private $tablename;
+    /**
+     * @var string
+     */
+    private $tableName;
 
+    /**
+     * @var string
+     */
     private $name;
 
+    /**
+     * @var array
+     */
     private $record;
 
+    /**
+     * @var mixed
+     */
     private $value;
 
+    /**
+     * @var array
+     */
     private $dca = [];
 
+    /**
+     * @var string
+     */
     private $inputType = 'text';
 
+    /**
+     * @var bool
+     */
     private $skipWidgetValidation = false;
 
+    /**
+     * @var array
+     */
     private $arrErrors = [];
 
+    /**
+     * @var bool
+     */
     private $doNotSave = false;
 
     /**
      * @return $this
      */
-    public function create(string $tablename, string $name, array $record): self
+    public function create(string $tableName, string $name, array $record): self
     {
-        $this->tablename = $tablename;
+        $this->tableName = $tableName;
         $this->name = $name;
         $this->record = $record;
 
         return $this;
     }
 
-    public function getTablename(): string
+    public function getTableName(): string
     {
-        return $this->tablename;
+        return $this->tableName;
     }
 
     public function getName(): string
@@ -61,9 +88,12 @@ class Field
         return $this->record;
     }
 
-    public function getValue()
+    /**
+     * @return mixed
+     */
+    public function getValue(): mixed
     {
-        return $this->fieldvalue;
+        return $this->value;
     }
 
     public function getDoNotSave(): bool
@@ -91,9 +121,12 @@ class Field
         return $this->arrErrors;
     }
 
-    public function setValue($value): void
+    /**
+     * @param mixed $value
+     */
+    public function setValue(mixed $value): void
     {
-        $this->fieldvalue = $value;
+        $this->value = $value;
     }
 
     public function setDca(array $dca): void

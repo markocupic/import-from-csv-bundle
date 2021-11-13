@@ -172,14 +172,14 @@ class TlImportFromCsv
 
         $arrOptions = [];
 
-        foreach ($arrFields as $fieldname => $arrField) {
-            if (!isset($fieldname)) {
+        foreach ($arrFields as $fieldName => $arrField) {
+            if (!isset($fieldName)) {
                 continue;
             }
 
             $sql = $arrField['sql'] ?? '';
 
-            $arrOptions[$fieldname] = sprintf('%s <span class="ifcb-sql-descr">[%s]</span>', $fieldname, $sql);
+            $arrOptions[$fieldName] = sprintf('%s <span class="ifcb-sql-descr">[%s]</span>', $fieldName, $sql);
         }
 
         return $arrOptions;
