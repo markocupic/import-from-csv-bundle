@@ -194,7 +194,14 @@ class ImportFromCsv
 
         // Truncate table
         if ('truncate_table' === $this->arrData['importMode'] && false === $blnTestMode) {
-            $this->connection->executeStatement('TRUNCATE TABLE '.$tableName);
+            if($inputAdapter->get('req_num') !== '')
+            {
+                if((int) $inputAdapter->get('req_num') === 1){
+                    $this->connection->executeStatement('TRUNCATE TABLE '.$tableName);
+                }
+            }else{
+                $this->connection->executeStatement('TRUNCATE TABLE '.$tableName);
+            }
         }
 
         if (\count($this->arrData['selectedFields']) < 1) {
@@ -251,6 +258,7 @@ class ImportFromCsv
 
                 // Create field object
                 $objField = $this->fieldFactory->getField($tableName, $columnName, $arrRecord);
+
                 $objField->setValue(trim((string) $value));
 
                 // Get the DCA of the current field
@@ -286,7 +294,7 @@ class ImportFromCsv
                 $objWidget = $this->getWidgetFromInputType($objField->getInputType(), $objField->getName(), $objField->getValue(), $objField->getDca());
 
                 // Use form widgets for input validation
-                if ($objWidget && !$objField->getSkipWidgetValidation()) {
+                if ($objWidget) {
                     // Set POST, so the content can be validated
                     $inputAdapter->setPost($objField->getName(), $objField->getValue());
 
@@ -296,16 +304,17 @@ class ImportFromCsv
                         $objWidget->useRawRequestData = false;
                         $inputAdapter->setPost('password_confirm', $objField->getValue());
                     }
+                    if (isset($arrDcaField['eval']['multiple']) && $arrDcaField['eval']['multiple']) {
 
-                    if (($arrDcaField['eval']['multiple'] ?? null) && $arrDcaField['eval']['multiple']) {
                         // Convert CSV fields
-                        if (($arrDcaField['eval']['csv'] ?? null)) {
+                        if (isset($arrDcaField['eval']['csv'])) {
+
                             if (null === $objField->getValue() || '' === $objField->getValue()) {
                                 $objField->setValue([]);
                             } else {
                                 $objField->setValue(explode($arrDcaField['eval']['csv'], $objField->getValue()));
                             }
-                        } elseif (false !== strpos($objField->getValue(), $strArrayDelimiter)) {
+                        } elseif (false !== strpos( $objField->getValue(), $strArrayDelimiter)) {
                             // Value is e.g. 3||4
                             $objField->setValue(explode($strArrayDelimiter, $objField->getValue()));
                         } else {

@@ -91,8 +91,7 @@ class Field
     /**
      * @return mixed
      */
-    public function getValue(): mixed
-    {
+    public function getValue()    {
         return $this->value;
     }
 
@@ -124,7 +123,7 @@ class Field
     /**
      * @param mixed $value
      */
-    public function setValue(mixed $value): void
+    public function setValue($value): void
     {
         $this->value = $value;
     }

@@ -97,7 +97,7 @@ class importFromCsvApp {
           if (isTestMode === true) {
             this.isTestMode = true;
           }
-
+console.log(this.urlStack);
           let url = '';
           if (this.urlStack.length) {
             this.status = 'ifcb-status-pending';
@@ -106,7 +106,6 @@ class importFromCsvApp {
             this.status = 'ifcb-status-completed';
             return;
           }
-
           fetch(url + '&isTestMode=' + isTestMode + '&token=' + this.options.csrfToken, {
             method: "GET",
             headers: {

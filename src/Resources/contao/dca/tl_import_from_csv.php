@@ -1,73 +1,72 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of Import From CSV Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
- * @license MIT
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-$GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
-    'config'      => array(
+$GLOBALS['TL_DCA']['tl_import_from_csv'] = [
+    'config'      => [
         'dataContainer'    => 'Table',
         'enableVersioning' => true,
-        'sql'              => array(
-            'keys' => array(
+        'sql'              => [
+            'keys' => [
                 'id' => 'primary',
-            ),
-        ),
-    ),
-    'list'        => array(
-        'sorting'           => array(
+            ],
+        ],
+    ],
+    'list'        => [
+        'sorting'           => [
             'mode'        => 2,
-            'fields'      => array('importTable ASC'),
+            'fields'      => ['importTable ASC'],
             'panelLayout' => 'filter;sort,search,limit',
-        ),
-        'label'             => array(
-            'fields' => array(
+        ],
+        'label'             => [
+            'fields' => [
                 'title',
                 'importTable',
-            ),
+            ],
             'format' => '%s [%s]',
-        ),
-        'global_operations' => array
-        (
-            'all' => array
-            (
+        ],
+        'global_operations' => [
+            'all' => [
                 'href'       => 'act=select',
                 'class'      => 'header_edit_all',
                 'attributes' => 'onclick="Backend.getScrollOffset()" accesskey="e"',
-            ),
-        ),
-        'operations'        => array(
-            'edit'            => array(
+            ],
+        ],
+        'operations'        => [
+            'edit'            => [
                 'href' => 'act=edit',
                 'icon' => 'edit.gif',
-            ),
-            'copy'            => array
-            (
+            ],
+            'copy'            => [
                 'href' => 'act=copy',
                 'icon' => 'copy.svg',
-            ),
-            'delete'          => array(
+            ],
+            'delete'          => [
                 'href'       => 'act=delete',
                 'icon'       => 'delete.gif',
                 'attributes' => 'onclick="if (!confirm(\''.$GLOBALS['TL_LANG']['MSC']['deleteConfirm'].'\')) return false; Backend.getScrollOffset();"',
-            ),
-            'show'            => array(
+            ],
+            'show'            => [
                 'href' => 'act=show',
                 'icon' => 'show.gif',
-            ),
-            'renderAppAction' => array(
+            ],
+            'renderAppAction' => [
                 'href' => 'key=renderAppAction',
                 'icon' => 'bundles/markocupicimportfromcsv/import.svg',
-            ),
-        ),
-    ),
-    'palettes'    => array(
+            ],
+        ],
+    ],
+    'palettes'    => [
         'default'      => '
             {title_legend},title;
             {docs_legend},explanation;
@@ -75,102 +74,102 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
             {limitAndOffset_legend},offset,limit;
             {cron_legend},enableCron
         ',
-        '__selector__' => array('enableCron'),
-    ),
-    'subpalettes' => array(
+        '__selector__' => ['enableCron'],
+    ],
+    'subpalettes' => [
         'enableCron' => 'cronLevel',
-    ),
-    'fields'      => array(
-        'id'                   => array(
-            'sql' => "int(10) unsigned NOT NULL auto_increment",
-        ),
-        'title'                => array(
+    ],
+    'fields'      => [
+        'id'                   => [
+            'sql' => 'int(10) unsigned NOT NULL auto_increment',
+        ],
+        'title'                => [
             'exclude'   => true,
             'search'    => true,
             'sorting'   => true,
             'filter'    => true,
             'inputType' => 'text',
-            'eval'      => array(
+            'eval'      => [
                 'mandatory'      => true,
                 'decodeEntities' => true,
                 'maxlength'      => 255,
                 'tl_class'       => 'w50',
-            ),
+            ],
             'sql'       => "varchar(255) NOT NULL default ''",
-        ),
-        'tstamp'               => array(
+        ],
+        'tstamp'               => [
             'sql' => "int(10) unsigned NOT NULL default '0'",
-        ),
-        'explanation'          => array(
-            'eval' => array(
+        ],
+        'explanation'          => [
+            'eval' => [
                 'tl_class'  => 'clr',
                 'doNotShow' => true,
-            ),
-        ),
-        'importTable'          => array(
+            ],
+        ],
+        'importTable'          => [
             'search'    => true,
             'sorting'   => true,
             'filter'    => true,
             'inputType' => 'select',
-            'eval'      => array(
+            'eval'      => [
                 'multiple'           => false,
                 'mandatory'          => true,
                 'includeBlankOption' => true,
                 'submitOnChange'     => true,
-            ),
+            ],
             'sql'       => "varchar(255) NOT NULL default ''",
-        ),
-        'fieldSeparator'       => array(
+        ],
+        'fieldSeparator'       => [
             'inputType' => 'text',
             'default'   => ';',
-            'eval'      => array(
+            'eval'      => [
                 'mandatory' => true,
                 'maxlength' => 1,
-            ),
+            ],
             'sql'       => "varchar(255) NOT NULL default ';'",
-        ),
-        'fieldEnclosure'       => array(
+        ],
+        'fieldEnclosure'       => [
             'inputType' => 'text',
-            'eval'      => array(
+            'eval'      => [
                 'mandatory'         => false,
                 'useRawRequestData' => true,
                 'maxlength'         => 1,
-            ),
+            ],
             'sql'       => "varchar(255) NOT NULL default '\"'",
-        ),
-        'importMode'           => array(
+        ],
+        'importMode'           => [
             'inputType' => 'select',
-            'options'   => array(
+            'options'   => [
                 'append_entries',
                 'truncate_table',
-            ),
+            ],
             'reference' => $GLOBALS['TL_LANG']['tl_import_from_csv'],
-            'eval'      => array(
+            'eval'      => [
                 'multiple'  => false,
                 'mandatory' => true,
-            ),
+            ],
             'sql'       => "varchar(255) NOT NULL default ''",
-        ),
-        'selectedFields'       => array(
+        ],
+        'selectedFields'       => [
             'inputType' => 'checkbox',
-            'eval'      => array(
+            'eval'      => [
                 'multiple'  => true,
                 'mandatory' => true,
-            ),
-            'sql'       => "blob NULL",
-        ),
-        'skipValidationFields' => array(
+            ],
+            'sql'       => 'blob NULL',
+        ],
+        'skipValidationFields' => [
             'inputType' => 'select',
-            'eval'      => array(
+            'eval'      => [
                 'multiple'  => true,
                 'chosen'    => true,
                 'mandatory' => false,
-            ),
-            'sql'       => "blob NULL",
-        ),
-        'fileSRC'              => array(
+            ],
+            'sql'       => 'blob NULL',
+        ],
+        'fileSRC'              => [
             'inputType' => 'fileTree',
-            'eval'      => array(
+            'eval'      => [
                 'multiple'       => false,
                 'fieldType'      => 'radio',
                 'files'          => true,
@@ -178,57 +177,57 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = array(
                 'mandatory'      => true,
                 'extensions'     => 'csv',
                 'submitOnChange' => true,
-            ),
-            'sql'       => "binary(16) NULL",
-        ),
-        'listLines'            => array(
-            'eval' => array(
+            ],
+            'sql'       => 'binary(16) NULL',
+        ],
+        'listLines'            => [
+            'eval' => [
                 'tl_class'  => 'clr',
                 'doNotShow' => true,
-            ),
-        ),
-        'offset'               => array(
+            ],
+        ],
+        'offset'               => [
             'exclude'   => true,
             'inputType' => 'text',
-            'eval'      => array(
+            'eval'      => [
                 'rgxp'     => 'natural',
                 'tl_class' => 'w50',
-            ),
-            'sql'       => "smallint(5) unsigned NOT NULL default 0",
-        ),
-        'limit'                => array(
+            ],
+            'sql'       => 'smallint(5) unsigned NOT NULL default 0',
+        ],
+        'limit'                => [
             'exclude'   => true,
             'inputType' => 'text',
-            'eval'      => array(
+            'eval'      => [
                 'rgxp'     => 'natural',
                 'tl_class' => 'w50',
-            ),
-            'sql'       => "smallint(5) unsigned NOT NULL default 0",
-        ),
-        'enableCron'           => array(
+            ],
+            'sql'       => 'smallint(5) unsigned NOT NULL default 0',
+        ],
+        'enableCron'           => [
             'exclude'   => true,
             'inputType' => 'checkbox',
-            'eval'      => array(
+            'eval'      => [
                 'submitOnChange' => true,
                 'tl_class'       => 'clr',
-            ),
+            ],
             'sql'       => "char(1) NOT NULL default ''",
-        ),
-        'cronLevel'            => array(
+        ],
+        'cronLevel'            => [
             'exclude'   => true,
             'inputType' => 'select',
-            'options'   => array(
+            'options'   => [
                 'minutely',
                 'daily',
                 'hourly',
                 'weekly',
                 'monthly',
                 'yearly',
-            ),
-            'eval'      => array(
+            ],
+            'eval'      => [
                 'tl_class' => 'w50',
-            ),
+            ],
             'sql'       => "varchar(255) NOT NULL default ''",
-        ),
-    ),
-);
+        ],
+    ],
+];

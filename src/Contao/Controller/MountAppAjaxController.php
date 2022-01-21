@@ -108,22 +108,21 @@ class MountAppAjaxController extends AbstractController
         $arrData['model']['selectedFields'] = $stringUtilAdapter->deserialize($objModel->selectedFields, true);
         $arrData['model']['skipValidationFields'] = $stringUtilAdapter->deserialize($objModel->skipValidationFields, true);
 
+
         $count = 0;
         $offset = (int) $objModel->offset;
-        $intRows = (int) $objModel->limit;
+        $limit = (int) $objModel->limit;
 
         if ($objFile) {
             $objCsvReader = $readerAdapter->createFromPath($this->projectDir.'/'.$objFile->path, 'r');
             $objCsvReader->setHeaderOffset(0);
-            $count = $objCsvReader->count();
+            $count = (int) $objCsvReader->count();
         }
 
-        if ($count - $offset < $intRows) {
-            $intRows = $count - $offset;
-        }
-
-        if ($count - $offset < $intRows) {
-            $intRows = $count - $offset;
+        $intRows = $offset > $count ? 0 : $count - $offset;
+        if($limit > 0)
+        {
+            $intRows = $intRows > $limit ? $limit : $intRows;
         }
 
         $arrUrl = [];
@@ -139,10 +138,11 @@ class MountAppAjaxController extends AbstractController
             }
 
             $arrUrl[] = sprintf(
-                'contao?do=import_from_csv&key=importAction&id=%s&offset=%s&limit=%s&token=%s',
+                'contao?do=import_from_csv&key=importAction&id=%s&offset=%s&limit=%s&req_num=%stoken=%s',
                 $id,
                 $offset + $i * $this->perRequest,
                 $limit,
+                $i+1,
                 $token,
             );
         }
