@@ -153,7 +153,7 @@ a.renderAppAction > img {
   color: #7dc06e !important;
 }
 .ifcb-import-from-csv-app .ifcb-import-report-box .ifcb-import-report-table tr.ifcb-import-failed td {
-  color: red !important;
+  color: #ff7d7d !important;
 }
 .ifcb-import-from-csv-app .ifcb-import-report-box .ifcb-import-report-table tr.ifcb-delim td {
   border-left-width: 0;

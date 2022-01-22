@@ -1,5 +1,6 @@
 $green: #5eaf4c;
 $red: red;
+$error: #ff7d7d;
 $black: #000000;
 $gray: #262626;
 $gray-dark: #cccccc;
@@ -174,7 +175,7 @@ a.renderAppAction > img {
       }
 
       tr.ifcb-import-failed td {
-        color: red !important;
+        color: $error !important;
       }
 
       tr.ifcb-delim td {

@@ -24,5 +24,7 @@ services:
     calls:
       - [setName, [markocupic_import_from_csv]]
 
-
-
+  # Do not handle this class as a service
+  Markocupic\ImportFromCsvBundle\Import\Field\Field:
+    autoconfigure: false
+    autowire: false

@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Import;
 
+use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\File;
@@ -27,9 +28,9 @@ use League\Csv\InvalidArgument;
 use League\Csv\Reader;
 use League\Csv\Statement;
 use Markocupic\ImportFromCsvBundle\Import\Field\Field;
-use Markocupic\ImportFromCsvBundle\Import\Field\FieldFactory;
 use Markocupic\ImportFromCsvBundle\Import\Field\Formatter;
 use Markocupic\ImportFromCsvBundle\Import\Field\Validator;
+use function Safe\json_encode;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -61,11 +62,6 @@ class ImportFromCsv
     private $session;
 
     /**
-     * @var FieldFactory
-     */
-    private $fieldFactory;
-
-    /**
      * @var Formatter
      */
     private $formatter;
@@ -78,13 +74,12 @@ class ImportFromCsv
     /**
      * ImportFromCsv constructor.
      */
-    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, SessionInterface $session, FieldFactory $fieldFactory, Formatter $formatter, Validator $validator, string $projectDir)
+    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, SessionInterface $session, Formatter $formatter, Validator $validator, string $projectDir)
     {
         $this->framework = $framework;
         $this->connection = $connection;
         $this->translator = $translator;
         $this->session = $session;
-        $this->fieldFactory = $fieldFactory;
         $this->formatter = $formatter;
         $this->validator = $validator;
         $this->projectDir = $projectDir;
@@ -92,9 +87,9 @@ class ImportFromCsv
 
     /**
      * @throws Exception
+     * @throws InvalidArgument
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
-     * @throws InvalidArgument
      */
     public function importCsv(File $objCsvFile, string $tableName, string $strImportMode, array $arrSelectedFields = [], string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = [], int $intOffset = 0, int $intLimit = 0): void
     {
@@ -109,6 +104,9 @@ class ImportFromCsv
 
         /** @var $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
+
+        /** @var Config $configAdapter */
+        $configAdapter = $this->framework->getAdapter(Config::class);
 
         // Load language file
         $controllerAdapter->loadLanguageFile('tl_import_from_csv');
@@ -190,13 +188,7 @@ class ImportFromCsv
 
         // Truncate table
         if ('truncate_table' === $this->arrData['importMode'] && false === $blnTestMode) {
-            if ('' !== $inputAdapter->get('req_num')) {
-                if (1 === (int) $inputAdapter->get('req_num')) {
-                    $this->connection->executeStatement('TRUNCATE TABLE '.$tableName);
-                }
-            } else {
-                $this->connection->executeStatement('TRUNCATE TABLE '.$tableName);
-            }
+            $this->connection->executeStatement('TRUNCATE TABLE '.$tableName);
         }
 
         if (\count($this->arrData['selectedFields']) < 1) {
@@ -239,6 +231,7 @@ class ImportFromCsv
             ++$countInserts;
 
             $set = [];
+            $arrReportValues = [];
 
             foreach ($arrRecord as $columnName => $value) {
                 // Continue if field is excluded from import
@@ -252,8 +245,7 @@ class ImportFromCsv
                 }
 
                 // Create field object
-                /** @var Field $objField */
-                $objField = $this->fieldFactory->getField($tableName, $columnName, $arrRecord);
+                $objField = new Field($tableName, $columnName, $arrRecord);
 
                 $objField->setValue(trim((string) $value));
 
@@ -275,33 +267,25 @@ class ImportFromCsv
                     foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback) {
                         $systemAdapter->importStatic($callback[0])->{$callback[1]}($objField, $line, $this);
                     }
-
-                    if ($objField->hasErrors()) {
-                        $objField->setValue(implode(' ', $objField->getErrors()));
-                        $doNotSave = true;
-                    }
-
-                    if ($objField->getDoNotSave()) {
-                        $doNotSave = true;
-                    }
                 }
+
+                // Set correct date format
+                $this->formatter->setCorrectDateFormat($objField);
 
                 // Use form widgets for input validation
                 $objWidget = $this->getWidgetFromInputType($objField->getInputType(), $objField->getName(), $objField->getValue(), $objField->getDca());
 
-                $objField->setWidget($objWidget);
-
-                // Use form widgets for input validation
+                // Use the form widget for input validation
                 if ($objWidget) {
-                    // Set POST, so the content can be validated
-                    $inputAdapter->setPost($objField->getName(), $objField->getValue());
+                    $objField->setWidget($objWidget);
 
-                    // Set correct date format
-                    $this->formatter->setCorrectDateFormat($objField);
+                    if ($objWidget->hasErrors()) {
+                        $objField->addErrors($objWidget->getErrors());
+                    }
 
-                    $this->formatter->setCorrectArrayValue($objField, $strArrayDelimiter);
+                    $this->formatter->convertToArray($objField, $strArrayDelimiter);
 
-                    // Validate input
+                    // Validate dates
                     $this->validator->validate($objField);
 
                     // Special treatment for password
@@ -311,61 +295,71 @@ class ImportFromCsv
                         $inputAdapter->setPost('password_confirm', $objField->getValue());
                     }
 
+
+                    $objWidget->value = $objField->getValue();
+
+                    // Set POST, so the content can be validated
+                    $inputAdapter->setPost($objField->getName(), $objField->getValue());
+
                     // Skip validation for selected fields
                     if (!\in_array($objField->getName(), $arrSkipValidationFields, true)) {
                         // Validate input
-                        $objWidget->validate();
-                    }
-
-                    $objField->setValue($objWidget->value);
-
-                    // Skip validation for selected fields
-                    if (!\in_array($objField->getName(), $arrSkipValidationFields, true)) {
-                        $this->validator->checkIsUnique($objField);
-                    }
-
-                    // Do not save the field if there are errors
-                    if ($objWidget->hasErrors()) {
-                        $doNotSave = true;
-
-                        $value = sprintf(
-                            '"%s" => <span class="ifcb-error-msg">%s</span>',
-                            $objField->getValue(),
-                            $objWidget->getErrorsAsString()
-                        );
-                        $objField->setValue($value);
-                    } else {
-                        $this->formatter->setCorrectEmptyValue($objField);
+                        if (!$objWidget->validate()) {
+                            $objField->addErrors($objWidget->getErrors());
+                        }
                     }
                 }
 
-                $this->formatter->encodePassword($objField);
+                $this->validator->checkIsUnique($objField);
+
+
+                if ($objField->hasErrors()) {
+                    $doNotSave = true;
+
+                    $value = sprintf(
+                        '"%s" => <span class="ifcb-error-msg">%s</span>',
+                        $objField->getValue(),
+                        $objField->getErrorsAsString(),
+                    );
+
+                    // Replace value with the error message if there is one
+                    $objField->setValue($value);
+                }
+
+                // Get data for the report
+                $arrReportValues[$objField->getName()] = $objField->getValue();
 
                 // Convert arrays to serialized string
                 if (\is_array($objField->getValue())) {
-                    $objField->setvalue(serialize($objField->getValue()));
+                    $arrReportValues[$objField->getName()] = print_r($objField->getValue(),true);
+                    $objField->setValue(serialize($objField->getValue()));
                 }
 
-                // Convert date field values to timestamp
+                $this->formatter->setCorrectEmptyValue($objField);
                 $this->formatter->convertDateToTimestamp($objField);
+                $this->formatter->encodePassword($objField);
 
                 // Replace all '[NEWLINE]' tags with the end of line tag
                 $set[$objField->getName()] = str_replace('[NEWLINE]', PHP_EOL, (string) $objField->getValue());
-            }
+            }// End foreach
 
             // Insert data record
             if (!$doNotSave) {
-                // Insert tstamp
+
+                // Auto insert "tstamp"
                 if ($this->hasColumn('tstamp', $tableName)) {
                     if (!isset($set['tstamp']) || '' === $set['tstamp']) {
                         $set['tstamp'] = time();
+                        $arrReportValues['tstamp'] = time();
                     }
                 }
 
-                // Insert dateAdded (tl_member)
+                // Auto insert "dateAdded"
                 if ($this->hasColumn('dateAdded', $tableName)) {
+
                     if (!isset($set['dateAdded']) || '' === $set['dateAdded']) {
                         $set['dateAdded'] = time();
+                        $arrReportValues['dateAdded'] = date($configAdapter->get('dateFormat'), time());
                     }
                 }
 
@@ -382,7 +376,6 @@ class ImportFromCsv
 
             // Generate html markup for the import report table
             $htmlReport = '';
-            $cssClass = 'ifcb-import-success';
 
             if ($doNotSave) {
                 $cssClass = 'ifcb-import-failed';
@@ -396,6 +389,7 @@ class ImportFromCsv
                 // Increment error counter if necessary
                 ++$insertError;
             } else {
+                $cssClass = 'ifcb-import-success';
                 $htmlReport .= sprintf(
                     '<tr class="%s"><td class="ifcb-td-title" colspan="2">#%s %s</td></tr>',
                     $cssClass,
@@ -404,10 +398,11 @@ class ImportFromCsv
                 );
             }
 
-            foreach ($set as $k => $v) {
+            foreach ($arrReportValues as $k => $v) {
                 if (\is_array($v)) {
                     $v = serialize($v);
                 }
+
                 $htmlReport .= sprintf(
                     '<tr class="%s"><td class="col_0">%s</td><td class="col_1">%s</td></tr>',
                     $cssClass,
@@ -422,7 +417,7 @@ class ImportFromCsv
             $data = $bag->all();
             $data['rows'] .= $htmlReport;
             $bag->replace($data);
-        }// end foreach
+        }
 
         $bag = $this->session->getBag('markocupic_import_from_csv');
         $data = $bag->all();
@@ -475,7 +470,6 @@ class ImportFromCsv
     {
         $schemaManager = $this->connection->getSchemaManager();
 
-        // If the database table itself return false
         if (!$schemaManager->tablesExist([$strTable])) {
             return false;
         }

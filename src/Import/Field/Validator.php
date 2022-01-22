@@ -16,6 +16,7 @@ namespace Markocupic\ImportFromCsvBundle\Import\Field;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class Validator
@@ -47,9 +48,8 @@ class Validator
         $value = $objField->getValue();
         $arrDca = $objField->getDca();
         $rgxp = $arrDca['eval']['rgxp'] ?? null;
-        $objWidget = $objField->getWidget();
 
-        if (!$rgxp || empty($value) || null === $objWidget) {
+        if (!$rgxp || empty($value)) {
             return;
         }
 
@@ -57,7 +57,7 @@ class Validator
 
         if ('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) {
             if (!$validatorAdapter->{'is'.ucfirst($rgxp)}($value)) {
-                $objWidget->addError(
+                $objField->addError(
                     sprintf(
                         $this->translator->trans('ERR.invalidDate', [], 'contao_default'),
                         $objField->getValue()
@@ -67,55 +67,33 @@ class Validator
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function checkIsUnique(Field $objField): void
     {
         $arrDca = $objField->getDca();
-        $objWidget = $objField->getWidget();
 
         // Make sure that unique fields are unique
-        if (($arrDca['eval']['unique'] ?? null) && $arrDca['eval']['unique']) {
+        if (isset($arrDca['eval']['unique']) && true === $arrDca['eval']['unique']) {
             $value = $objField->getValue();
 
             if ('' !== $value) {
-                if (!$this->isUniqueValue($objField->getTableName(), $objField->getName(), $value)) {
-                    if ($objWidget) {
-                        $objWidget->addError(
-                            sprintf(
-                                $this->translator->trans('ERR.unique', [], 'contao_default'),
-                                $arrDca['label'][0] ?: $objField->getName()
-                            )
-                        );
-                    }
+                $query = sprintf(
+                    'SELECT id FROM %s WHERE %s = ?',
+                    $objField->getTableName(),
+                    $objField->getName(),
+                );
+
+                if ($this->connection->fetchOne($query, [$value])) {
+                    $objField->addError(
+                        sprintf(
+                            $this->translator->trans('ERR.unique', [], 'contao_default'),
+                            $objField->getName(),
+                        )
+                    );
                 }
             }
         }
-    }
-
-    /**
-     * @param string $strTable
-     * @param string $strColumn
-     * @param $value
-     * @param int|null $intId
-     * @return bool
-     * @throws \Doctrine\DBAL\Exception
-     */
-    private function isUniqueValue(string $strTable, string $strColumn, $value, int $intId = null): bool
-    {
-        $qb = $this->connection->createQueryBuilder();
-
-        $qb->select('id')
-            ->from($strTable, 't')
-            ->where('t.'.$strColumn.' = :value')
-            ->setParameter('value', $value)
-        ;
-
-        if (null !== $intId) {
-            $qb->andWhere('t.id != :id');
-            $qb->setParameter('id', $intId);
-        }
-
-        $qb->setMaxResults(1);
-
-        return !$qb->execute()->rowCount();
     }
 }

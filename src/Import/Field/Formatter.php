@@ -18,7 +18,6 @@ use Contao\BackendUser;
 use Contao\Config;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
-use Contao\Input;
 use Contao\StringUtil;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 
@@ -30,7 +29,7 @@ class Formatter
     private $framework;
 
     /**
-     * @var EncoderFactoryInterface 
+     * @var EncoderFactoryInterface
      */
     private $encoderFactory;
 
@@ -40,10 +39,6 @@ class Formatter
         $this->encoderFactory = $encoderFactory;
     }
 
-    /**
-     * @param Field $objField
-     * @return void
-     */
     public function setCorrectDateFormat(Field $objField): void
     {
         $value = $objField->getValue();
@@ -56,30 +51,17 @@ class Formatter
 
             if (false !== ($tstamp = strtotime($objField->getValue()))) {
                 $objField->setValue(date($df, $tstamp));
-
-                if (null !== ($objWidget = $objField->getWidget())) {
-                    $objWidget->value = $objField->getValue();
-                }
-                $inputAdapter = $this->framework->getAdapter(Input::class);
-                $inputAdapter->setPost($objField->getName(), $objField->getValue());
             }
         }
     }
 
-    /**
-     * @param Field $objField
-     * @param string $strArrDelim
-     * @return void
-     */
-    public function setCorrectArrayValue(Field $objField, string $strArrDelim): void
+    public function convertToArray(Field $objField, string $strArrDelim): void
     {
         $arrDca = $objField->getDca();
 
-        $objWidget = $objField->getWidget();
-
         $value = $objField->getValue();
 
-        if (!\is_array($value) && $objWidget && isset($arrDca['eval']['multiple']) && $arrDca['eval']['multiple']) {
+        if (!\is_array($value) && isset($arrDca['eval']['multiple']) && $arrDca['eval']['multiple']) {
             // Convert CSV fields
             if (isset($arrDca['eval']['csv'])) {
                 if (null === $value || '' === $value) {
@@ -95,17 +77,9 @@ class Formatter
                 $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
                 $objField->setValue($stringUtilAdapter->deserialize($value, true));
             }
-
-            $inputAdapter = $this->framework->getAdapter(Input::class);
-            $inputAdapter->setPost($objField->getName(), $objField->getValue());
-            $objWidget->value = $objField->getValue();
         }
     }
 
-    /**
-     * @param Field $objField
-     * @return void
-     */
     public function convertDateToTimestamp(Field $objField): void
     {
         $value = $objField->getValue();
@@ -115,20 +89,10 @@ class Formatter
         if (('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) && '' !== $value) {
             if (false !== ($tstamp = strtotime($objField->getValue()))) {
                 $objField->setValue($tstamp);
-
-                if (null !== ($objWidget = $objField->getWidget())) {
-                    $objWidget->value = $objField->getValue();
-                }
-                $inputAdapter = $this->framework->getAdapter(Input::class);
-                $inputAdapter->setPost($objField->getName(), $objField->getValue());
             }
         }
     }
 
-    /**
-     * @param Field $objField
-     * @return void
-     */
     public function encodePassword(Field $objField): void
     {
         $arrDca = $objField->getDca();
@@ -142,27 +106,17 @@ class Formatter
                     $encoder = $this->encoderFactory->getEncoder(FrontendUser::class);
                 }
                 $objField->setValue($encoder->encodePassword($objField->getValue(), null));
-
-                if (null !== ($objWidget = $objField->getWidget())) {
-                    $objWidget->value = $objField->getValue();
-                }
-                $inputAdapter = $this->framework->getAdapter(Input::class);
-                $inputAdapter->setPost($objField->getName(), $objField->getValue());
             }
         }
     }
 
-    /**
-     * @param Field $objField
-     * @return void
-     */
     public function setCorrectEmptyValue(Field $objField): void
     {
         $objWidget = $objField->getWidget();
         $arrDca = $objField->getDca();
 
         // Set the correct empty value
-        if ($arrDca && $objWidget && '' === $objField->getValue()) {
+        if ($arrDca && '' === $objField->getValue()) {
             $objField->setValue($objWidget->getEmptyValue());
 
             // Set the correct empty value
@@ -177,17 +131,10 @@ class Formatter
                     if (false === strpos($sql, 'NOT NULL')) {
                         if (false !== strpos($sql, 'NULL')) {
                             $objField->setValue(null);
-
-
                         }
                     }
                 }
             }
-
-            $objWidget->value = $objField->getValue();
-            $inputAdapter = $this->framework->getAdapter(Input::class);
-            $inputAdapter->setPost($objField->getName(), $objField->getValue());
-
         }
     }
 }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 /*
  * This file is part of Import From CSV Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
- * @license MIT
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/import-from-csv-bundle
@@ -63,21 +63,12 @@ class Field
      */
     private $arrErrors = [];
 
-    /**
-     * @var bool
-     */
-    private $doNotSave = false;
 
-    /**
-     * @return $this
-     */
-    public function create(string $tableName, string $name, array $record): self
+    public function __construct(string $tableName, string $name, array $record)
     {
         $this->tableName = $tableName;
         $this->name = $name;
         $this->record = $record;
-
-        return $this;
     }
 
     public function getTableName(): string
@@ -98,13 +89,9 @@ class Field
     /**
      * @return mixed
      */
-    public function getValue()    {
-        return $this->value;
-    }
-
-    public function getDoNotSave(): bool
+    public function getValue()
     {
-        return $this->doNotSave;
+        return $this->value;
     }
 
     public function getDca(): array
@@ -112,7 +99,7 @@ class Field
         return $this->dca;
     }
 
-    public function getWidget():?Widget
+    public function getWidget(): ?Widget
     {
         return $this->widget;
     }
@@ -160,18 +147,25 @@ class Field
         $this->skipWidgetValidation = $skip;
     }
 
-    public function setDoNotSave(bool $doNotSave): void
-    {
-        $this->doNotSave = $doNotSave;
-    }
-
     public function addError(string $msg): void
     {
-        $this->arrError[] = $msg;
+        $this->arrErrors[] = $msg;
+    }
+
+    public function addErrors(array $arrErrors): void
+    {
+        foreach ($arrErrors as $msg) {
+            $this->addError($msg);
+        }
     }
 
     public function hasErrors(): bool
     {
         return !empty($this->arrErrors);
+    }
+
+    public function getErrorsAsString($strSeparator = ' '): string
+    {
+        return implode($strSeparator, $this->arrErrors);
     }
 }
