@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of Import From CSV Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
- * @license MIT
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/import-from-csv-bundle
@@ -14,7 +16,7 @@
 $GLOBALS['TL_LANG']['tl_import_from_csv']['new'] = ['Neuen Importdatensatz anlegen', 'Einen neuen Importdatensatz anlegen'];
 
 // Operations
-$GLOBALS['TL_LANG']['tl_import_from_csv']['renderAppAction'] =  ['Import mit ID %s durchführen', 'Import mit ID %s durchführen'];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['renderAppAction'] = ['Import mit ID %s durchführen', 'Import mit ID %s durchführen'];
 
 // Legends
 $GLOBALS['TL_LANG']['tl_import_from_csv']['title_legend'] = 'Titel Einstellungen';
@@ -39,8 +41,8 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['enableCron'] = ['Cron aktivieren', 'A
 $GLOBALS['TL_LANG']['tl_import_from_csv']['cronLevel'] = ['Cron Level', 'Bestimmen Sie, in welchem Intervall die Cronjobs durchgeführt werden sollen.'];
 
 // References
-$GLOBALS['TL_LANG']['tl_import_from_csv']['truncate_table'] = ['Tabelle vor dem Import löschen'];
-$GLOBALS['TL_LANG']['tl_import_from_csv']['append_entries'] = ['Datensätze nur anhängen'];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['truncate_table'] = ['Tabelle vor dem Import leeren'];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['append_entries'] = ['Datensätze anhängen'];
 
 // Buttons
 $GLOBALS['TL_LANG']['tl_import_from_csv']['runImportBtn'] = 'Importvorgang starten';
