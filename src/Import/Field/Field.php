@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Import\Field;
 
+use Contao\Widget;
+
 class Field
 {
     /**
@@ -40,6 +42,11 @@ class Field
      * @var array
      */
     private $dca = [];
+
+    /**
+     * @var Widget
+     */
+    private $widget;
 
     /**
      * @var string
@@ -105,6 +112,11 @@ class Field
         return $this->dca;
     }
 
+    public function getWidget():?Widget
+    {
+        return $this->widget;
+    }
+
     public function getInputType(): string
     {
         return $this->inputType;
@@ -131,6 +143,11 @@ class Field
     public function setDca(array $dca): void
     {
         $this->dca = $dca;
+    }
+
+    public function setWidget(?Widget $widget): void
+    {
+        $this->widget = $widget;
     }
 
     public function setInputType(string $inputType): void

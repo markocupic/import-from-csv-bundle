@@ -5,8 +5,8 @@ declare(strict_types=1);
 /*
  * This file is part of Import From CSV Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
- * @license MIT
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/import-from-csv-bundle
@@ -14,30 +14,25 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Import;
 
-use Contao\BackendUser;
-use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\Date;
 use Contao\File;
-use Contao\FrontendUser;
 use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\Widget;
 use Doctrine\DBAL\Connection;
 use League\Csv\Exception;
+use League\Csv\InvalidArgument;
 use League\Csv\Reader;
 use League\Csv\Statement;
 use Markocupic\ImportFromCsvBundle\Import\Field\Field;
 use Markocupic\ImportFromCsvBundle\Import\Field\FieldFactory;
+use Markocupic\ImportFromCsvBundle\Import\Field\Formatter;
+use Markocupic\ImportFromCsvBundle\Import\Field\Validator;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-/**
- * Class ImportFromCsv.
- */
 class ImportFromCsv
 {
     /**
@@ -66,14 +61,14 @@ class ImportFromCsv
     private $session;
 
     /**
-     * @var EncoderFactoryInterface
-     */
-    private $encoderFactory;
-
-    /**
      * @var FieldFactory
      */
     private $fieldFactory;
+
+    /**
+     * @var Formatter
+     */
+    private $formatter;
 
     /**
      * @var string
@@ -83,19 +78,23 @@ class ImportFromCsv
     /**
      * ImportFromCsv constructor.
      */
-    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, SessionInterface $session, EncoderFactoryInterface $encoderFactory, FieldFactory $fieldFactory, string $projectDir)
+    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, SessionInterface $session, FieldFactory $fieldFactory, Formatter $formatter, Validator $validator, string $projectDir)
     {
         $this->framework = $framework;
         $this->connection = $connection;
         $this->translator = $translator;
         $this->session = $session;
-        $this->encoderFactory = $encoderFactory;
         $this->fieldFactory = $fieldFactory;
+        $this->formatter = $formatter;
+        $this->validator = $validator;
         $this->projectDir = $projectDir;
     }
 
     /**
      * @throws Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     * @throws InvalidArgument
      */
     public function importCsv(File $objCsvFile, string $tableName, string $strImportMode, array $arrSelectedFields = [], string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = [], int $intOffset = 0, int $intLimit = 0): void
     {
@@ -104,9 +103,6 @@ class ImportFromCsv
 
         /** @var Input $inputAdapter */
         $inputAdapter = $this->framework->getAdapter(Input::class);
-
-        /** @var Config $configAdapter */
-        $configAdapter = $this->framework->getAdapter(Config::class);
 
         /** @var $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
@@ -194,12 +190,11 @@ class ImportFromCsv
 
         // Truncate table
         if ('truncate_table' === $this->arrData['importMode'] && false === $blnTestMode) {
-            if($inputAdapter->get('req_num') !== '')
-            {
-                if((int) $inputAdapter->get('req_num') === 1){
+            if ('' !== $inputAdapter->get('req_num')) {
+                if (1 === (int) $inputAdapter->get('req_num')) {
                     $this->connection->executeStatement('TRUNCATE TABLE '.$tableName);
                 }
-            }else{
+            } else {
                 $this->connection->executeStatement('TRUNCATE TABLE '.$tableName);
             }
         }
@@ -251,22 +246,23 @@ class ImportFromCsv
                     continue;
                 }
 
-                // Autoincrement id datarecords are appended
+                // Autoincrement if dataRecords are appended
                 if ('append_entries' === $this->arrData['importMode'] && strtolower($columnName) === strtolower($this->arrData['primaryKey'])) {
                     continue;
                 }
 
                 // Create field object
+                /** @var Field $objField */
                 $objField = $this->fieldFactory->getField($tableName, $columnName, $arrRecord);
 
                 $objField->setValue(trim((string) $value));
 
                 // Get the DCA of the current field
-                $arrDcaField = $this->getDca($objField->getTableName(), $objField->getName());
-                $objField->setDca($arrDcaField);
+                $arrDca = $this->getDca($objField->getTableName(), $objField->getName());
+                $objField->setDca($arrDca);
 
                 // Prepare FormWidget object set inputType to "text" if there is no definition
-                $inputType = ($arrDcaField['inputType'] ?? null) && '' !== $arrDcaField['inputType'] ? $arrDcaField['inputType'] : 'text';
+                $inputType = ($arrDca['inputType'] ?? null) && '' !== $arrDca['inputType'] ? $arrDca['inputType'] : 'text';
                 $objField->setInputType($inputType);
 
                 // Map checkboxWizards to regular checkbox widgets
@@ -293,37 +289,26 @@ class ImportFromCsv
                 // Use form widgets for input validation
                 $objWidget = $this->getWidgetFromInputType($objField->getInputType(), $objField->getName(), $objField->getValue(), $objField->getDca());
 
+                $objField->setWidget($objWidget);
+
                 // Use form widgets for input validation
                 if ($objWidget) {
                     // Set POST, so the content can be validated
                     $inputAdapter->setPost($objField->getName(), $objField->getValue());
+
+                    // Set correct date format
+                    $this->formatter->setCorrectDateFormat($objField);
+
+                    $this->formatter->setCorrectArrayValue($objField, $strArrayDelimiter);
+
+                    // Validate input
+                    $this->validator->validate($objField);
 
                     // Special treatment for password
                     if ('password' === $objField->getInputType()) {
                         // @see Contao\FormPassword::construct() Line 66
                         $objWidget->useRawRequestData = false;
                         $inputAdapter->setPost('password_confirm', $objField->getValue());
-                    }
-                    if (isset($arrDcaField['eval']['multiple']) && $arrDcaField['eval']['multiple']) {
-
-                        // Convert CSV fields
-                        if (isset($arrDcaField['eval']['csv'])) {
-
-                            if (null === $objField->getValue() || '' === $objField->getValue()) {
-                                $objField->setValue([]);
-                            } else {
-                                $objField->setValue(explode($arrDcaField['eval']['csv'], $objField->getValue()));
-                            }
-                        } elseif (false !== strpos( $objField->getValue(), $strArrayDelimiter)) {
-                            // Value is e.g. 3||4
-                            $objField->setValue(explode($strArrayDelimiter, $objField->getValue()));
-                        } else {
-                            // The value is a serialized array or simple value e.g 3
-                            $objField->setValue($stringUtilAdapter->deserialize($objField->getValue(), true));
-                        }
-
-                        $inputAdapter->setPost($objField->getName(), $objField->getValue());
-                        $objWidget->value = $objField->getValue();
                     }
 
                     // Skip validation for selected fields
@@ -334,35 +319,9 @@ class ImportFromCsv
 
                     $objField->setValue($objWidget->value);
 
-                    // Convert date formats into timestamps
-                    $rgxp = $arrDcaField['eval']['rgxp'] ?? null;
-
-                    if (('date' === $rgxp || 'time' === $rgxp || 'datim' === $rgxp) && '' !== $objField->getValue() && !$objWidget->hasErrors()) {
-                        try {
-                            $strTimeFormat = $configAdapter->get($rgxp.'Format');
-                            $objDate = new Date($objField->getValue(), $strTimeFormat);
-                            $objField->setValue($objDate->tstamp);
-                        } catch (\OutOfBoundsException $e) {
-                            $objWidget->addError(
-                                sprintf(
-                                    $this->translator->trans('ERR.invalidDate', [], 'contao_default'),
-                                    $objField->getValue()
-                                )
-                            );
-                        }
-                    }
-
                     // Skip validation for selected fields
                     if (!\in_array($objField->getName(), $arrSkipValidationFields, true)) {
-                        // Make sure that unique fields are unique
-                        if (($arrDcaField['eval']['unique'] ?? null) && $arrDcaField['eval']['unique'] && '' !== $objField->getValue() && !$this->isUniqueValue($objField->getTableName(), $objField->getName(), $objField->getValue())) {
-                            $objWidget->addError(
-                                sprintf(
-                                    $this->translator->trans('ERR.unique', [], 'contao_default'),
-                                    $arrDcaField['label'][0] ?: $objField->getName()
-                                )
-                            );
-                        }
+                        $this->validator->checkIsUnique($objField);
                     }
 
                     // Do not save the field if there are errors
@@ -376,52 +335,19 @@ class ImportFromCsv
                         );
                         $objField->setValue($value);
                     } else {
-                        // Set the correct empty value
-                        if ('' === $objField->getValue()) {
-                            $objField->setValue($objWidget->getEmptyValue());
-                            // Set the correct empty value
-                            if (empty($objField->getValue())) {
-                                /*
-                                 * Hack Because Contao doesn't handle correct empty string input f.ex username
-                                 * @see https://github.com/contao/core-bundle/blob/master/src/Resources/contao/library/Contao/Widget.php#L1526-1527
-                                 */
-                                if (($arrDcaField['sql'] ?? null) && '' !== $arrDcaField['sql']) {
-                                    $sql = $arrDcaField['sql'];
-
-                                    if (false === strpos($sql, 'NOT NULL')) {
-                                        if (false !== strpos($sql, 'NULL')) {
-                                            $objField->setValue(null);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        $this->formatter->setCorrectEmptyValue($objField);
                     }
                 }
 
-                // Encode password, if validation was skipped
-                if (($arrDcaField['inputType'] ?? null) && 'password' === $arrDcaField['inputType']) {
-                    if (!empty($objField->getValue())) {
-                        if ($objField->getValue() === $arrRecord[$objField->getName()]) {
-                            if ('tl_user' === $objField->getTableName()) {
-                                $encoder = $this->encoderFactory->getEncoder(BackendUser::class);
-                            } else {
-                                $encoder = $this->encoderFactory->getEncoder(FrontendUser::class);
-                            }
-                            $objField->setValue($encoder->encodePassword($objField->getValue(), null));
-                        }
-                    }
-                }
+                $this->formatter->encodePassword($objField);
 
-                // Convert arrays to CSV or serialized strings
+                // Convert arrays to serialized string
                 if (\is_array($objField->getValue())) {
-                    if (($arrDcaField['eval']['csv'] ?? null)) {
-                        $value = implode($arrDcaField['eval']['csv'], $objField->getValue());
-                    } else {
-                        $value = serialize($objField->getValue());
-                    }
-                    $objField->setValue($value);
+                    $objField->setvalue(serialize($objField->getValue()));
                 }
+
+                // Convert date field values to timestamp
+                $this->formatter->convertDateToTimestamp($objField);
 
                 // Replace all '[NEWLINE]' tags with the end of line tag
                 $set[$objField->getName()] = str_replace('[NEWLINE]', PHP_EOL, (string) $objField->getValue());
@@ -430,14 +356,14 @@ class ImportFromCsv
             // Insert data record
             if (!$doNotSave) {
                 // Insert tstamp
-                if ($this->hasColumn('tstamp', $objField->getTableName())) {
+                if ($this->hasColumn('tstamp', $tableName)) {
                     if (!isset($set['tstamp']) || '' === $set['tstamp']) {
                         $set['tstamp'] = time();
                     }
                 }
 
                 // Insert dateAdded (tl_member)
-                if ($this->hasColumn('dateAdded', $objField->getTableName())) {
+                if ($this->hasColumn('dateAdded', $tableName)) {
                     if (!isset($set['dateAdded']) || '' === $set['dateAdded']) {
                         $set['dateAdded'] = time();
                     }
@@ -445,12 +371,12 @@ class ImportFromCsv
 
                 // Add to newsletter
                 if (($set['newsletter'] ?? null) && '' !== $set['newsletter'] && ($set['email'] ?? null) && '' !== $set['email']) {
-                    $this->addNewMemberToNewsletterRecipientList($objField, $set['newsletter'], $set['email']);
+                    $this->addNewMemberToNewsletterRecipientList($tableName, $set['newsletter'], $set['email']);
                 }
 
                 // Add new record to the database
                 if (true !== $this->arrData['blnTestMode']) {
-                    $this->connection->insert($objField->getTableName(), $set);
+                    $this->connection->insert($tableName, $set);
                 }
             }
 
@@ -529,9 +455,9 @@ class ImportFromCsv
     {
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
         $controllerAdapter->loadDataContainer($tableName);
-        $arrDcaField = &$GLOBALS['TL_DCA'][$tableName]['fields'][$columnName];
+        $arrDca = &$GLOBALS['TL_DCA'][$tableName]['fields'][$columnName];
 
-        return \is_array($arrDcaField) ? $arrDcaField : [];
+        return \is_array($arrDca) ? $arrDca : [];
     }
 
     private function getWidgetFromInputType(string $inputType, string $columnName, ?string $value, array $arrDca): ?Widget
@@ -543,29 +469,6 @@ class ImportFromCsv
         }
 
         return null;
-    }
-
-    /**
-     * @param $value
-     */
-    private function isUniqueValue(string $strTable, string $strColumn, $value, ?int $intId = null): bool
-    {
-        $qb = $this->connection->createQueryBuilder();
-
-        $qb->select('id')
-            ->from($strTable, 't')
-            ->where('t.'.$strColumn.' = :value')
-            ->setParameter('value', $value)
-        ;
-
-        if (null !== $intId) {
-            $qb->andWhere('t.id != :id');
-            $qb->setParameter('id', $intId);
-        }
-
-        $qb->setMaxResults(1);
-
-        return $qb->execute()->rowCount() ? false : true;
     }
 
     private function hasColumn(string $strColumn, string $strTable): bool
@@ -585,12 +488,12 @@ class ImportFromCsv
     /**
      * @throws \Doctrine\DBAL\Exception
      */
-    private function addNewMemberToNewsletterRecipientList(Field $objField, string $newsletter, string $email): void
+    private function addNewMemberToNewsletterRecipientList(string $strTableName, string $newsletter, string $email): void
     {
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
         // Add new member to newsletter recipient list
-        if ('tl_member' === $objField->getTableName() && '' !== $email && '' !== $newsletter) {
+        if ('tl_member' === $strTableName && '' !== $email && '' !== $newsletter) {
             foreach ($stringUtilAdapter->deserialize($newsletter, true) as $newsletterId) {
                 $qb = $this->connection->createQueryBuilder();
                 $qb->select('id')
