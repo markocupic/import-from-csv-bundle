@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\ImportFromCsvBundle\Import\Field;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\Widget;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -43,10 +44,8 @@ class Validator
         $this->connection = $connection;
     }
 
-    public function validate(Field $objField): void
+    public function validate(Widget $widget, array $arrDca): void
     {
-        $value = $objField->getValue();
-        $arrDca = $objField->getDca();
         $rgxp = $arrDca['eval']['rgxp'] ?? null;
 
         if (!$rgxp || empty($value)) {
@@ -57,10 +56,10 @@ class Validator
 
         if ('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) {
             if (!$validatorAdapter->{'is'.ucfirst($rgxp)}($value)) {
-                $objField->addError(
+                $widget->addError(
                     sprintf(
                         $this->translator->trans('ERR.invalidDate', [], 'contao_default'),
-                        $objField->getValue()
+                        $widget->value,
                     )
                 );
             }
@@ -70,26 +69,24 @@ class Validator
     /**
      * @throws Exception
      */
-    public function checkIsUnique(Field $objField): void
+    public function checkIsUnique(Widget $objWidget, array $arrDca): void
     {
-        $arrDca = $objField->getDca();
-
         // Make sure that unique fields are unique
         if (isset($arrDca['eval']['unique']) && true === $arrDca['eval']['unique']) {
-            $value = $objField->getValue();
+            $value = $objWidget->value;
 
             if ('' !== $value) {
                 $query = sprintf(
                     'SELECT id FROM %s WHERE %s = ?',
-                    $objField->getTableName(),
-                    $objField->getName(),
+                    $objWidget->strTable,
+                    $objWidget->strField,
                 );
 
                 if ($this->connection->fetchOne($query, [$value])) {
-                    $objField->addError(
+                    $objWidget->addError(
                         sprintf(
                             $this->translator->trans('ERR.unique', [], 'contao_default'),
-                            $objField->getName(),
+                            $objWidget->strField,
                         )
                     );
                 }

@@ -19,6 +19,7 @@ use Contao\Config;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
 use Contao\StringUtil;
+use Contao\Widget;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 
 class Formatter
@@ -39,88 +40,90 @@ class Formatter
         $this->encoderFactory = $encoderFactory;
     }
 
-    public function setCorrectDateFormat(Field $objField): void
+    /**
+     * @param $varValue
+     *
+     * @return false|mixed|string
+     */
+    public function getCorrectDateFormat($varValue, array $arrDca)
     {
-        $value = $objField->getValue();
-        $arrDca = $objField->getDca();
         $rgxp = $arrDca['eval']['rgxp'] ?? null;
 
-        if (('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) && '' !== $value) {
+        if (('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) && '' !== $varValue) {
             $configAdapter = $this->framework->getAdapter(Config::class);
             $df = $configAdapter->get($rgxp.'Format');
 
-            if (false !== ($tstamp = strtotime($objField->getValue()))) {
-                $objField->setValue(date($df, $tstamp));
+            if (false !== ($tstamp = strtotime($varValue))) {
+                $varValue = date($df, $tstamp);
             }
         }
+
+        return $varValue;
     }
 
-    public function convertToArray(Field $objField, string $strArrDelim): void
+    /**
+     * @param $varValue
+     *
+     * @return array|false|mixed|array<string>
+     */
+    public function convertToArray($varValue, array $arrDca, string $strArrDelim)
     {
-        $arrDca = $objField->getDca();
-
-        $value = $objField->getValue();
-
-        if (!\is_array($value) && isset($arrDca['eval']['multiple']) && $arrDca['eval']['multiple']) {
+        if (!\is_array($varValue) && isset($arrDca['eval']['multiple']) && $arrDca['eval']['multiple']) {
             // Convert CSV fields
             if (isset($arrDca['eval']['csv'])) {
-                if (null === $value || '' === $value) {
-                    $objField->setValue([]);
+                if (null === $varValue || '' === $varValue) {
+                    $varValue = [];
                 } else {
-                    $objField->setValue(explode($arrDca['eval']['csv'], $value));
+                    $varValue = explode($arrDca['eval']['csv'], $varValue);
                 }
-            } elseif (false !== strpos($value, $strArrDelim)) {
+            } elseif (false !== strpos($varValue, $strArrDelim)) {
                 // Value is e.g. 3||4
-                $objField->setValue(explode($strArrDelim, $value));
+                $varValue = explode($strArrDelim, $varValue);
             } else {
-                // The value is a serialized array or simple value e.g 3
+                /** @var StringUtil $stringUtilAdapter */
                 $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
-                $objField->setValue($stringUtilAdapter->deserialize($value, true));
+
+                // The value is a serialized array or simple value e.g 3
+                $varValue = $stringUtilAdapter->deserialize($varValue, true);
             }
         }
+
+        return $varValue;
     }
 
-    public function convertDateToTimestamp(Field $objField): void
+    /**
+     * @param $arrDca
+     *
+     * @return false|int|mixed|string
+     */
+    public function convertDateToTimestamp(Widget $objWidget, $arrDca)
     {
-        $value = $objField->getValue();
-        $arrDca = $objField->getDca();
+        $varValue = $objWidget->value;
+
         $rgxp = $arrDca['eval']['rgxp'] ?? null;
 
-        if (('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) && '' !== $value) {
-            if (false !== ($tstamp = strtotime($objField->getValue()))) {
-                $objField->setValue($tstamp);
+        if (('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) && '' !== $varValue) {
+            if (false !== ($tstamp = strtotime($varValue))) {
+                $varValue = $tstamp;
             }
         }
+
+        return $varValue;
     }
 
-    public function encodePassword(Field $objField): void
+    /**
+     * @return false|int|mixed|string|null
+     */
+    public function getCorrectEmptyValue(Widget $objWidget, array $arrDca)
     {
-        $arrDca = $objField->getDca();
-
-        // Encode password, if validation was skipped
-        if (($arrDca['inputType'] ?? null) && 'password' === $arrDca['inputType']) {
-            if (\is_string($objField->getValue()) && '' !== $objField->getValue()) {
-                if ('tl_user' === $objField->getTableName()) {
-                    $encoder = $this->encoderFactory->getEncoder(BackendUser::class);
-                } else {
-                    $encoder = $this->encoderFactory->getEncoder(FrontendUser::class);
-                }
-                $objField->setValue($encoder->encodePassword($objField->getValue(), null));
-            }
-        }
-    }
-
-    public function setCorrectEmptyValue(Field $objField): void
-    {
-        $objWidget = $objField->getWidget();
-        $arrDca = $objField->getDca();
+        $varValue = $objWidget->value;
 
         // Set the correct empty value
-        if ($arrDca && '' === $objField->getValue()) {
-            $objField->setValue($objWidget->getEmptyValue());
+        if ($arrDca && '' === $varValue) {
+            $varValue = $objWidget->getEmptyValue();
 
             // Set the correct empty value
-            if (empty($objField->getValue())) {
+            if (empty($varValue)) {
                 /*
                  * Hack Because Contao doesn't handle correct empty string input f.ex username
                  * @see https://github.com/contao/core-bundle/blob/master/src/Resources/contao/library/Contao/Widget.php#L1526-1527
@@ -130,11 +133,23 @@ class Formatter
 
                     if (false === strpos($sql, 'NOT NULL')) {
                         if (false !== strpos($sql, 'NULL')) {
-                            $objField->setValue(null);
+                            $varValue = null;
                         }
                     }
                 }
             }
         }
+
+        return $varValue;
+    }
+
+    public function replaceNewlineTags($varValue)
+    {
+        if (\is_string($varValue)) {
+            // Replace all '[NEWLINE]' tags with the end of line tag
+            $varValue = str_replace('[NEWLINE]', PHP_EOL, $varValue);
+        }
+
+        return $varValue;
     }
 }

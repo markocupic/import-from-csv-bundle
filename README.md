@@ -87,7 +87,7 @@ declare(strict_types=1);
 namespace App\EventListener;
 
 use Contao\CoreBundle\ServiceAnnotation\Hook;
-use Markocupic\ImportFromCsvBundle\Import\Field\Field;
+use Contao\Widget;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
 
 /**
@@ -103,19 +103,16 @@ class MyImportFromCsvHook
      */
     private $curlErrorMsg;
 
-    /**
-     * Add geolocation to imported member
-     */
-    public function __invoke(Field $objField, int $line, ImportFromCsv $objBackendModule = null): void
+    public function __invoke(Widget $objWidget, array $arrRecord, int $line, ImportFromCsv $importFromCsv = null): void
     {
         // tl_member
-        if ('tl_member' === $objField->getTablename()) {
+        if ('tl_super_member' === $objWidget->strTable) {
             // Get geolocation from a given address
-            if ('geolocation' === $objField->getName()) {
+            if ('geolocation' === $objWidget->strField) {
                 // Do custom validation and skip the Contao-Widget-Input-Validation
-                $objField->setSkipWidgetValidation(true);
-
-                $arrRecord = $objField->getRecord();
+                $arrSkip = $importFromCsv->getData('arrSkipValidationFields');
+                $arrSkip[] = $objWidget->strField;
+                $importFromCsv->setData('arrSkipValidationFields', $arrSkip);
 
                 $strStreet = $arrRecord['street'];
                 $strCity = $arrRecord['city'];
@@ -126,19 +123,19 @@ class MyImportFromCsvHook
                 $strAddress = $strStreet.',+'.$strCity.',+'.$strCountry;
 
                 // Get Position from GoogleMaps
-                $arrPos = $this->curlGetCoordinates(sprintf('http://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false', $strAddress));
+                $arrPos = $this->curlGetCoordinates(sprintf('https://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false', $strAddress));
 
                 if (null !== $arrPos && \is_array($arrPos['results'][0]['geometry'])) {
                     $latPos = $arrPos['results'][0]['geometry']['location']['lat'];
                     $lngPos = $arrPos['results'][0]['geometry']['location']['lng'];
 
-                    $objField->setValue($latPos.','.$lngPos);
+                    $objWidget->value = $latPos.','.$lngPos;
                 } else {
                     // Error handling
                     if ('' !== $this->curlErrorMsg) {
-                        $objField->addError($this->curlErrorMsg);
+                        $objWidget->addError($this->curlErrorMsg);
                     } else {
-                        $objField->addError(sprintf('Setting geolocation for (%s) failed!', $strAddress));
+                        $objWidget->addError(sprintf('Setting geolocation for (%s) failed!', $strAddress));
                     }
                 }
             }

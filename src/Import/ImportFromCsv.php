@@ -27,10 +27,8 @@ use League\Csv\Exception;
 use League\Csv\InvalidArgument;
 use League\Csv\Reader;
 use League\Csv\Statement;
-use Markocupic\ImportFromCsvBundle\Import\Field\Field;
 use Markocupic\ImportFromCsvBundle\Import\Field\Formatter;
 use Markocupic\ImportFromCsvBundle\Import\Field\Validator;
-use function Safe\json_encode;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -65,6 +63,11 @@ class ImportFromCsv
      * @var Formatter
      */
     private $formatter;
+
+    /**
+     * @var Validator
+     */
+    private $validator;
 
     /**
      * @var string
@@ -188,7 +191,7 @@ class ImportFromCsv
 
         // Truncate table
         if ('truncate_table' === $this->arrData['importMode'] && false === $blnTestMode) {
-            $this->connection->executeStatement('TRUNCATE TABLE '.$tableName);
+            $this->connection->executeStatement('TRUNCATE TABLE '.$this->arrData['tableName']);
         }
 
         if (\count($this->arrData['selectedFields']) < 1) {
@@ -233,7 +236,7 @@ class ImportFromCsv
             $set = [];
             $arrReportValues = [];
 
-            foreach ($arrRecord as $columnName => $value) {
+            foreach ($arrRecord as $columnName => $varValue) {
                 // Continue if field is excluded from import
                 if (!\in_array($columnName, $this->arrData['selectedFields'], true)) {
                     continue;
@@ -244,110 +247,82 @@ class ImportFromCsv
                     continue;
                 }
 
-                // Create field object
-                $objField = new Field($tableName, $columnName, $arrRecord);
-
-                $objField->setValue(trim((string) $value));
-
                 // Get the DCA of the current field
-                $arrDca = $this->getDca($objField->getTableName(), $objField->getName());
-                $objField->setDca($arrDca);
-
-                // Prepare FormWidget object set inputType to "text" if there is no definition
-                $inputType = ($arrDca['inputType'] ?? null) && '' !== $arrDca['inputType'] ? $arrDca['inputType'] : 'text';
-                $objField->setInputType($inputType);
+                $arrDca = $this->getDca($columnName);
 
                 // Map checkboxWizards to regular checkbox widgets
-                if ('checkboxWizard' === $objField->getInputType()) {
-                    $objField->setInputType('checkbox');
+                if ('checkboxWizard' === $arrDca['inputType']) {
+                    $arrDca['inputType'] = 'checkbox';
                 }
+
+                // Set correct date format
+                $varValue = $this->formatter->getCorrectDateFormat($varValue, $arrDca);
+
+                // Convert strings to array
+                $varValue = $this->formatter->convertToArray($varValue, $arrDca, $this->arrData['strArrayDelimiter']);
+
+                $inputAdapter->setPost($columnName, $varValue);
+
+                // Use form widgets for input validation
+                $objWidget = $this->getWidgetFromDca($arrDca, $columnName, $this->arrData['tableName'], $varValue);
 
                 // HOOK: add custom validation
                 if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && \is_array($GLOBALS['TL_HOOKS']['importFromCsv'])) {
                     foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback) {
-                        $systemAdapter->importStatic($callback[0])->{$callback[1]}($objField, $line, $this);
+                        $systemAdapter->importStatic($callback[0])->{$callback[1]}($objWidget, $arrRecord, $line, $this);
                     }
                 }
 
-                // Set correct date format
-                $this->formatter->setCorrectDateFormat($objField);
+                // Set POST, so the content can be validated
+                $inputAdapter->setPost($objWidget->strField, $objWidget->value);
 
-                // Use form widgets for input validation
-                $objWidget = $this->getWidgetFromInputType($objField->getInputType(), $objField->getName(), $objField->getValue(), $objField->getDca());
+                // Validate dates
+                $this->validator->validate($objWidget, $arrDca);
 
-                // Use the form widget for input validation
-                if ($objWidget) {
-                    $objField->setWidget($objWidget);
-
-                    if ($objWidget->hasErrors()) {
-                        $objField->addErrors($objWidget->getErrors());
-                    }
-
-                    $this->formatter->convertToArray($objField, $strArrayDelimiter);
-
-                    // Validate dates
-                    $this->validator->validate($objField);
-
-                    // Special treatment for password
-                    if ('password' === $objField->getInputType()) {
-                        // @see Contao\FormPassword::construct() Line 66
-                        $objWidget->useRawRequestData = false;
-                        $inputAdapter->setPost('password_confirm', $objField->getValue());
-                    }
-
-
-                    $objWidget->value = $objField->getValue();
-
-                    // Set POST, so the content can be validated
-                    $inputAdapter->setPost($objField->getName(), $objField->getValue());
-
-                    // Skip validation for selected fields
-                    if (!\in_array($objField->getName(), $arrSkipValidationFields, true)) {
-                        // Validate input
-                        if (!$objWidget->validate()) {
-                            $objField->addErrors($objWidget->getErrors());
-                        }
-                    }
+                // Special treatment for password
+                if ('password' === $arrDca['inputType']) {
+                    // @see Contao\FormPassword::construct() Line 66
+                    $objWidget->useRawRequestData = false;
+                    $inputAdapter->setPost('password_confirm', $objWidget->value);
                 }
 
-                $this->validator->checkIsUnique($objField);
+                // Skip validation for selected fields
+                if (!\in_array($objWidget->strField, $this->arrData['arrSkipValidationFields'], true)) {
+                    // Validate input
+                    $objWidget->validate();
+                }
 
+                $this->validator->checkIsUnique($objWidget, $arrDca);
 
-                if ($objField->hasErrors()) {
+                // Add value to the report window
+                $arrReportValues[$objWidget->strField] = $objWidget->value;
+
+                if (\is_array($objWidget->value)) {
+                    $arrReportValues[$objWidget->strField] = print_r($objWidget->value, true);
+                }
+
+                $objWidget->value = $this->formatter->getCorrectEmptyValue($objWidget, $arrDca);
+                $objWidget->value = $this->formatter->convertDateToTimestamp($objWidget, $arrDca);
+                $objWidget->value = $this->formatter->replaceNewlineTags($objWidget->value);
+
+                if ($objWidget->hasErrors()) {
                     $doNotSave = true;
 
-                    $value = sprintf(
+                    $arrReportValues[$objWidget->strField] = sprintf(
                         '"%s" => <span class="ifcb-error-msg">%s</span>',
-                        $objField->getValue(),
-                        $objField->getErrorsAsString(),
+                        $objWidget->value,
+                        $objWidget->getErrorsAsString(' '),
                     );
-
-                    // Replace value with the error message if there is one
-                    $objField->setValue($value);
+                } else {
+                    $set[$objWidget->strField] = \is_array($objWidget->value) ? serialize($objWidget->value) : $objWidget->value;
                 }
-
-                // Get data for the report
-                $arrReportValues[$objField->getName()] = $objField->getValue();
-
-                // Convert arrays to serialized string
-                if (\is_array($objField->getValue())) {
-                    $arrReportValues[$objField->getName()] = print_r($objField->getValue(),true);
-                    $objField->setValue(serialize($objField->getValue()));
-                }
-
-                $this->formatter->setCorrectEmptyValue($objField);
-                $this->formatter->convertDateToTimestamp($objField);
-                $this->formatter->encodePassword($objField);
-
-                // Replace all '[NEWLINE]' tags with the end of line tag
-                $set[$objField->getName()] = str_replace('[NEWLINE]', PHP_EOL, (string) $objField->getValue());
-            }// End foreach
+            }
+            // End foreach
 
             // Insert data record
             if (!$doNotSave) {
-
                 // Auto insert "tstamp"
-                if ($this->hasColumn('tstamp', $tableName)) {
+                if ($this->hasColumn('tstamp', $this->arrData['tableName'])) {
                     if (!isset($set['tstamp']) || '' === $set['tstamp']) {
                         $set['tstamp'] = time();
                         $arrReportValues['tstamp'] = time();
@@ -355,8 +330,7 @@ class ImportFromCsv
                 }
 
                 // Auto insert "dateAdded"
-                if ($this->hasColumn('dateAdded', $tableName)) {
-
+                if ($this->hasColumn('dateAdded', $this->arrData['tableName'])) {
                     if (!isset($set['dateAdded']) || '' === $set['dateAdded']) {
                         $set['dateAdded'] = time();
                         $arrReportValues['dateAdded'] = date($configAdapter->get('dateFormat'), time());
@@ -365,12 +339,12 @@ class ImportFromCsv
 
                 // Add to newsletter
                 if (($set['newsletter'] ?? null) && '' !== $set['newsletter'] && ($set['email'] ?? null) && '' !== $set['email']) {
-                    $this->addNewMemberToNewsletterRecipientList($tableName, $set['newsletter'], $set['email']);
+                    $this->addNewMemberToNewsletterRecipientList($this->arrData['tableName'], $set['newsletter'], $set['email']);
                 }
 
                 // Add new record to the database
                 if (true !== $this->arrData['blnTestMode']) {
-                    $this->connection->insert($tableName, $set);
+                    $this->connection->insert($this->arrData['tableName'], $set);
                 }
             }
 
@@ -429,6 +403,16 @@ class ImportFromCsv
         $bag->replace($data);
     }
 
+    public function getData(string $key)
+    {
+        return $this->arrData[$key] ?? null;
+    }
+
+    public function setData(string $key, $varValue): void
+    {
+        $this->arrData[$key] = $varValue;
+    }
+
     /**
      * @throws \Doctrine\DBAL\Driver\Exception
      * @throws \Doctrine\DBAL\Exception
@@ -446,24 +430,55 @@ class ImportFromCsv
         return null;
     }
 
-    private function getDca(string $tableName, string $columnName): array
+    private function getDca(string $columnName): array
     {
+        $tableName = $this->arrData['tableName'];
+
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
         $controllerAdapter->loadDataContainer($tableName);
-        $arrDca = &$GLOBALS['TL_DCA'][$tableName]['fields'][$columnName];
 
-        return \is_array($arrDca) ? $arrDca : [];
+        if (\is_array($GLOBALS['TL_DCA'][$tableName]['fields'][$columnName])) {
+            $arrDca = &$GLOBALS['TL_DCA'][$tableName]['fields'][$columnName];
+
+            if (isset($arrDca['inputType']) && \is_string($arrDca['inputType'])) {
+                return $arrDca;
+            }
+            $arrDca['inputType'] = 'text';
+        }
+
+        return [
+            'inputType' => 'text',
+        ];
     }
 
-    private function getWidgetFromInputType(string $inputType, string $columnName, ?string $value, array $arrDca): ?Widget
+    /**
+     * @param $varValue
+     *
+     * @throws \Exception
+     */
+    private function getWidgetFromDca(array $arrDca, string $columnName, string $tableName, $varValue): Widget
     {
+        $inputType = $arrDca['inputType'];
+
         $strClass = &$GLOBALS['TL_FFL'][$inputType];
 
         if (class_exists($strClass)) {
-            return new $strClass($strClass::getAttributesFromDca($arrDca, $columnName, $value, '', '', $this));
+            return new $strClass($strClass::getAttributesFromDca($arrDca, $columnName, $varValue, $columnName, $tableName));
         }
 
-        return null;
+        $widget = null;
+
+        $strClass = &$GLOBALS['TL_FFL']['text'];
+
+        if (class_exists($strClass)) {
+            $widget = new $strClass($strClass::getAttributesFromDca($arrDca, $columnName, $varValue, $columnName, $tableName));
+        }
+
+        if (!$widget instanceof Widget) {
+            throw new \Exception(sprintf('Could not find a widget class for field "%s".', $columnName));
+        }
+
+        return $widget;
     }
 
     private function hasColumn(string $strColumn, string $strTable): bool
@@ -484,6 +499,7 @@ class ImportFromCsv
      */
     private function addNewMemberToNewsletterRecipientList(string $strTableName, string $newsletter, string $email): void
     {
+        /** @var StringUtil $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
         // Add new member to newsletter recipient list
