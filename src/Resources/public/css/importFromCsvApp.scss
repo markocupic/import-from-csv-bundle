@@ -133,9 +133,10 @@ a.renderAppAction > img {
     padding: 8px;
     height: auto;
   }
+
   button.tl_submit.ifcb-display-errors-btn:hover {
-    background-color: darken($red,20);
-    border-color: darken($red,20) !important;
+    background-color: darken($red, 20);
+    border-color: darken($red, 20) !important;
   }
 
   button.tl_submit.ifcb-display-errors-btn.hideSuccess {
@@ -171,7 +172,7 @@ a.renderAppAction > img {
       }
 
       tr.ifcb-import-success td {
-        color: lighten($green,10) !important;
+        color: lighten($green, 10) !important;
       }
 
       tr.ifcb-import-failed td {
@@ -219,8 +220,8 @@ a.renderAppAction > img {
     }
 
     button:not([disabled]).ifcb-import-button:hover {
-      background: darken($red,15);
-      border-color: darken($red,15);
+      background: darken($red, 15);
+      border-color: darken($red, 15);
     }
 
     button:not([disabled]).ifcb-import-test-button {

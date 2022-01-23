@@ -44,7 +44,7 @@ class Validator
         $this->connection = $connection;
     }
 
-    public function validate(Widget $widget, array $arrDca): void
+    public function validate(Widget $objWidget, array $arrDca): void
     {
         $rgxp = $arrDca['eval']['rgxp'] ?? null;
 
@@ -56,10 +56,10 @@ class Validator
 
         if ('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) {
             if (!$validatorAdapter->{'is'.ucfirst($rgxp)}($value)) {
-                $widget->addError(
+                $objWidget->addError(
                     sprintf(
                         $this->translator->trans('ERR.invalidDate', [], 'contao_default'),
-                        $widget->value,
+                        $objWidget->value,
                     )
                 );
             }

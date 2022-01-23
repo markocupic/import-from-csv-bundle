@@ -97,7 +97,7 @@ class importFromCsvApp {
           if (isTestMode === true) {
             this.isTestMode = true;
           }
-console.log(this.urlStack);
+          console.log(this.urlStack);
           let url = '';
           if (this.urlStack.length) {
             this.status = 'ifcb-status-pending';

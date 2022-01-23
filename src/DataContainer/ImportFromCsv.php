@@ -5,8 +5,8 @@ declare(strict_types=1);
 /*
  * This file is part of Import From CSV Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
- * @license MIT
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/import-from-csv-bundle
@@ -17,23 +17,19 @@ namespace Markocupic\ImportFromCsvBundle\DataContainer;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\ServiceAnnotation\Callback;
-use Contao\Database;
 use Contao\DataContainer;
 use Contao\File;
 use Contao\FilesModel;
-use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper;
+use Doctrine\DBAL\Connection;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as TwigEnvironment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-class TlImportFromCsv
+class ImportFromCsv
 {
     /**
      * @var ContaoFramework
@@ -41,14 +37,9 @@ class TlImportFromCsv
     private $framework;
 
     /**
-     * @var Request
+     * @var Connection
      */
-    private $requestStack;
-
-    /**
-     * @var SessionInterface
-     */
-    private $session;
+    private $connection;
 
     /**
      * @var TranslatorInterface
@@ -61,11 +52,6 @@ class TlImportFromCsv
     private $twig;
 
     /**
-     * @var ImportFromCsvHelper
-     */
-    private $importHelper;
-
-    /**
      * @var string
      */
     private $projectDir;
@@ -73,14 +59,12 @@ class TlImportFromCsv
     /**
      * TlImportFromCsv constructor.
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, SessionInterface $session, TranslatorInterface $translator, TwigEnvironment $twig, ImportFromCsvHelper $importHelper, string $projectDir)
+    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, TwigEnvironment $twig, string $projectDir)
     {
         $this->framework = $framework;
-        $this->requestStack = $requestStack;
-        $this->session = $session;
+        $this->connection = $connection;
         $this->translator = $translator;
         $this->twig = $twig;
-        $this->importHelper = $importHelper;
         $this->projectDir = $projectDir;
     }
 
@@ -111,16 +95,14 @@ class TlImportFromCsv
     public function generateFileContentMarkup(DataContainer $dc): string
     {
         $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
-        $importFromCsvModelAdapter = $this->framework->getAdapter(ImportFromCsvModel::class);
 
-        $objModel = $importFromCsvModelAdapter->findByPk($dc->activeRecord->id);
-        $objFilesModel = $filesModelAdapter->findByUuid($objModel->fileSRC);
+        $objFilesModel = $filesModelAdapter->findByUuid($dc->activeRecord->fileSRC);
 
         if (null === $objFilesModel || !is_file($this->projectDir.'/'.$objFilesModel->path)) {
             return (new Response(''))->getContent();
         }
 
-        $objFile = new File($objFilesModel->path, true);
+        $objFile = new File($objFilesModel->path);
 
         return $this->twig->render(
             '@MarkocupicImportFromCsv/file_content.html.twig',
@@ -136,13 +118,9 @@ class TlImportFromCsv
      */
     public function optionsCbGetTables(): array
     {
-        /** @var Database $databaseAdapter */
-        $databaseAdapter = $this->framework->getAdapter(Database::class);
+        $schemaManager = $this->connection->getSchemaManager();
 
-        $arrTables = $databaseAdapter
-            ->getInstance()
-            ->listTables()
-        ;
+        $arrTables = $schemaManager->listTableNames();
 
         return \is_array($arrTables) ? $arrTables : [];
     }
@@ -151,35 +129,43 @@ class TlImportFromCsv
      * @Callback(table="tl_import_from_csv", target="fields.selectedFields.options")
      * @Callback(table="tl_import_from_csv", target="fields.skipValidationFields.options")
      */
-    public function optionsCbSelectedFields(DataContainer $dc): array
+    public function optionsCbGetTableColumns(DataContainer $dc): array
     {
-        $importFromCsvModelAdapter = $this->framework->getAdapter(ImportFromCsvModel::class);
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
-        $objModel = $importFromCsvModelAdapter->findByPk($dc->activeRecord->id);
+        $strTable = $dc->activeRecord->importTable;
 
-        if (null === $objModel || '' === $objModel->importTable) {
+        if (!$strTable) {
             return [];
         }
 
-        $controllerAdapter->loadDataContainer($objModel->importTable);
+        $schemaManager = $this->connection->getSchemaManager();
 
-        $arrFields = $GLOBALS['TL_DCA'][$objModel->importTable]['fields'];
+        // Get a list of all lowercase column names
+        $arrLCFields = $schemaManager->listTableColumns($strTable);
 
-        if (!isset($arrFields) || !\is_array($arrFields)) {
+        if (!\is_array($arrLCFields)) {
             return [];
+        }
+
+        $controllerAdapter->loadDataContainer($strTable);
+        $arrDcaFields = [];
+
+        foreach (array_keys($GLOBALS['TL_DCA'][$strTable]['fields'] ?? []) as $k) {
+            $arrDcaFields[strtolower($k)] = [
+                'strField' => $k,
+                'sql' => $GLOBALS['TL_DCA'][$strTable]['fields'][$k]['sql'] ?? null,
+            ];
         }
 
         $arrOptions = [];
 
-        foreach ($arrFields as $fieldName => $arrField) {
-            if (!isset($fieldName)) {
-                continue;
-            }
-
-            $sql = $arrField['sql'] ?? '';
-
-            $arrOptions[$fieldName] = sprintf('%s <span class="ifcb-sql-descr">[%s]</span>', $fieldName, $sql);
+        foreach (array_keys($arrLCFields) as $k) {
+            // If exists, take the column name from the DCA
+            $strField = $arrDcaFields[$k] ? $arrDcaFields[$k]['strField'] : $k;
+            $sql = $arrDcaFields[$k]['sql'];
+            $strSql = isset($sql) ? sprintf(' <span class="ifcb-sql-descr">[%s]</span>', $sql) : '';
+            $arrOptions[$strField] = $strField.$strSql;
         }
 
         return $arrOptions;

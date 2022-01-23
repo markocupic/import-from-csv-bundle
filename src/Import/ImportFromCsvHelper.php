@@ -22,9 +22,6 @@ use League\Csv\Reader;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-/**
- * Class ImportFromCsv.
- */
 class ImportFromCsvHelper
 {
     /**

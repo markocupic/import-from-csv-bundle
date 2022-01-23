@@ -475,7 +475,7 @@ class ImportFromCsv
         }
 
         if (!$widget instanceof Widget) {
-            throw new \Exception(sprintf('Could not find a widget class for field "%s".', $columnName));
+            throw new \Exception(sprintf('Could not find a matching widget class for field "%s".', $columnName));
         }
 
         return $widget;
