@@ -14,10 +14,8 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Import\Field;
 
-use Contao\BackendUser;
 use Contao\Config;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\FrontendUser;
 use Contao\StringUtil;
 use Contao\Widget;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;

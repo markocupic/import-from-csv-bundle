@@ -143,7 +143,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
                 'append_entries',
                 'truncate_table',
             ],
-            'reference' => $GLOBALS['TL_LANG']['tl_import_from_csv'],
+            'reference' => &$GLOBALS['TL_LANG']['tl_import_from_csv'],
             'eval'      => [
                 'multiple'  => false,
                 'mandatory' => true,

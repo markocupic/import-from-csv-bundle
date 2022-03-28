@@ -5,8 +5,8 @@ declare(strict_types=1);
 /*
  * This file is part of Import From CSV Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
- * @license MIT
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/import-from-csv-bundle
@@ -108,7 +108,6 @@ class MountAppAjaxController extends AbstractController
         $arrData['model']['selectedFields'] = $stringUtilAdapter->deserialize($objModel->selectedFields, true);
         $arrData['model']['skipValidationFields'] = $stringUtilAdapter->deserialize($objModel->skipValidationFields, true);
 
-
         $count = 0;
         $offset = (int) $objModel->offset;
         $limit = (int) $objModel->limit;
@@ -120,8 +119,8 @@ class MountAppAjaxController extends AbstractController
         }
 
         $intRows = $offset > $count ? 0 : $count - $offset;
-        if($limit > 0)
-        {
+
+        if ($limit > 0) {
             $intRows = $intRows > $limit ? $limit : $intRows;
         }
 
@@ -142,7 +141,7 @@ class MountAppAjaxController extends AbstractController
                 $id,
                 $offset + $i * $this->perRequest,
                 $limit,
-                $i+1,
+                $i + 1,
                 $token,
             );
         }

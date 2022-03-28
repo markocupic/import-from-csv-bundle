@@ -21,7 +21,6 @@ use Contao\DataContainer;
 use Contao\File;
 use Contao\FilesModel;
 use Doctrine\DBAL\Connection;
-use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as TwigEnvironment;

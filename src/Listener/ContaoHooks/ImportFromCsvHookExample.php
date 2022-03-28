@@ -35,7 +35,6 @@ class ImportFromCsvHookExample
     {
         // tl_member
         if ('tl_super_member' === $objWidget->strTable) {
-
             // Get geolocation from a given address
             if ('geolocation' === $objWidget->strField) {
                 // Do custom validation and skip the Contao-Widget-Input-Validation

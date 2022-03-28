@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of Import From CSV Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
- * @license MIT
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/import-from-csv-bundle
@@ -31,7 +33,7 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['fieldEnclosure'] = ['Field enclosure'
 $GLOBALS['TL_LANG']['tl_import_from_csv']['fieldSeparator'] = ['Field separator', 'Character with which the fields are separated. Normally it is a semicolon: => ;'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['selectedFields'] = ['Select the fields for the import', 'Select the fields that you want to import.'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['fileSRC'] = ['Select CSV file', 'Select a CSV file for the import.'];
-$GLOBALS['TL_LANG']['tl_import_from_csv']['fileContent'] = ['File content','Watch the CSV file content.'];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['fileContent'] = ['File content', 'Watch the CSV file content.'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['skipValidationFields'] = ['Skip validation for these fields', 'Select field that will not be validated.'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['offset'] = ['Skip entries', 'Please select the number of entries that will be skipped during the import process.'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['limit'] = ['Limit entries', 'Please select the number of entries that will be imported (0 = all).'];

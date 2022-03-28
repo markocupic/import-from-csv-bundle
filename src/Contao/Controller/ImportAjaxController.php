@@ -92,8 +92,7 @@ class ImportAjaxController extends AbstractController
                 $objImportModel->offset = $offset;
                 $objImportModel->limit = $limit;
 
-                if((int) $request->query->get('req_num') > 1)
-                {
+                if ((int) $request->query->get('req_num') > 1) {
                     $objImportModel->importMode = 'append_entries';
                 }
 
