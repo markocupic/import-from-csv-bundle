@@ -24,7 +24,7 @@ class MarkocupicImportFromCsvExtension extends Extension
     /**
      * {@inheritdoc}
      */
-    public function getAlias()
+    public function getAlias(): string
     {
         return Configuration::ROOT_KEY;
     }
