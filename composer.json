@@ -29,7 +29,7 @@
   "autoload": {
     "psr-4": {
       "Markocupic\\ImportFromCsvBundle\\": "src/"
-    },
+    }
   },
   "extra": {
     "contao-manager-plugin": "Markocupic\\ImportFromCsvBundle\\ContaoManager\\Plugin"
