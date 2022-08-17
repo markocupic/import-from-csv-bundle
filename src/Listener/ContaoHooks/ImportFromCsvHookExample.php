@@ -73,7 +73,7 @@ class ImportFromCsvHookExample
     /**
      * Curl helper method.
      */
-    private function curlGetCoordinates(string $url): ?array
+    private function curlGetCoordinates(string $url): array|null
     {
         // is cURL installed on the webserver?
         if (!\function_exists('curl_init')) {

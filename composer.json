@@ -15,8 +15,8 @@
     }
   ],
   "require": {
-    "php": "^7.3||^8.0",
-    "contao/core-bundle": "^4.9",
+    "php": "^8.1",
+    "contao/core-bundle": "^4.13|^5.0",
     "league/csv": "^9.1"
   },
   "require-dev": {
@@ -26,18 +26,10 @@
     "phpunit/phpunit": "^9.3",
     "symfony/phpunit-bridge": "^5.4"
   },
-  "conflict": {
-    "doctrine/dbal": "<2.11"
-  },
   "autoload": {
     "psr-4": {
       "Markocupic\\ImportFromCsvBundle\\": "src/"
     },
-    "exclude-from-classmap": [
-      "src/Resources/config",
-      "src/Resources/dca",
-      "src/Resources/languages"
-    ]
   },
   "extra": {
     "contao-manager-plugin": "Markocupic\\ImportFromCsvBundle\\ContaoManager\\Plugin"

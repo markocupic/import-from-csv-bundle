@@ -12,11 +12,14 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
+use Contao\CoreBundle\Routing\ScopeMatcher;
+use Contao\System;
 use Markocupic\ImportFromCsvBundle\Contao\Controller\ImportAjaxController;
 use Markocupic\ImportFromCsvBundle\Contao\Controller\MountAppAjaxController;
 use Markocupic\ImportFromCsvBundle\Contao\Controller\RenderBackendAppController;
 use Markocupic\ImportFromCsvBundle\Cron\Cron;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /*
  * Back end modules
@@ -42,10 +45,16 @@ $GLOBALS['BE_MOD']['system']['import_from_csv'] = [
  */
 $GLOBALS['TL_MODELS']['tl_import_from_csv'] = ImportFromCsvModel::class;
 
+/** @var ScopeMatcher $scopeMatcher */
+$scopeMatcher = System::getContainer()->get('contao.routing.scope_matcher');
+
+/** @var RequestStack $requestStack */
+$requestStack = System::getContainer()->get('request_stack');
+
 /*
  * Cronjobs
  */
-if (TL_MODE !== 'BE') {
+if ($scopeMatcher->isFrontendRequest($requestStack->getCurrentRequest())) {
     $GLOBALS['TL_CRON']['minutely']['importFromCsv'] = [Cron::class, 'initMinutely'];
     $GLOBALS['TL_CRON']['hourly']['importFromCsv'] = [Cron::class, 'initHourly'];
     $GLOBALS['TL_CRON']['daily']['importFromCsv'] = [Cron::class, 'initDaily'];

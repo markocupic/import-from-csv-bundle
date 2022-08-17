@@ -52,7 +52,7 @@ class ImportFromCsvHelper
         $this->projectDir = $projectDir;
     }
 
-    public function countRows(ImportFromCsvModel $model): ?int
+    public function countRows(ImportFromCsvModel $model): int|null
     {
         $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
 
