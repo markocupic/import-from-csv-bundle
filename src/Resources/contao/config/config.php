@@ -12,30 +12,25 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-use Contao\CoreBundle\Routing\ScopeMatcher;
-use Contao\System;
 use Markocupic\ImportFromCsvBundle\Contao\Controller\ImportAjaxController;
 use Markocupic\ImportFromCsvBundle\Contao\Controller\MountAppAjaxController;
 use Markocupic\ImportFromCsvBundle\Contao\Controller\RenderBackendAppController;
-use Markocupic\ImportFromCsvBundle\Cron\Cron;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 /*
  * Back end modules
  */
 $GLOBALS['BE_MOD']['system']['import_from_csv'] = [
-    'tables'          => ['tl_import_from_csv'],
+    'tables' => ['tl_import_from_csv'],
     // Add custom controllers
     'renderAppAction' => [RenderBackendAppController::class, 'renderAppAction'],
-    'appMountAction'  => [MountAppAjaxController::class, 'appMountAction'],
-    'importAction'    => [ImportAjaxController::class, 'importAction'],
-    'javascript'      => [
+    'appMountAction' => [MountAppAjaxController::class, 'appMountAction'],
+    'importAction' => [ImportAjaxController::class, 'importAction'],
+    'javascript' => [
         'bundles/markocupicimportfromcsv/js/vue@2.6.14.js',
         'bundles/markocupicimportfromcsv/js/importFromCsvApp.js',
     ],
-    'stylesheet'      => [
+    'stylesheet' => [
         'bundles/markocupicimportfromcsv/css/importFromCsvApp.css',
         'bundles/markocupicimportfromcsv/css/loader.css',
     ],
@@ -45,23 +40,3 @@ $GLOBALS['BE_MOD']['system']['import_from_csv'] = [
  * Models
  */
 $GLOBALS['TL_MODELS']['tl_import_from_csv'] = ImportFromCsvModel::class;
-
-/** @var ScopeMatcher $scopeMatcher */
-$scopeMatcher = System::getContainer()->get('contao.routing.scope_matcher');
-
-/** @var RequestStack $requestStack */
-$requestStack = System::getContainer()->get('request_stack');
-
-/** @var Request $request */
-$request = $requestStack->getCurrentRequest();
-
-/*
- * Cronjobs
- */
-if (null !== $request && $scopeMatcher->isFrontendRequest($requestStack->getCurrentRequest())) {
-    $GLOBALS['TL_CRON']['minutely']['importFromCsv'] = [Cron::class, 'initMinutely'];
-    $GLOBALS['TL_CRON']['hourly']['importFromCsv'] = [Cron::class, 'initHourly'];
-    $GLOBALS['TL_CRON']['daily']['importFromCsv'] = [Cron::class, 'initDaily'];
-    $GLOBALS['TL_CRON']['weekly']['importFromCsv'] = [Cron::class, 'initWeekly'];
-    $GLOBALS['TL_CRON']['monthly']['importFromCsv'] = [Cron::class, 'initMonthly'];
-}
