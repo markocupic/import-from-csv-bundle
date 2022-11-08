@@ -161,9 +161,9 @@ class ImportFromCsv
 
         foreach (array_keys($arrLCFields) as $k) {
             // If exists, take the column name from the DCA
-            $strField = $arrDcaFields[$k] ? $arrDcaFields[$k]['strField'] : $k;
-            $sql = $arrDcaFields[$k]['sql'];
-            $strSql = isset($sql) ? sprintf(' <span class="ifcb-sql-descr">[%s]</span>', $sql) : '';
+            $strField = $arrDcaFields[$k]['strField'] ?? $k;
+            $sql = $arrDcaFields[$k]['sql'] ?? '';
+            $strSql = !empty($sql) ? sprintf(' <span class="ifcb-sql-descr">[%s]</span>', $sql) : '';
             $arrOptions[$strField] = $strField.$strSql;
         }
 
