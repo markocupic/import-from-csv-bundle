@@ -94,16 +94,25 @@ class Formatter
      *
      * @return false|int|mixed|string
      */
-    public function convertDateToTimestamp(Widget $objWidget, $arrDca)
+    public function convertDateToTimestamp(Widget $objWidget, array $arrDca)
     {
         $varValue = $objWidget->value;
-
         $rgxp = $arrDca['eval']['rgxp'] ?? null;
 
-        if (('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) && '' !== $varValue) {
-            if (false !== ($tstamp = strtotime($varValue))) {
-                $varValue = $tstamp;
+        if ('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) {
+            $varValue = trim((string) $varValue);
+
+            if (empty($varValue))
+            {
+                return null;
             }
+
+            if (false !== ($tstamp = strtotime($varValue))) {
+                return $tstamp;
+            }
+
+            $objWidget->addError(sprintf('Invalid value "%s" set for field "%s.%s".', (string) $varValue, $objWidget->strTable,$objWidget->strField));
+
         }
 
         return $varValue;
