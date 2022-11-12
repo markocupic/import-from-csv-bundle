@@ -17,6 +17,7 @@ namespace Markocupic\ImportFromCsvBundle\Import;
 use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\DC_Table;
 use Contao\File;
 use Contao\Input;
 use Contao\StringUtil;
@@ -29,55 +30,23 @@ use League\Csv\Reader;
 use League\Csv\Statement;
 use Markocupic\ImportFromCsvBundle\Import\Field\Formatter;
 use Markocupic\ImportFromCsvBundle\Import\Field\Validator;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ImportFromCsv
 {
-    /**
-     * @var array
-     */
-    private $arrData;
+    private ContaoFramework $framework;
+    private Connection $connection;
+    private TranslatorInterface $translator;
+    private SessionInterface $session;
+    private Formatter $formatter;
+    private Validator $validator;
+    private RequestStack $requestStack;
+    private string $projectDir;
+    private ?array $arrData;
 
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
-
-    /**
-     * @var Connection
-     */
-    private $connection;
-
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
-
-    /**
-     * @var SessionInterface
-     */
-    private $session;
-
-    /**
-     * @var Formatter
-     */
-    private $formatter;
-
-    /**
-     * @var Validator
-     */
-    private $validator;
-
-    /**
-     * @var string
-     */
-    private $projectDir;
-
-    /**
-     * ImportFromCsv constructor.
-     */
-    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, SessionInterface $session, Formatter $formatter, Validator $validator, string $projectDir)
+    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, SessionInterface $session, Formatter $formatter, Validator $validator, RequestStack $requestStack, string $projectDir)
     {
         $this->framework = $framework;
         $this->connection = $connection;
@@ -85,10 +54,12 @@ class ImportFromCsv
         $this->session = $session;
         $this->formatter = $formatter;
         $this->validator = $validator;
+        $this->requestStack = $requestStack;
         $this->projectDir = $projectDir;
     }
 
     /**
+     * @throws \Exception
      * @throws Exception
      * @throws InvalidArgument
      * @throws \Doctrine\DBAL\Driver\Exception
@@ -96,6 +67,7 @@ class ImportFromCsv
      */
     public function importCsv(File $objCsvFile, string $tableName, string $strImportMode, array $arrSelectedFields = [], string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = [], int $intOffset = 0, int $intLimit = 0): void
     {
+
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
@@ -117,9 +89,9 @@ class ImportFromCsv
         $bag = $this->session->getBag('markocupic_import_from_csv');
         $data['rows'] = '';
         $data['summary'] = [
-            'rows' => 0,
+            'rows'    => 0,
             'success' => 0,
-            'errors' => 0,
+            'errors'  => 0,
         ];
         $bag->replace($data);
 
@@ -175,18 +147,18 @@ class ImportFromCsv
 
         // Store the options in $this->arrData
         $this->arrData = [
-            'objCsvFile' => $objCsvFile,
-            'tableName' => $tableName,
-            'primaryKey' => $strPrimaryKey,
-            'importMode' => $strImportMode,
-            'selectedFields' => $arrSelectedFields,
-            'strDelimiter' => $strDelimiter,
-            'strEnclosure' => $strEnclosure,
-            'strArrayDelimiter' => $strArrayDelimiter,
-            'blnTestMode' => $blnTestMode,
+            'objCsvFile'              => $objCsvFile,
+            'tableName'               => $tableName,
+            'primaryKey'              => $strPrimaryKey,
+            'importMode'              => $strImportMode,
+            'selectedFields'          => $arrSelectedFields,
+            'strDelimiter'            => $strDelimiter,
+            'strEnclosure'            => $strEnclosure,
+            'strArrayDelimiter'       => $strArrayDelimiter,
+            'blnTestMode'             => $blnTestMode,
             'arrSkipValidationFields' => $arrSkipValidationFields,
-            'intOffset' => $intOffset,
-            'intLimit' => $intLimit,
+            'intOffset'               => $intOffset,
+            'intLimit'                => $intLimit,
         ];
 
         // Truncate table
@@ -261,6 +233,9 @@ class ImportFromCsv
                 // Convert strings to array
                 $varValue = $this->formatter->convertToArray($varValue, $arrDca, $this->arrData['strArrayDelimiter']);
 
+                // Set POST, so the content can be validated
+                $request = $this->requestStack->getCurrentRequest();
+                $request->request->set($columnName, $varValue);
                 $inputAdapter->setPost($columnName, $varValue);
 
                 // Use form widgets for input validation
@@ -272,9 +247,6 @@ class ImportFromCsv
                         $systemAdapter->importStatic($callback[0])->{$callback[1]}($objWidget, $arrRecord, $line, $this);
                     }
                 }
-
-                // Set POST, so the content can be validated
-                $inputAdapter->setPost($objWidget->strField, $objWidget->value);
 
                 // Validate dates
                 $this->validator->validate($objWidget, $arrDca);
@@ -396,25 +368,16 @@ class ImportFromCsv
         $bag = $this->session->getBag('markocupic_import_from_csv');
         $data = $bag->all();
         $data['summary'] = [
-            'rows' => $countInserts,
+            'rows'    => $countInserts,
             'success' => $countInserts - $insertError,
-            'errors' => $insertError,
+            'errors'  => $insertError,
         ];
         $bag->replace($data);
     }
 
-    public function getData(string $key)
-    {
-        return $this->arrData[$key] ?? null;
-    }
-
-    public function setData(string $key, $varValue): void
-    {
-        $this->arrData[$key] = $varValue;
-    }
-
     /**
-     * @throws \Doctrine\DBAL\Driver\Exception
+     * @param string $tableName
+     * @return string|null
      * @throws \Doctrine\DBAL\Exception
      */
     private function getPrimaryKey(string $tableName): ?string
@@ -452,38 +415,39 @@ class ImportFromCsv
     }
 
     /**
+     * @param array $arrDca
+     * @param string $columnName
+     * @param string $tableName
      * @param $varValue
-     *
-     * @throws \Exception
+     * @return Widget
      */
     private function getWidgetFromDca(array $arrDca, string $columnName, string $tableName, $varValue): Widget
     {
-        $inputType = $arrDca['inputType'];
+        $inputType = $arrDca['inputType'] ?? '';
 
-        $strClass = &$GLOBALS['TL_FFL'][$inputType];
+        $objDca = new DC_Table($tableName);
 
-        if (class_exists($strClass)) {
-            return new $strClass($strClass::getAttributesFromDca($arrDca, $columnName, $varValue, $columnName, $tableName));
+        $strClass = $GLOBALS['BE_FFL'][$inputType] ?? '';
+
+        if (!empty($strClass) && class_exists($strClass)) {
+
+            return new $strClass($strClass::getAttributesFromDca($arrDca, $columnName, $varValue, $columnName, $tableName, $objDca));
         }
 
-        $widget = null;
+        $strClass = $GLOBALS['BE_FFL']['text'];
 
-        $strClass = &$GLOBALS['TL_FFL']['text'];
-
-        if (class_exists($strClass)) {
-            $widget = new $strClass($strClass::getAttributesFromDca($arrDca, $columnName, $varValue, $columnName, $tableName));
-        }
-
-        if (!$widget instanceof Widget) {
-            throw new \Exception(sprintf('Could not find a matching widget class for field "%s".', $columnName));
-        }
-
-        return $widget;
+        return new $strClass($strClass::getAttributesFromDca($arrDca, $columnName, $varValue, $columnName, $tableName, $objDca));
     }
 
+    /**
+     * @param string $strColumn
+     * @param string $strTable
+     * @return bool
+     * @throws \Doctrine\DBAL\Exception
+     */
     private function hasColumn(string $strColumn, string $strTable): bool
     {
-        $schemaManager = $this->connection->getSchemaManager();
+        $schemaManager = $this->connection->createSchemaManager();
 
         if (!$schemaManager->tablesExist([$strTable])) {
             return false;
@@ -512,13 +476,12 @@ class ImportFromCsv
                     ->andWhere('t.pid = :pid')
                     ->setParameters(
                         [
-                            'pid' => $newsletterId,
+                            'pid'   => $newsletterId,
                             'email' => $email,
                         ]
-                    )
-                ;
+                    );
 
-                if (!$qb->execute()->rowCount()) {
+                if (!$qb->executeQuery()->rowCount()) {
                     $set = [];
                     $set['tstamp'] = time();
                     $set['pid'] = $newsletterId;
@@ -531,5 +494,15 @@ class ImportFromCsv
                 }
             }
         }
+    }
+
+    public function getData(string $key)
+    {
+        return $this->arrData[$key] ?? null;
+    }
+
+    public function setData(string $key, $varValue): void
+    {
+        $this->arrData[$key] = $varValue;
     }
 }
