@@ -54,15 +54,14 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['btnImportTest'] = 'Import testen';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['editItemTitle'] = 'Import bearbeiten';
 
 // Messages
-$GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'] = 'Anzahl Datensätze';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['successfulInserts'] = 'Erfolgreiche inserts';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['failedInserts'] = 'Missglückte inserts';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['infoText'] = '<span>Eine Einführung und viele Tipps finden sich auf der <a href="https://github.com/markocupic/import-from-csv-bundle">Projektwebseite</a>.</span>';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['importOverview'] = 'Import-Übersicht';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['datarecordInsertFailed'] = 'Datensatz konnte nicht angelegt werden!';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['datarecordInsertSucceed'] = 'Datensatz erfolgreich angelegt!';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['confirmStartImport'] = 'Sind Sie sicher, dass Sie den Importprozess starten möchten?';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['exceptionMsg'] = 'Während des Importvorganges ist es zu einem unerwarteten Fehler gekommen. Bitte wechseln Sie in den Contao Debug-Modus, um mehr zu erfahren.';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['importProcessCompleted'] = 'Importvorgang abgeschlossen. Sie dürfen das Fenster jetzt schliessen.';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['importProcessStarted'] = 'Importvorgang gestartet. Bitte dieses Fenster nicht schliessen, bevor der Import nicht abgeschlossen ist.';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['loadingApplication'] = 'lade App';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['data_records'] = 'Anzahl Datensätze';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['successful_inserts'] = 'Erfolgreiche inserts';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['failed_inserts'] = 'Missglückte inserts';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['info_text'] = '<span>Eine Einführung und viele Tipps finden sich auf der <a href="https://github.com/markocupic/import-from-csv-bundle">Projektwebseite</a>.</span>';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['data_record_insert_failed'] = 'Datensatz konnte nicht angelegt werden!';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['data_record_insert_succeed'] = 'Datensatz erfolgreich angelegt!';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['confirm_start_import'] = 'Sind Sie sicher, dass Sie den Importprozess starten möchten?';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['exception_message'] = 'Während des Importvorganges ist es zu einem unerwarteten Fehler gekommen. Bitte wechseln Sie in den Contao Debug-Modus, um mehr zu erfahren.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['import_process_completed'] = 'Importvorgang abgeschlossen. Sie dürfen das Fenster jetzt schliessen.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['import_process_started'] = 'Importvorgang gestartet. Bitte dieses Fenster nicht schliessen, bevor der Import nicht abgeschlossen ist.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['loading_application'] = 'lade App';

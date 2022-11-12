@@ -31,7 +31,7 @@ use League\Csv\Statement;
 use Markocupic\ImportFromCsvBundle\Import\Field\Formatter;
 use Markocupic\ImportFromCsvBundle\Import\Field\Validator;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ImportFromCsv
@@ -39,19 +39,17 @@ class ImportFromCsv
     private ContaoFramework $framework;
     private Connection $connection;
     private TranslatorInterface $translator;
-    private SessionInterface $session;
     private Formatter $formatter;
     private Validator $validator;
     private RequestStack $requestStack;
     private string $projectDir;
-    private ?array $arrData;
+    private array $arrData = [];
 
-    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, SessionInterface $session, Formatter $formatter, Validator $validator, RequestStack $requestStack, string $projectDir)
+    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, Formatter $formatter, Validator $validator, RequestStack $requestStack, string $projectDir)
     {
         $this->framework = $framework;
         $this->connection = $connection;
         $this->translator = $translator;
-        $this->session = $session;
         $this->formatter = $formatter;
         $this->validator = $validator;
         $this->requestStack = $requestStack;
@@ -73,25 +71,29 @@ class ImportFromCsv
         /** @var Input $inputAdapter */
         $inputAdapter = $this->framework->getAdapter(Input::class);
 
-        /** @var $stringUtilAdapter */
+        /** @var StringUtil $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
-        /** @var $controllerAdapter */
+        /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
         /** @var Config $configAdapter */
         $configAdapter = $this->framework->getAdapter(Config::class);
 
-        // Load language file
         $controllerAdapter->loadLanguageFile('tl_import_from_csv');
 
-        $bag = $this->session->getBag('markocupic_import_from_csv');
+        $session = $this->requestStack->getCurrentRequest()->getSession();
+
+        /** @var AttributeBagInterface $bag */
+        $bag = $session->getBag('markocupic_import_from_csv');
+
         $data['rows'] = '';
         $data['summary'] = [
             'rows' => 0,
             'success' => 0,
             'errors' => 0,
         ];
+
         $bag->replace($data);
 
         if ('' === $strDelimiter) {
@@ -191,14 +193,14 @@ class ImportFromCsv
             $stmt = $stmt->limit($intLimit);
         }
 
-        // Get each line as an associative array -> array('fieldName1' => 'value1',  'fieldName2' => 'value2')
+        // Get each line as an associative array -> array('columnName1' => 'value1',  'columnName2' => 'value2')
         // and store each record in the db
         $arrRecords = $stmt->process($objCsvReader);
 
         foreach ($arrRecords as $arrRecord) {
             $doNotSave = false;
 
-            // Count line
+            // Count lines
             ++$line;
 
             // Count inserts
@@ -208,8 +210,10 @@ class ImportFromCsv
             $arrReportValues = [];
 
             foreach ($arrRecord as $columnName => $varValue) {
+                $varValue = trim($varValue);
+
                 // Do not process empty values
-                if (!\strlen(trim($varValue))) {
+                if (!\strlen($varValue)) {
                     continue;
                 }
 
@@ -218,47 +222,45 @@ class ImportFromCsv
                     continue;
                 }
 
-                // Autoincrement if dataRecords are appended
+                // Auto increment if data records are appended
                 if ('append_entries' === $this->arrData['importMode'] && strtolower($columnName) === strtolower($this->arrData['primaryKey'])) {
                     continue;
                 }
 
                 // Get the DCA of the current field
-                $arrDca = $this->getDca($columnName);
+                $arrDca = $this->getDca($columnName, $tableName);
 
                 // Map checkboxWizards to regular checkbox widgets
                 if ('checkboxWizard' === $arrDca['inputType']) {
                     $arrDca['inputType'] = 'checkbox';
                 }
 
-                // Set correct date format
+                // Set the correct date format
                 $varValue = $this->formatter->getCorrectDateFormat($varValue, $arrDca);
 
                 // Convert strings to array
                 $varValue = $this->formatter->convertToArray($varValue, $arrDca, $this->arrData['strArrayDelimiter']);
 
-                // Set POST, so the content can be validated
+                // Set $_POST, so the content can be validated
                 $request = $this->requestStack->getCurrentRequest();
                 $request->request->set($columnName, $varValue);
                 $inputAdapter->setPost($columnName, $varValue);
 
-                // Use form widgets for input validation
+                // Get the right widget for input validation, etc.
                 $objWidget = $this->getWidgetFromDca($arrDca, $columnName, $this->arrData['tableName'], $varValue);
 
-                // HOOK: add custom validation
+                // Trigger the importFromCsv HOOK:
                 if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && \is_array($GLOBALS['TL_HOOKS']['importFromCsv'])) {
                     foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback) {
                         $systemAdapter->importStatic($callback[0])->{$callback[1]}($objWidget, $arrRecord, $line, $this);
                     }
                 }
 
-                // Validate dates
-                $this->validator->validate($objWidget, $arrDca);
+                // Validate date, datim or time values
+                $this->validator->checkIsValidDate($objWidget, $arrDca);
 
                 // Special treatment for password
                 if ('password' === $arrDca['inputType']) {
-                    // @see Contao\FormPassword::construct() Line 66
-                    $objWidget->useRawRequestData = false;
                     $inputAdapter->setPost('password_confirm', $objWidget->value);
                 }
 
@@ -277,7 +279,6 @@ class ImportFromCsv
                     $arrReportValues[$objWidget->strField] = print_r($objWidget->value, true);
                 }
 
-                $objWidget->value = $this->formatter->getCorrectEmptyValue($objWidget, $arrDca);
                 $objWidget->value = $this->formatter->convertDateToTimestamp($objWidget, $arrDca);
                 $objWidget->value = $this->formatter->replaceNewlineTags($objWidget->value);
 
@@ -333,7 +334,7 @@ class ImportFromCsv
                     '<tr class="%s"><td class="ifcb-td-title" colspan="2">#%s %s</td></tr>',
                     $cssClass,
                     $line,
-                    $this->translator->trans('tl_import_from_csv.datarecordInsertFailed', [], 'contao_default')
+                    $this->translator->trans('tl_import_from_csv.data_record_insert_failed', [], 'contao_default')
                 );
 
                 // Increment error counter if necessary
@@ -344,7 +345,7 @@ class ImportFromCsv
                     '<tr class="%s"><td class="ifcb-td-title" colspan="2">#%s %s</td></tr>',
                     $cssClass,
                     $line,
-                    $this->translator->trans('tl_import_from_csv.datarecordInsertSucceed', [], 'contao_default')
+                    $this->translator->trans('tl_import_from_csv.data_record_insert_succeed', [], 'contao_default')
                 );
             }
 
@@ -363,19 +364,25 @@ class ImportFromCsv
 
             $htmlReport .= '<tr class="ifcb-delim"><td class="col_0">&nbsp;</td><td class="col_1">&nbsp;</td></tr>';
 
-            $bag = $this->session->getBag('markocupic_import_from_csv');
+            /** @var AttributeBagInterface $bag */
+            $bag = $session->getBag('markocupic_import_from_csv');
+
             $data = $bag->all();
             $data['rows'] .= $htmlReport;
             $bag->replace($data);
         }
 
-        $bag = $this->session->getBag('markocupic_import_from_csv');
+        /** @var AttributeBagInterface $bag */
+        $bag = $session->getBag('markocupic_import_from_csv');
+
         $data = $bag->all();
+
         $data['summary'] = [
             'rows' => $countInserts,
             'success' => $countInserts - $insertError,
             'errors' => $insertError,
         ];
+
         $bag->replace($data);
     }
 
@@ -405,10 +412,8 @@ class ImportFromCsv
         return null;
     }
 
-    private function getDca(string $columnName): array
+    private function getDca(string $columnName, string $tableName): array
     {
-        $tableName = $this->arrData['tableName'];
-
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
         $controllerAdapter->loadDataContainer($tableName);
 
@@ -418,6 +423,7 @@ class ImportFromCsv
             if (isset($arrDca['inputType']) && \is_string($arrDca['inputType'])) {
                 return $arrDca;
             }
+
             $arrDca['inputType'] = 'text';
         }
 
@@ -426,10 +432,7 @@ class ImportFromCsv
         ];
     }
 
-    /**
-     * @param $varValue
-     */
-    private function getWidgetFromDca(array $arrDca, string $columnName, string $tableName, $varValue): Widget
+    private function getWidgetFromDca(array $arrDca, string $columnName, string $tableName, string $varValue): Widget
     {
         $inputType = $arrDca['inputType'] ?? '';
 
@@ -449,29 +452,29 @@ class ImportFromCsv
     /**
      * @throws \Doctrine\DBAL\Exception
      */
-    private function hasColumn(string $strColumn, string $strTable): bool
+    private function hasColumn(string $columnName, string $tableName): bool
     {
         $schemaManager = $this->connection->createSchemaManager();
 
-        if (!$schemaManager->tablesExist([$strTable])) {
+        if (!$schemaManager->tablesExist([$tableName])) {
             return false;
         }
 
-        $columns = $schemaManager->listTableColumns($strTable);
+        $columns = $schemaManager->listTableColumns($tableName);
 
-        return isset($columns[strtolower($strColumn)]);
+        return isset($columns[strtolower($columnName)]);
     }
 
     /**
      * @throws \Doctrine\DBAL\Exception
      */
-    private function addNewMemberToNewsletterRecipientList(string $strTableName, string $newsletter, string $email): void
+    private function addNewMemberToNewsletterRecipientList(string $tableName, string $newsletter, string $email): void
     {
         /** @var StringUtil $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
         // Add new member to newsletter recipient list
-        if ('tl_member' === $strTableName && '' !== $email && '' !== $newsletter) {
+        if ('tl_member' === $tableName && '' !== $email && '' !== $newsletter) {
             foreach ($stringUtilAdapter->deserialize($newsletter, true) as $newsletterId) {
                 $qb = $this->connection->createQueryBuilder();
                 $qb->select('id')

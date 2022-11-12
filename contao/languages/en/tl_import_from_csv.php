@@ -16,7 +16,7 @@ declare(strict_types=1);
 $GLOBALS['TL_LANG']['tl_import_from_csv']['new'] = ['Add new import', 'Add a new import'];
 
 // Operations
-$GLOBALS['TL_LANG']['tl_import_from_csv']['renderAppAction'] = ['Launch import with ID %s', 'Launch import with ID %s'];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['renderAppAction'] = ['Launch import process with ID %s', 'Launch import process with ID %s'];
 
 // Legends
 $GLOBALS['TL_LANG']['tl_import_from_csv']['title_legend'] = 'Howto/Help';
@@ -54,15 +54,14 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['btnImportTest'] = 'Test import';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['editItemTitle'] = 'edit import';
 
 // Messages
-$GLOBALS['TL_LANG']['tl_import_from_csv']['datarecords'] = 'Datarecords';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['successfulInserts'] = 'Successful inserts';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['failedInserts'] = 'Failed inserts';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['infoText'] = '<span>An introduction and many tips can be found on the <a href="https://github.com/markocupic/import-from-csv-bundle">project website</a>.</span>';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['importOverview'] = 'Import overview';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['datarecordInsertFailed'] = 'Insert failed!';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['datarecordInsertSucceed'] = 'Insert succeed!';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['confirmStartImport'] = 'Do you really want to start the import process?';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['exceptionMsg'] = 'An unexpected error occurred during the import process. Please switch to the Contao Debug-Mode to find out more.';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['importProcessCompleted'] = 'Import process completed. You can close the window now.';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['importProcessStarted'] = 'Import process started. Please do not close this window until the import has succeeded.';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['loadingApplication'] = 'loading application';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['data_records'] = 'Datarecords';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['successful_inserts'] = 'Successful inserts';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['failed_inserts'] = 'Failed inserts';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['info_text'] = '<span>An introduction and many tips can be found on the <a href="https://github.com/markocupic/import-from-csv-bundle">project website</a>.</span>';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['data_record_insert_failed'] = 'Insert failed!';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['data_record_insert_succeed'] = 'Insert succeed!';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['confirm_start_import'] = 'Do you really want to start the import process?';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['exception_message'] = 'An unexpected error occurred during the import process. Please switch to the Contao Debug-Mode to find out more.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['import_process_completed'] = 'Import process completed. You can close the window now.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['import_process_started'] = 'Import process started. Please do not close this window until the import has succeeded.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['loading_application'] = 'loading application';

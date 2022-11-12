@@ -37,9 +37,6 @@ class ImportFromCsv
     private TwigEnvironment $twig;
     private string $projectDir;
 
-    /**
-     * TlImportFromCsv constructor.
-     */
     public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, TwigEnvironment $twig, string $projectDir)
     {
         $this->framework = $framework;
@@ -61,7 +58,7 @@ class ImportFromCsv
         return $this->twig->render(
             '@MarkocupicImportFromCsv/help_text.html.twig',
             [
-                'help_text' => $this->translator->trans('tl_import_from_csv.infoText', [], 'contao_default'),
+                'help_text' => $this->translator->trans('tl_import_from_csv.info_text', [], 'contao_default'),
             ]
         );
     }
@@ -118,28 +115,28 @@ class ImportFromCsv
     {
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
-        $strTable = $dc->activeRecord->importTable;
+        $tableName = $dc->activeRecord->importTable;
 
-        if (!$strTable) {
+        if (!$tableName) {
             return [];
         }
 
         $schemaManager = $this->connection->createSchemaManager();
 
         // Get a list of all lowercase column names
-        $arrLCFields = $schemaManager->listTableColumns($strTable);
+        $arrLCFields = $schemaManager->listTableColumns($tableName);
 
         if (!\is_array($arrLCFields)) {
             return [];
         }
 
-        $controllerAdapter->loadDataContainer($strTable);
+        $controllerAdapter->loadDataContainer($tableName);
         $arrDcaFields = [];
 
-        foreach (array_keys($GLOBALS['TL_DCA'][$strTable]['fields'] ?? []) as $k) {
+        foreach (array_keys($GLOBALS['TL_DCA'][$tableName]['fields'] ?? []) as $k) {
             $arrDcaFields[strtolower($k)] = [
                 'strField' => $k,
-                'sql' => $GLOBALS['TL_DCA'][$strTable]['fields'][$k]['sql'] ?? null,
+                'sql' => $GLOBALS['TL_DCA'][$tableName]['fields'][$k]['sql'] ?? null,
             ];
         }
 

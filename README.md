@@ -67,6 +67,9 @@ Tipp: Wenn Sie die Datei ausgewählt haben, klicken Sie voher auf "Speichern" um
 ### Zeilenumbrüche
 Alle [NEWLINE] tags in der CSV Datei werden beim Import-Vorgang in \r\n bzw. \n umgewandelt.
 
+### Leere Feldwerte
+Leere Feldwerte werden nicht verarbeitet. Beim Import eines neuen Datensatzes wird in diesem Falle immer der Default-Wert aus `$GLOBALS['TL_DCA']['tl_my_table']['fields']['myField']['sql']` gesetzt.
+
 ### Cronjob
 Auf Wunsch kann CRON aktiviert werden. Der Import kann dadurch in einem festgelegten Intervall automatisch ausgeführt werden.
 
@@ -122,7 +125,7 @@ class MyImportFromCsvHook
                 $strCity = str_replace(' ', '+', $strCity);
                 $strAddress = $strStreet.',+'.$strCity.',+'.$strCountry;
 
-                // Get Position from GoogleMaps
+                // Get position from Google Maps
                 $arrPos = $this->curlGetCoordinates(sprintf('https://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false', $strAddress));
 
                 if (null !== $arrPos && \is_array($arrPos['results'][0]['geometry'])) {

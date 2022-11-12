@@ -106,38 +106,6 @@ class Formatter
         return $varValue;
     }
 
-    /**
-     * @return false|int|mixed|string|null
-     */
-    public function getCorrectEmptyValue(Widget $objWidget, array $arrDca)
-    {
-        $varValue = $objWidget->value;
-
-        // Set the correct empty value
-        if ($arrDca && '' === $varValue) {
-            $varValue = $objWidget->getEmptyValue();
-
-            // Set the correct empty value
-            if (empty($varValue)) {
-                /*
-                 * Hack Because Contao doesn't handle correct empty string input f.ex username
-                 * @see https://github.com/contao/core-bundle/blob/master/src/Resources/contao/library/Contao/Widget.php#L1526-1527
-                 */
-                if (($arrDca['sql'] ?? null) && '' !== $arrDca['sql']) {
-                    $sql = $arrDca['sql'];
-
-                    if (false === strpos($sql, 'NOT NULL')) {
-                        if (false !== strpos($sql, 'NULL')) {
-                            $varValue = null;
-                        }
-                    }
-                }
-            }
-        }
-
-        return $varValue;
-    }
-
     public function replaceNewlineTags($varValue)
     {
         if (\is_string($varValue)) {

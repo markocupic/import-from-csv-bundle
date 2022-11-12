@@ -33,18 +33,19 @@ class Validator
         $this->connection = $connection;
     }
 
-    public function validate(Widget $objWidget, array $arrDca): void
+    public function checkIsValidDate(Widget $objWidget, array $arrDca): void
     {
+        $varValue = $objWidget->value;
         $rgxp = $arrDca['eval']['rgxp'] ?? null;
 
-        if (!$rgxp || empty($value)) {
+        if (!$rgxp || !\strlen((string) $varValue)) {
             return;
         }
 
         $validatorAdapter = $this->framework->getAdapter(\Contao\Validator::class);
 
         if ('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) {
-            if (!$validatorAdapter->{'is'.ucfirst($rgxp)}($value)) {
+            if (!$validatorAdapter->{'is'.ucfirst($rgxp)}($varValue)) {
                 $objWidget->addError(
                     sprintf(
                         $this->translator->trans('ERR.invalidDate', [], 'contao_default'),
@@ -62,16 +63,16 @@ class Validator
     {
         // Make sure that unique fields are unique
         if (isset($arrDca['eval']['unique']) && true === $arrDca['eval']['unique']) {
-            $value = $objWidget->value;
+            $varValue = $objWidget->value;
 
-            if ('' !== $value) {
+            if (\strlen((string) $varValue)) {
                 $query = sprintf(
                     'SELECT id FROM %s WHERE %s = ?',
                     $objWidget->strTable,
                     $objWidget->strField,
                 );
 
-                if ($this->connection->fetchOne($query, [$value])) {
+                if ($this->connection->fetchOne($query, [$varValue])) {
                     $objWidget->addError(
                         sprintf(
                             $this->translator->trans('ERR.unique', [], 'contao_default'),
