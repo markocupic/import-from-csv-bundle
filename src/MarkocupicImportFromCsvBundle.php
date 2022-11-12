@@ -21,6 +21,11 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class MarkocupicImportFromCsvBundle extends Bundle
 {
+    public function getPath(): string
+    {
+        return \dirname(__DIR__);
+    }
+
     public function getContainerExtension(): MarkocupicImportFromCsvExtension
     {
         return new MarkocupicImportFromCsvExtension();

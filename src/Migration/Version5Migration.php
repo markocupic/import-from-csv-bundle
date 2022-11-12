@@ -21,21 +21,21 @@ use Doctrine\DBAL\Exception;
 
 class Version5Migration extends AbstractMigration
 {
-    /**
-     * @var Connection
-     */
-    private $connection;
+    private Connection $connection;
 
     public function __construct(Connection $connection)
     {
         $this->connection = $connection;
     }
 
+    /**
+     * @throws Exception
+     */
     public function shouldRun(): bool
     {
         $doMigration = false;
 
-        $schemaManager = $this->connection->getSchemaManager();
+        $schemaManager = $this->connection->createSchemaManager();
 
         // Version 5 migration: "Rename fields"
         // If the database table itself does not exist we should do nothing
@@ -61,7 +61,7 @@ class Version5Migration extends AbstractMigration
     {
         $arrMessage = [];
 
-        $schemaManager = $this->connection->getSchemaManager();
+        $schemaManager = $this->connection->createSchemaManager();
 
         // Version 5 migration: "Rename fields"
         if ($schemaManager->tablesExist(['tl_import_from_csv'])) {

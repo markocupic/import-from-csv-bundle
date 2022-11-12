@@ -17,75 +17,42 @@ namespace Markocupic\ImportFromCsvBundle\Contao\Controller;
 use Contao\Controller;
 use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\Security\Authentication\Token\TokenChecker;
 use Contao\DataContainer;
+use League\Csv\Exception;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as TwigEnvironment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class RenderBackendAppController
 {
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
+    private ContaoFramework $framework;
+    private ImportFromCsvHelper $importFromCsvHelper;
+    private ContaoCsrfTokenManager $csrfTokenManager;
+    private TwigEnvironment $twig;
+    private RequestStack $requestStack;
+    private string $csrfTokenName;
 
-    /**
-     * @var ImportFromCsvHelper
-     */
-    private $importFromCsvHelper;
-
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
-
-    /**
-     * @var ContaoCsrfTokenManager
-     */
-    private $csrfTokenManager;
-
-    /**
-     * @var TokenChecker
-     */
-    private $tokenChecker;
-
-    /**
-     * @var TwigEnvironment
-     */
-    private $twig;
-
-    /**
-     * @var RequestStack
-     */
-    private $requestStack;
-
-    /**
-     * @var string
-     */
-    private $projectDir;
-
-    /**
-     * @var string
-     */
-    private $csrfTokenName;
-
-    public function __construct(ContaoFramework $framework, ImportFromCsvHelper $importFromCsvHelper, TranslatorInterface $translator, ContaoCsrfTokenManager $csrfTokenManager, TokenChecker $tokenChecker, TwigEnvironment $twig, RequestStack $requestStack, string $projectDir, string $csrfTokenName)
+    public function __construct(ContaoFramework $framework, ImportFromCsvHelper $importFromCsvHelper, ContaoCsrfTokenManager $csrfTokenManager, TwigEnvironment $twig, RequestStack $requestStack, string $csrfTokenName)
     {
         $this->framework = $framework;
         $this->importFromCsvHelper = $importFromCsvHelper;
-        $this->translator = $translator;
         $this->csrfTokenManager = $csrfTokenManager;
-        $this->tokenChecker = $tokenChecker;
         $this->twig = $twig;
         $this->requestStack = $requestStack;
-        $this->projectDir = $projectDir;
         $this->csrfTokenName = $csrfTokenName;
     }
 
+    /**
+     * @throws Exception
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function renderAppAction(DataContainer $dc): Response
     {
         $controllerAdapter = $this->framework->getAdapter(Controller::class);

@@ -16,9 +16,6 @@ namespace Markocupic\ImportFromCsvBundle\Model;
 
 use Contao\Model;
 
-/**
- * Class ImportFromCsvModel.
- */
 class ImportFromCsvModel extends Model
 {
     /**

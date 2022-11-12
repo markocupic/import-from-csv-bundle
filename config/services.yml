@@ -14,8 +14,8 @@ services:
         - [ setContainer, [ '@service_container' ] ]
 
   Markocupic\ImportFromCsvBundle\:
-    resource: ../../
-    exclude: ../../{DependencyInjection,Resources}
+    resource: ../src/
+    exclude: ../src/{DependencyInjection}
 
   # Add a session bag
   Markocupic\ImportFromCsvBundle\Session\Attribute\ArrayAttributeBag:

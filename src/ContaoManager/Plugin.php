@@ -14,9 +14,11 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\ContaoManager;
 
+use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\ManagerPlugin\Bundle\BundlePluginInterface;
 use Contao\ManagerPlugin\Bundle\Config\BundleConfig;
 use Contao\ManagerPlugin\Bundle\Parser\ParserInterface;
+use Markocupic\ImportFromCsvBundle\MarkocupicImportFromCsvBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 
 class Plugin implements BundlePluginInterface
@@ -27,14 +29,14 @@ class Plugin implements BundlePluginInterface
     public function getBundles(ParserInterface $parser): array
     {
         return [
-            BundleConfig::create('Markocupic\ImportFromCsvBundle\MarkocupicImportFromCsvBundle')
-                ->setLoadAfter(['Contao\CoreBundle\ContaoCoreBundle'])
+            BundleConfig::create(MarkocupicImportFromCsvBundle::class)
+                ->setLoadAfter([ContaoCoreBundle::class])
                 ->setReplace(['import_from_csv']),
         ];
     }
 
     /**
-     * {@inheritdoc}
+     * @throws \Exception
      */
     public function registerContainerConfiguration(LoaderInterface $loader, array $config): void
     {

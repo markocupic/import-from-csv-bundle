@@ -18,31 +18,18 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\File;
 use Contao\FilesModel;
 use Contao\StringUtil;
+use League\Csv\Exception;
+use League\Csv\InvalidArgument;
 use League\Csv\Reader;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class ImportFromCsvHelper
 {
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
-
-    /**
-     * @var RequestStack
-     */
-    private $requestStack;
-
-    /**
-     * @var ImportFromCsv
-     */
-    private $importFromCsv;
-
-    /**
-     * @var string
-     */
-    private $projectDir;
+    private ContaoFramework $framework;
+    private RequestStack $requestStack;
+    private ImportFromCsv $importFromCsv;
+    private string $projectDir;
 
     public function __construct(ContaoFramework $framework, RequestStack $requestStack, ImportFromCsv $importFromCsv, string $projectDir)
     {
@@ -52,7 +39,10 @@ class ImportFromCsvHelper
         $this->projectDir = $projectDir;
     }
 
-    public function countRows(ImportFromCsvModel $model): int|null
+    /**
+     * @throws Exception
+     */
+    public function countRows(ImportFromCsvModel $model): int
     {
         $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
 
@@ -75,8 +65,16 @@ class ImportFromCsvHelper
 
             return $limit;
         }
+
+        return 0;
     }
 
+    /**
+     * @throws Exception
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     * @throws InvalidArgument
+     */
     public function importFromModel(ImportFromCsvModel $model, bool $isTestMode = false): bool
     {
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);

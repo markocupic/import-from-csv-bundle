@@ -26,10 +26,7 @@ class ImportFromCsvHookExample
     public const HOOK = 'importFromCsv';
     public const PRIORITY = 100;
 
-    /**
-     * @var string
-     */
-    private $curlErrorMsg;
+    private ?string $curlErrorMsg;
 
     public function __invoke(Widget $objWidget, array $arrRecord, int $line, ImportFromCsv $importFromCsv = null): void
     {
@@ -73,7 +70,7 @@ class ImportFromCsvHookExample
     /**
      * Curl helper method.
      */
-    private function curlGetCoordinates(string $url): array|null
+    private function curlGetCoordinates(string $url): ?array
     {
         // is cURL installed on the webserver?
         if (!\function_exists('curl_init')) {

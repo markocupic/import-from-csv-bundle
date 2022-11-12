@@ -17,7 +17,6 @@ namespace Markocupic\ImportFromCsvBundle\Contao\Controller;
 use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
 use Contao\CoreBundle\Exception\ResponseException;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\Security\Authentication\Token\TokenChecker;
 use Contao\FilesModel;
 use Contao\StringUtil;
 use League\Csv\Exception;
@@ -30,46 +29,17 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 
 class MountAppAjaxController extends AbstractController
 {
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
+    private ContaoFramework $framework;
+    private ContaoCsrfTokenManager $csrfTokenManager;
+    private RequestStack $requestStack;
+    private string $projectDir;
+    private string $csrfTokenName;
+    private int $perRequest;
 
-    /**
-     * @var ContaoCsrfTokenManager
-     */
-    private $csrfTokenManager;
-
-    /**
-     * @var TokenChecker
-     */
-    private $tokenChecker;
-
-    /**
-     * @var RequestStack
-     */
-    private $requestStack;
-
-    /**
-     * @var string
-     */
-    private $projectDir;
-
-    /**
-     * @var string
-     */
-    private $csrfTokenName;
-
-    /**
-     * @var int
-     */
-    private $perRequest;
-
-    public function __construct(ContaoFramework $framework, ContaoCsrfTokenManager $csrfTokenManager, TokenChecker $tokenChecker, RequestStack $requestStack, string $projectDir, string $csrfTokenName, int $perRequest)
+    public function __construct(ContaoFramework $framework, ContaoCsrfTokenManager $csrfTokenManager, RequestStack $requestStack, string $projectDir, string $csrfTokenName, int $perRequest)
     {
         $this->framework = $framework;
         $this->csrfTokenManager = $csrfTokenManager;
-        $this->tokenChecker = $tokenChecker;
         $this->requestStack = $requestStack;
         $this->projectDir = $projectDir;
         $this->csrfTokenName = $csrfTokenName;
@@ -121,7 +91,7 @@ class MountAppAjaxController extends AbstractController
         $intRows = $offset > $count ? 0 : $count - $offset;
 
         if ($limit > 0) {
-            $intRows = $intRows > $limit ? $limit : $intRows;
+            $intRows = min($intRows, $limit);
         }
 
         $arrUrl = [];

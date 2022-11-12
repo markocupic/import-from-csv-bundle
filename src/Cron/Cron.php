@@ -33,7 +33,7 @@ class Cron
 
     private ContaoFramework $framework;
     private ImportFromCsvHelper $importFromCsvHelper;
-    private LoggerInterface|null $logger;
+    private ?LoggerInterface $logger;
 
     public function __construct(ContaoFramework $framework, ImportFromCsvHelper $importFromCsvHelper, LoggerInterface $logger = null)
     {

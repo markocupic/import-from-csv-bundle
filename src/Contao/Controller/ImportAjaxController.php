@@ -28,35 +28,12 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 
 class ImportAjaxController extends AbstractController
 {
-    /**
-     * @var ImportFromCsvHelper
-     */
-    private $importFromCsvHelper;
-
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
-
-    /**
-     * @var ContaoCsrfTokenManager
-     */
-    private $csrfTokenManager;
-
-    /**
-     * @var TokenChecker
-     */
-    private $tokenChecker;
-
-    /**
-     * @var RequestStack
-     */
-    private $requestStack;
-
-    /**
-     * @var string
-     */
-    private $csrfTokenName;
+    private ImportFromCsvHelper $importFromCsvHelper;
+    private ContaoFramework $framework;
+    private ContaoCsrfTokenManager $csrfTokenManager;
+    private TokenChecker $tokenChecker;
+    private RequestStack $requestStack;
+    private string $csrfTokenName;
 
     public function __construct(ImportFromCsvHelper $importFromCsvHelper, ContaoFramework $framework, ContaoCsrfTokenManager $csrfTokenManager, TokenChecker $tokenChecker, RequestStack $requestStack, string $csrfTokenName)
     {
@@ -81,7 +58,7 @@ class ImportAjaxController extends AbstractController
         $id = $request->query->get('id');
         $offset = $request->query->get('offset');
         $limit = $request->query->get('limit');
-        $isTestMode = 'false' === $request->query->get('isTestMode') ? false : true;
+        $isTestMode = !('false' === $request->query->get('isTestMode'));
 
         if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($this->csrfTokenName, $token))) {
             throw new \Exception('Invalid token!');

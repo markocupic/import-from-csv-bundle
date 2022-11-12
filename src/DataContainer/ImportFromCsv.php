@@ -21,6 +21,7 @@ use Contao\DataContainer;
 use Contao\File;
 use Contao\FilesModel;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as TwigEnvironment;
@@ -30,30 +31,11 @@ use Twig\Error\SyntaxError;
 
 class ImportFromCsv
 {
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
-
-    /**
-     * @var Connection
-     */
-    private $connection;
-
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
-
-    /**
-     * @var TwigEnvironment
-     */
-    private $twig;
-
-    /**
-     * @var string
-     */
-    private $projectDir;
+    private ContaoFramework $framework;
+    private Connection $connection;
+    private TranslatorInterface $translator;
+    private TwigEnvironment $twig;
+    private string $projectDir;
 
     /**
      * TlImportFromCsv constructor.
@@ -114,10 +96,12 @@ class ImportFromCsv
 
     /**
      * @Callback(table="tl_import_from_csv", target="fields.importTable.options")
+     *
+     * @throws Exception
      */
     public function optionsCbGetTables(): array
     {
-        $schemaManager = $this->connection->getSchemaManager();
+        $schemaManager = $this->connection->createSchemaManager();
 
         $arrTables = $schemaManager->listTableNames();
 
@@ -127,6 +111,8 @@ class ImportFromCsv
     /**
      * @Callback(table="tl_import_from_csv", target="fields.selectedFields.options")
      * @Callback(table="tl_import_from_csv", target="fields.skipValidationFields.options")
+     *
+     * @throws Exception
      */
     public function optionsCbGetTableColumns(DataContainer $dc): array
     {
@@ -138,7 +124,7 @@ class ImportFromCsv
             return [];
         }
 
-        $schemaManager = $this->connection->getSchemaManager();
+        $schemaManager = $this->connection->createSchemaManager();
 
         // Get a list of all lowercase column names
         $arrLCFields = $schemaManager->listTableColumns($strTable);

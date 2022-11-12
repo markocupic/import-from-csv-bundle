@@ -22,20 +22,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class Validator
 {
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
-
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
-
-    /**
-     * @var Connection
-     */
-    private $connection;
+    private ContaoFramework $framework;
+    private TranslatorInterface $translator;
+    private Connection $connection;
 
     public function __construct(ContaoFramework $framework, TranslatorInterface $translator, Connection $connection)
     {

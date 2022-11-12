@@ -18,25 +18,16 @@ use Contao\Config;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\StringUtil;
 use Contao\Widget;
-use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 
 class Formatter
 {
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
 
-    /**
-     * @var EncoderFactoryInterface
-     */
-    private $encoderFactory;
+    private ContaoFramework $framework;
 
-    public function __construct(ContaoFramework $framework, EncoderFactoryInterface $encoderFactory)
+    public function __construct(ContaoFramework $framework)
     {
         $this->framework = $framework;
-        $this->encoderFactory = $encoderFactory;
-    }
+   }
 
     /**
      * @param $varValue
@@ -111,7 +102,7 @@ class Formatter
                 return $tstamp;
             }
 
-            $objWidget->addError(sprintf('Invalid value "%s" set for field "%s.%s".', (string) $varValue, $objWidget->strTable,$objWidget->strField));
+            $objWidget->addError(sprintf('Invalid value "%s" set for field "%s.%s".', $varValue, $objWidget->strTable,$objWidget->strField));
 
         }
 
