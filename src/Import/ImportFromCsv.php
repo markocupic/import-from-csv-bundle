@@ -67,7 +67,6 @@ class ImportFromCsv
      */
     public function importCsv(File $objCsvFile, string $tableName, string $strImportMode, array $arrSelectedFields = [], string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = [], int $intOffset = 0, int $intLimit = 0): void
     {
-
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
@@ -89,9 +88,9 @@ class ImportFromCsv
         $bag = $this->session->getBag('markocupic_import_from_csv');
         $data['rows'] = '';
         $data['summary'] = [
-            'rows'    => 0,
+            'rows' => 0,
             'success' => 0,
-            'errors'  => 0,
+            'errors' => 0,
         ];
         $bag->replace($data);
 
@@ -147,18 +146,18 @@ class ImportFromCsv
 
         // Store the options in $this->arrData
         $this->arrData = [
-            'objCsvFile'              => $objCsvFile,
-            'tableName'               => $tableName,
-            'primaryKey'              => $strPrimaryKey,
-            'importMode'              => $strImportMode,
-            'selectedFields'          => $arrSelectedFields,
-            'strDelimiter'            => $strDelimiter,
-            'strEnclosure'            => $strEnclosure,
-            'strArrayDelimiter'       => $strArrayDelimiter,
-            'blnTestMode'             => $blnTestMode,
+            'objCsvFile' => $objCsvFile,
+            'tableName' => $tableName,
+            'primaryKey' => $strPrimaryKey,
+            'importMode' => $strImportMode,
+            'selectedFields' => $arrSelectedFields,
+            'strDelimiter' => $strDelimiter,
+            'strEnclosure' => $strEnclosure,
+            'strArrayDelimiter' => $strArrayDelimiter,
+            'blnTestMode' => $blnTestMode,
             'arrSkipValidationFields' => $arrSkipValidationFields,
-            'intOffset'               => $intOffset,
-            'intLimit'                => $intLimit,
+            'intOffset' => $intOffset,
+            'intLimit' => $intLimit,
         ];
 
         // Truncate table
@@ -209,6 +208,11 @@ class ImportFromCsv
             $arrReportValues = [];
 
             foreach ($arrRecord as $columnName => $varValue) {
+                // Do not process empty values
+                if (!\strlen(trim($varValue))) {
+                    continue;
+                }
+
                 // Continue if field is excluded from import
                 if (!\in_array($columnName, $this->arrData['selectedFields'], true)) {
                     continue;
@@ -368,16 +372,24 @@ class ImportFromCsv
         $bag = $this->session->getBag('markocupic_import_from_csv');
         $data = $bag->all();
         $data['summary'] = [
-            'rows'    => $countInserts,
+            'rows' => $countInserts,
             'success' => $countInserts - $insertError,
-            'errors'  => $insertError,
+            'errors' => $insertError,
         ];
         $bag->replace($data);
     }
 
+    public function getData(string $key)
+    {
+        return $this->arrData[$key] ?? null;
+    }
+
+    public function setData(string $key, $varValue): void
+    {
+        $this->arrData[$key] = $varValue;
+    }
+
     /**
-     * @param string $tableName
-     * @return string|null
      * @throws \Doctrine\DBAL\Exception
      */
     private function getPrimaryKey(string $tableName): ?string
@@ -415,11 +427,7 @@ class ImportFromCsv
     }
 
     /**
-     * @param array $arrDca
-     * @param string $columnName
-     * @param string $tableName
      * @param $varValue
-     * @return Widget
      */
     private function getWidgetFromDca(array $arrDca, string $columnName, string $tableName, $varValue): Widget
     {
@@ -430,7 +438,6 @@ class ImportFromCsv
         $strClass = $GLOBALS['BE_FFL'][$inputType] ?? '';
 
         if (!empty($strClass) && class_exists($strClass)) {
-
             return new $strClass($strClass::getAttributesFromDca($arrDca, $columnName, $varValue, $columnName, $tableName, $objDca));
         }
 
@@ -440,9 +447,6 @@ class ImportFromCsv
     }
 
     /**
-     * @param string $strColumn
-     * @param string $strTable
-     * @return bool
      * @throws \Doctrine\DBAL\Exception
      */
     private function hasColumn(string $strColumn, string $strTable): bool
@@ -476,10 +480,11 @@ class ImportFromCsv
                     ->andWhere('t.pid = :pid')
                     ->setParameters(
                         [
-                            'pid'   => $newsletterId,
+                            'pid' => $newsletterId,
                             'email' => $email,
                         ]
-                    );
+                    )
+                ;
 
                 if (!$qb->executeQuery()->rowCount()) {
                     $set = [];
@@ -494,15 +499,5 @@ class ImportFromCsv
                 }
             }
         }
-    }
-
-    public function getData(string $key)
-    {
-        return $this->arrData[$key] ?? null;
-    }
-
-    public function setData(string $key, $varValue): void
-    {
-        $this->arrData[$key] = $varValue;
     }
 }
