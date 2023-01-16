@@ -432,7 +432,7 @@ class ImportFromCsv
         ];
     }
 
-    private function getWidgetFromDca(array $arrDca, string $columnName, string $tableName, string $varValue): Widget
+    private function getWidgetFromDca(array $arrDca, string $columnName, string $tableName, $varValue): Widget
     {
         $inputType = $arrDca['inputType'] ?? '';
 
