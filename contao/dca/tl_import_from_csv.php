@@ -12,9 +12,12 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
+use Contao\DC_Table;
+use Contao\DataContainer;
+
 $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
     'config'      => [
-        'dataContainer'    => 'Table',
+        'dataContainer'    => DC_Table::class,
         'enableVersioning' => true,
         'sql'              => [
             'keys' => [
@@ -24,7 +27,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
     ],
     'list'        => [
         'sorting'           => [
-            'mode'        => 2,
+            'mode'        => DataContainer::MODE_SORTABLE,
             'fields'      => ['importTable ASC'],
             'panelLayout' => 'filter;sort,search,limit',
         ],

@@ -81,7 +81,7 @@ class RenderBackendAppController
                     'tl_import_from_csv' => $GLOBALS['TL_LANG']['tl_import_from_csv'],
                 ],
                 'form' => [
-                    'action' => TL_SCRIPT,
+                    'action' => $request->getUri(),
                     'input' => [
                         'id' => $request->query->get('id'),
                         'csrfToken' => $csrfToken,
