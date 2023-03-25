@@ -31,13 +31,4 @@ class MarkocupicImportFromCsvBundle extends Bundle
         return new MarkocupicImportFromCsvExtension();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function build(ContainerBuilder $container): void
-    {
-        parent::build($container);
-
-        $container->addCompilerPass(new AddSessionBagsPass());
-    }
 }

@@ -1,25 +1,33 @@
 services:
-  _defaults:
-    autowire: true
-    autoconfigure: true
-    public: true
-    bind:
-      $projectDir: '%kernel.project_dir%'
-      $csrfTokenName: '%contao.csrf_token_name%'
-      $perRequest: '%markocupic_import_from_csv.max_inserts_per_request%'
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: true
+        bind:
+            $projectDir: '%kernel.project_dir%'
+            $csrfTokenName: '%contao.csrf_token_name%'
+            $perRequest: '%markocupic_import_from_csv.max_inserts_per_request%'
 
-  _instanceof:
-    Symfony\Bundle\FrameworkBundle\Controller\AbstractController:
-      calls:
-        - [ setContainer, [ '@service_container' ] ]
+    _instanceof:
+        Symfony\Bundle\FrameworkBundle\Controller\AbstractController:
+            calls:
+                - [ setContainer, [ '@service_container' ] ]
 
-  Markocupic\ImportFromCsvBundle\:
-    resource: ../src/
-    exclude: ../src/{DependencyInjection}
+    Markocupic\ImportFromCsvBundle\:
+        resource: ../src/
+        exclude: ../src/{DependencyInjection,Session}
 
-  # Add a session bag
-  Markocupic\ImportFromCsvBundle\Session\Attribute\ArrayAttributeBag:
-    arguments:
-      - _markocupic_import_from_csv_attributes
-    calls:
-      - [setName, [markocupic_import_from_csv]]
+    # Register session bags
+    markocupic.import_from_csv.session.factory:
+        class: Markocupic\ImportFromCsvBundle\Session\SessionFactory
+        decorates: session.factory
+        arguments:
+            - '@markocupic.import_from_csv.session.factory.inner'
+            - '@markocupic.import_from_csv.session.attribute.array_attribute_bag'
+
+    markocupic.import_from_csv.session.attribute.array_attribute_bag:
+        class: Markocupic\ImportFromCsvBundle\Session\Attribute\ArrayAttributeBag
+        arguments:
+            - '_markocupic_import_from_csv_attributes'
+        calls:
+            - [ 'setName', [ 'markocupic_import_from_csv' ] ]
