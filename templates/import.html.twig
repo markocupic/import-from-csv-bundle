@@ -50,7 +50,8 @@
                 <div class="ifcb-status-box tl_message">
                     <p v-if="status === 'ifcb-status-pending'" class="tl_info">{{ lang.tl_import_from_csv.import_process_started }}</p>
                     <p v-if="status === 'ifcb-status-error'" class="tl_error">{{ lang.tl_import_from_csv.exception_message }}</p>
-                    <p v-if="status === 'ifcb-status-completed'" class="tl_confirm">{{ lang.tl_import_from_csv.import_process_completed }}</p>
+                    <p v-if="status === 'ifcb-status-completed' && report.summary.errors" class="tl_error">{{ lang.tl_import_from_csv.import_process_completed_with_errors }}</p>
+                    <p v-if="status === 'ifcb-status-completed' && !report.summary.errors" class="tl_confirm">{{ lang.tl_import_from_csv.import_process_completed }}</p>
                 </div>
 
                 <div v-if="report.rows" class="ifcb-import-report-box">
@@ -59,7 +60,6 @@
                     </table>
                 </div>
             </div>
-
         </div>
 
         <div class="tl_formbody_submit">
@@ -72,7 +72,6 @@
                 </button>
             </div>
         </div>
-
     </form>
 </div>
 

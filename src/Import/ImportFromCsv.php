@@ -44,6 +44,7 @@ class ImportFromCsv
     private RequestStack $requestStack;
     private string $projectDir;
     private array $arrData = [];
+    private ?\Exception $insertException = null;
 
     public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, Formatter $formatter, Validator $validator, RequestStack $requestStack, string $projectDir)
     {
@@ -200,6 +201,8 @@ class ImportFromCsv
         foreach ($arrRecords as $arrRecord) {
             $doNotSave = false;
 
+            $this->resetInsertException();
+
             // Count lines
             ++$line;
 
@@ -319,9 +322,14 @@ class ImportFromCsv
                     $this->addNewMemberToNewsletterRecipientList($this->arrData['tableName'], $set['newsletter'], $set['email']);
                 }
 
-                // Add new record to the database
+                // Add the new record to the database
                 if (true !== $this->arrData['blnTestMode']) {
-                    $this->connection->insert($this->arrData['tableName'], $set);
+                    try{
+                        $this->connection->insert($this->arrData['tableName'], $set);
+                    }catch(\Exception $e){
+                        $doNotSave = true;
+                        $this->insertException = $e;
+                    }
                 }
             }
 
@@ -331,10 +339,11 @@ class ImportFromCsv
             if ($doNotSave) {
                 $cssClass = 'ifcb-import-failed';
                 $htmlReport .= sprintf(
-                    '<tr class="%s"><td class="ifcb-td-title" colspan="2">#%s %s</td></tr>',
+                    '<tr class="%s"><td class="ifcb-td-title" colspan="2">#%s %s%s</td></tr>',
                     $cssClass,
                     $line,
-                    $this->translator->trans('tl_import_from_csv.data_record_insert_failed', [], 'contao_default')
+                    $this->translator->trans('tl_import_from_csv.data_record_insert_failed', [], 'contao_default'),
+                    $this->hasInsertException() ? '<br><br>--- Exception: ---<br>'.$this->getInsertExceptionAsString() : '',
                 );
 
                 // Increment error counter if necessary
@@ -502,5 +511,17 @@ class ImportFromCsv
                 }
             }
         }
+    }
+
+    private function resetInsertException(): void {
+        $this->insertException = null;
+    }
+
+    private function hasInsertException(): bool {
+        return null !== $this->insertException;
+    }
+
+    private function getInsertExceptionAsString(): ?string {
+        return $this->insertException ? $this->insertException->getMessage() : null;
     }
 }
