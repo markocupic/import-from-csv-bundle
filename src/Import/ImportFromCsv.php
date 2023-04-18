@@ -90,9 +90,9 @@ class ImportFromCsv
 
         $data['rows'] = '';
         $data['summary'] = [
-            'rows' => 0,
+            'rows'    => 0,
             'success' => 0,
-            'errors' => 0,
+            'errors'  => 0,
         ];
 
         $bag->replace($data);
@@ -149,18 +149,18 @@ class ImportFromCsv
 
         // Store the options in $this->arrData
         $this->arrData = [
-            'objCsvFile' => $objCsvFile,
-            'tableName' => $tableName,
-            'primaryKey' => $strPrimaryKey,
-            'importMode' => $strImportMode,
-            'selectedFields' => $arrSelectedFields,
-            'strDelimiter' => $strDelimiter,
-            'strEnclosure' => $strEnclosure,
-            'strArrayDelimiter' => $strArrayDelimiter,
-            'blnTestMode' => $blnTestMode,
+            'objCsvFile'              => $objCsvFile,
+            'tableName'               => $tableName,
+            'primaryKey'              => $strPrimaryKey,
+            'importMode'              => $strImportMode,
+            'selectedFields'          => $arrSelectedFields,
+            'strDelimiter'            => $strDelimiter,
+            'strEnclosure'            => $strEnclosure,
+            'strArrayDelimiter'       => $strArrayDelimiter,
+            'blnTestMode'             => $blnTestMode,
             'arrSkipValidationFields' => $arrSkipValidationFields,
-            'intOffset' => $intOffset,
-            'intLimit' => $intLimit,
+            'intOffset'               => $intOffset,
+            'intLimit'                => $intLimit,
         ];
 
         // Truncate table
@@ -324,11 +324,14 @@ class ImportFromCsv
 
                 // Add the new record to the database
                 if (true !== $this->arrData['blnTestMode']) {
-                    try{
+                    try {
+                        $this->connection->beginTransaction();
                         $this->connection->insert($this->arrData['tableName'], $set);
-                    }catch(\Exception $e){
+                        $this->connection->commit();
+                    } catch (\Exception $e) {
                         $doNotSave = true;
                         $this->insertException = $e;
+                        $this->connection->rollBack();
                     }
                 }
             }
@@ -343,7 +346,7 @@ class ImportFromCsv
                     $cssClass,
                     $line,
                     $this->translator->trans('tl_import_from_csv.data_record_insert_failed', [], 'contao_default'),
-                    $this->hasInsertException() ? '<br><br>--- Exception: ---<br>'.$this->getInsertExceptionAsString() : '',
+                    $this->hasInsertException() ? '<br><br>Exception:<br><br>'.$this->getInsertExceptionAsString() : '',
                 );
 
                 // Increment error counter if necessary
@@ -387,9 +390,9 @@ class ImportFromCsv
         $data = $bag->all();
 
         $data['summary'] = [
-            'rows' => $countInserts,
+            'rows'    => $countInserts,
             'success' => $countInserts - $insertError,
-            'errors' => $insertError,
+            'errors'  => $insertError,
         ];
 
         $bag->replace($data);
@@ -492,11 +495,10 @@ class ImportFromCsv
                     ->andWhere('t.pid = :pid')
                     ->setParameters(
                         [
-                            'pid' => $newsletterId,
+                            'pid'   => $newsletterId,
                             'email' => $email,
                         ]
-                    )
-                ;
+                    );
 
                 if (!$qb->executeQuery()->rowCount()) {
                     $set = [];
@@ -513,15 +515,18 @@ class ImportFromCsv
         }
     }
 
-    private function resetInsertException(): void {
+    private function resetInsertException(): void
+    {
         $this->insertException = null;
     }
 
-    private function hasInsertException(): bool {
+    private function hasInsertException(): bool
+    {
         return null !== $this->insertException;
     }
 
-    private function getInsertExceptionAsString(): ?string {
+    private function getInsertExceptionAsString(): ?string
+    {
         return $this->insertException ? $this->insertException->getMessage() : null;
     }
 }
