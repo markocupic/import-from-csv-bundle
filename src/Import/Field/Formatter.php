@@ -89,6 +89,13 @@ class Formatter
         $varValue = $objWidget->value;
         $rgxp = $arrDca['eval']['rgxp'] ?? null;
 
+        if ('tstamp' === $objWidget->name && !empty($varValue))
+        {
+            if (false !== ($tstamp = strtotime($varValue))) {
+                return $tstamp;
+            }
+        }
+
         if ('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) {
             $varValue = trim((string) $varValue);
 
