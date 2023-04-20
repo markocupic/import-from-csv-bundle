@@ -15,13 +15,13 @@ declare(strict_types=1);
 namespace Markocupic\ImportFromCsvBundle\DataContainer;
 
 use Contao\Controller;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\ServiceAnnotation\Callback;
 use Contao\DataContainer;
 use Contao\File;
 use Contao\FilesModel;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Exception;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as TwigEnvironment;
@@ -31,28 +31,16 @@ use Twig\Error\SyntaxError;
 
 class ImportFromCsv
 {
-    private ContaoFramework $framework;
-    private Connection $connection;
-    private TranslatorInterface $translator;
-    private TwigEnvironment $twig;
-    private string $projectDir;
-
-    public function __construct(ContaoFramework $framework, Connection $connection, TranslatorInterface $translator, TwigEnvironment $twig, string $projectDir)
-    {
-        $this->framework = $framework;
-        $this->connection = $connection;
-        $this->translator = $translator;
-        $this->twig = $twig;
-        $this->projectDir = $projectDir;
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly Connection $connection,
+        private readonly TranslatorInterface $translator,
+        private readonly TwigEnvironment $twig,
+        private readonly string $projectDir,
+    ) {
     }
 
-    /**
-     * @Callback(table="tl_import_from_csv", target="fields.explanation.input_field")
-     *
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
+    #[AsCallback(table: 'tl_import_from_csv', target: 'fields.explanation.input_field', priority: 100)]
     public function generateExplanationMarkup(): string
     {
         return $this->twig->render(
@@ -70,6 +58,7 @@ class ImportFromCsv
      * @throws RuntimeError
      * @throws SyntaxError
      */
+    #[AsCallback(table: 'tl_import_from_csv', target: 'fields.listLines.input_field', priority: 100)]
     public function generateFileContentMarkup(DataContainer $dc): string
     {
         $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
@@ -91,11 +80,7 @@ class ImportFromCsv
         );
     }
 
-    /**
-     * @Callback(table="tl_import_from_csv", target="fields.importTable.options")
-     *
-     * @throws Exception
-     */
+    #[AsCallback(table: 'tl_import_from_csv', target: 'fields.importTable.options', priority: 100)]
     public function optionsCbGetTables(): array
     {
         $schemaManager = $this->connection->createSchemaManager();
@@ -105,12 +90,8 @@ class ImportFromCsv
         return \is_array($arrTables) ? $arrTables : [];
     }
 
-    /**
-     * @Callback(table="tl_import_from_csv", target="fields.selectedFields.options")
-     * @Callback(table="tl_import_from_csv", target="fields.skipValidationFields.options")
-     *
-     * @throws Exception
-     */
+    #[AsCallback(table: 'tl_import_from_csv', target: 'fields.selectedFields.options', priority: 100)]
+    #[AsCallback(table: 'tl_import_from_csv', target: 'fields.skipValidationFields.options', priority: 100)]
     public function optionsCbGetTableColumns(DataContainer $dc): array
     {
         $controllerAdapter = $this->framework->getAdapter(Controller::class);

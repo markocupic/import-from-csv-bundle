@@ -35,11 +35,5 @@ class Plugin implements BundlePluginInterface
         ];
     }
 
-    /**
-     * @throws \Exception
-     */
-    public function registerContainerConfiguration(LoaderInterface $loader, array $config): void
-    {
-        $loader->load('@MarkocupicSacEventEvaluation/Resources/config/config.yml');
-    }
+
 }

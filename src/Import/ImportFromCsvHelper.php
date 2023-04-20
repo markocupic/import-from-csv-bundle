@@ -26,17 +26,16 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class ImportFromCsvHelper
 {
-    private ContaoFramework $framework;
-    private RequestStack $requestStack;
-    private ImportFromCsv $importFromCsv;
-    private string $projectDir;
 
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, ImportFromCsv $importFromCsv, string $projectDir)
+
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly RequestStack $requestStack,
+        private readonly ImportFromCsv $importFromCsv,
+        private readonly string $projectDir,
+    )
     {
-        $this->framework = $framework;
-        $this->requestStack = $requestStack;
-        $this->importFromCsv = $importFromCsv;
-        $this->projectDir = $projectDir;
+
     }
 
     /**
@@ -75,7 +74,7 @@ class ImportFromCsvHelper
      * @throws \Doctrine\DBAL\Exception
      * @throws InvalidArgument
      */
-    public function importFromModel(ImportFromCsvModel $model, bool $isTestMode = false): bool
+    public function importFromModel(ImportFromCsvModel $model, bool $isTestMode = false, string $taskId = null): bool
     {
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
         $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
@@ -95,20 +94,12 @@ class ImportFromCsvHelper
             $objFile = new File($objFile->path);
 
             if ('csv' === strtolower($objFile->extension)) {
-                $this->importFromCsv->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strDelimiter, $strEnclosure, '||', $isTestMode, $arrSkipValidationFields, $intOffset, $intLimit);
+                $this->importFromCsv->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strDelimiter, $strEnclosure, '||', $isTestMode, $arrSkipValidationFields, $intOffset, $intLimit, $taskId);
 
                 return true;
             }
         }
 
         return false;
-    }
-
-    public function getReport()
-    {
-        $session = $this->requestStack->getCurrentRequest()->getSession();
-        $bag = $session->getBag('markocupic_import_from_csv');
-
-        return $bag->all();
     }
 }

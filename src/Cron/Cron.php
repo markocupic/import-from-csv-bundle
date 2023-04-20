@@ -14,9 +14,9 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Cron;
 
+use Contao\CoreBundle\DependencyInjection\Attribute\AsCronJob;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Monolog\ContaoContext;
-use Contao\CoreBundle\ServiceAnnotation\CronJob;
 use Contao\FilesModel;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
@@ -31,52 +31,38 @@ class Cron
     public const CRON_WEEKLY = 'weekly';
     public const CRON_MONTHLY = 'monthly';
 
-    private ContaoFramework $framework;
-    private ImportFromCsvHelper $importFromCsvHelper;
-    private ?LoggerInterface $logger;
-
-    public function __construct(ContaoFramework $framework, ImportFromCsvHelper $importFromCsvHelper, LoggerInterface $logger = null)
-    {
-        $this->framework = $framework;
-        $this->importFromCsvHelper = $importFromCsvHelper;
-        $this->logger = $logger;
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly ImportFromCsvHelper $importFromCsvHelper,
+        private readonly ?LoggerInterface $logger,
+    ) {
     }
 
-    /**
-     * @CronJob(Cron::CRON_MINUTELY)
-     */
+    #[AsCronJob(Cron::CRON_MINUTELY)]
     public function initMinutely(): void
     {
         $this->initialize(static::CRON_MINUTELY);
     }
 
-    /**
-     * @CronJob(Cron::CRON_HOURLY)
-     */
+    #[AsCronJob(Cron::CRON_HOURLY)]
     public function initHourly(): void
     {
         $this->initialize(static::CRON_HOURLY);
     }
 
-    /**
-     * @CronJob(Cron::CRON_DAILY)
-     */
+    #[AsCronJob(Cron::CRON_DAILY)]
     public function initDaily(): void
     {
         $this->initialize(static::CRON_DAILY);
     }
 
-    /**
-     * @CronJob(Cron::CRON_WEEKLY)
-     */
+    #[AsCronJob(Cron::CRON_WEEKLY)]
     public function initWeekly(): void
     {
         $this->initialize(static::CRON_WEEKLY);
     }
 
-    /**
-     * @CronJob(Cron::CRON_MONTHLY)
-     */
+    #[AsCronJob(Cron::CRON_MONTHLY)]
     public function initMonthly(): void
     {
         $this->initialize(static::CRON_MONTHLY);

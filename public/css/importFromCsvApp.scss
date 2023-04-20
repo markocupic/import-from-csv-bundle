@@ -175,7 +175,7 @@ a.renderAppAction > img {
         color: lighten($green, 10) !important;
       }
 
-      tr.ifcb-import-failed td {
+      tr.ifcb-import-failure td {
         color: $error !important;
       }
 
@@ -184,7 +184,7 @@ a.renderAppAction > img {
         border-right-width: 0;
       }
 
-      tr.ifcb-import-success.hiddenRow {
+      tr.hiddenRow, tr.hiddenRow td{
         display: none;
       }
 
@@ -203,7 +203,7 @@ a.renderAppAction > img {
     margin: 16px 0;
     line-height: 1.5;
 
-    li.ifcb-import-failed {
+    li.ifcb-import-failure {
       color: $red !important;
     }
 

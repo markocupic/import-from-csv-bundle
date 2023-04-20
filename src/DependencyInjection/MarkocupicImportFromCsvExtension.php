@@ -42,7 +42,7 @@ class MarkocupicImportFromCsvExtension extends Extension
             new FileLocator(__DIR__.'/../../config')
         );
 
-        $loader->load('services.yml');
+        $loader->load('services.yaml');
 
         $rootKey = $this->getAlias();
         $container->setParameter($rootKey.'.max_inserts_per_request', $config['max_inserts_per_request']);

@@ -12,15 +12,13 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-namespace Markocupic\ImportFromCsvBundle\Listener\ContaoHooks;
+namespace Markocupic\ImportFromCsvBundle\EventListener\ContaoHooks;
 
-use Contao\CoreBundle\ServiceAnnotation\Hook;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\Widget;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
 
-/**
- * @Hook(ImportFromCsvHookExample::HOOK, priority=ImportFromCsvHookExample::PRIORITY)
- */
+#[AsHook(ImportFromCsvHookExample::HOOK)]
 class ImportFromCsvHookExample
 {
     public const HOOK = 'importFromCsv';

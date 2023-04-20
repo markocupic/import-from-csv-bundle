@@ -25,6 +25,7 @@ class importFromCsvApp {
         options: {
           id: null,
           csrfToken: '',
+          taskId: '',
         },
         model: {
           urls: [],
@@ -38,7 +39,7 @@ class importFromCsvApp {
           countTotal: 0,
         },
         report: {
-          rows: '',
+          logs: [],
           summary: {
             rows: 0,
             errors: 0,
@@ -61,7 +62,7 @@ class importFromCsvApp {
 
         appMountAction: function appMount() {
 
-          fetch('contao?do=import_from_csv&key=appMountAction&id=' + this.options.id + '&token=' + this.options.csrfToken,
+          fetch('contao?do=import_from_csv&key=appMountAction&id=' + this.options.id + '&taskId=' + this.options.taskId + '&token=' + this.options.csrfToken,
             {
               method: "GET",
               headers: {
@@ -97,8 +98,9 @@ class importFromCsvApp {
           if (isTestMode === true) {
             this.isTestMode = true;
           }
-          console.log(this.urlStack);
+
           let url = '';
+
           if (this.urlStack.length) {
             this.status = 'ifcb-status-pending';
             url = this.urlStack.shift();
@@ -106,7 +108,8 @@ class importFromCsvApp {
             this.status = 'ifcb-status-completed';
             return;
           }
-          fetch(url + '&isTestMode=' + isTestMode + '&token=' + this.options.csrfToken, {
+
+          fetch(url + '&isTestMode=' + isTestMode + '&taskId=' + this.options.taskId + '&token=' + this.options.csrfToken, {
             method: "GET",
             headers: {
               'x-requested-with': 'XMLHttpRequest'
@@ -114,7 +117,7 @@ class importFromCsvApp {
           }).then(response => {
             if (response.status === 200) {
               response.json().then(res => {
-                this.report.rows = this.report.rows + res.data.rows;
+                this.report.logs = [...this.report.logs, ...res.data.logs];
                 this.report.summary.rows = this.report.summary.rows + res.data.summary.rows;
                 this.report.summary.success = this.report.summary.success + res.data.summary.success;
                 this.report.summary.errors = this.report.summary.errors + res.data.summary.errors;
@@ -153,7 +156,7 @@ class importFromCsvApp {
             button.innerText = button.getAttribute('data-lbl-error-only')
           }
 
-          let rows = document.querySelectorAll('tr.ifcb-import-success');
+          let rows = document.querySelectorAll('tr.ifcb-import-success,tr.ifcb-delim');
           if (rows) {
             rows.forEach((row) => {
               row.classList.toggle('hiddenRow');

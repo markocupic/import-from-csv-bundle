@@ -20,6 +20,7 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\DataContainer;
 use League\Csv\Exception;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper;
+use Markocupic\ImportFromCsvBundle\Logger\ImportLogger;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,21 +31,15 @@ use Twig\Error\SyntaxError;
 
 class RenderBackendAppController
 {
-    private ContaoFramework $framework;
-    private ImportFromCsvHelper $importFromCsvHelper;
-    private ContaoCsrfTokenManager $csrfTokenManager;
-    private TwigEnvironment $twig;
-    private RequestStack $requestStack;
-    private string $csrfTokenName;
-
-    public function __construct(ContaoFramework $framework, ImportFromCsvHelper $importFromCsvHelper, ContaoCsrfTokenManager $csrfTokenManager, TwigEnvironment $twig, RequestStack $requestStack, string $csrfTokenName)
-    {
-        $this->framework = $framework;
-        $this->importFromCsvHelper = $importFromCsvHelper;
-        $this->csrfTokenManager = $csrfTokenManager;
-        $this->twig = $twig;
-        $this->requestStack = $requestStack;
-        $this->csrfTokenName = $csrfTokenName;
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly ImportFromCsvHelper $importFromCsvHelper,
+        private readonly ContaoCsrfTokenManager $csrfTokenManager,
+        private readonly TwigEnvironment $twig,
+        private readonly RequestStack $requestStack,
+        private readonly ImportLogger $importLogger,
+        private readonly string $csrfTokenName,
+    ) {
     }
 
     /**
@@ -84,6 +79,7 @@ class RenderBackendAppController
                     'action' => $request->getUri(),
                     'input' => [
                         'id' => $request->query->get('id'),
+                        'taskId' => uniqid(),
                         'csrfToken' => $csrfToken,
                     ],
                 ],

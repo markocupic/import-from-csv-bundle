@@ -29,21 +29,17 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 
 class MountAppAjaxController extends AbstractController
 {
-    private ContaoFramework $framework;
-    private ContaoCsrfTokenManager $csrfTokenManager;
-    private RequestStack $requestStack;
-    private string $projectDir;
-    private string $csrfTokenName;
-    private int $perRequest;
 
-    public function __construct(ContaoFramework $framework, ContaoCsrfTokenManager $csrfTokenManager, RequestStack $requestStack, string $projectDir, string $csrfTokenName, int $perRequest)
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly ContaoCsrfTokenManager $csrfTokenManager,
+        private readonly RequestStack $requestStack,
+        private readonly string $projectDir,
+        private readonly string $csrfTokenName,
+        private readonly int $perRequest,
+    )
     {
-        $this->framework = $framework;
-        $this->csrfTokenManager = $csrfTokenManager;
-        $this->requestStack = $requestStack;
-        $this->projectDir = $projectDir;
-        $this->csrfTokenName = $csrfTokenName;
-        $this->perRequest = $perRequest;
+
     }
 
     /**
@@ -59,6 +55,7 @@ class MountAppAjaxController extends AbstractController
         $request = $this->requestStack->getCurrentRequest();
         $token = $request->query->get('token');
         $id = $request->query->get('id');
+        $taskId = $request->query->get('taskId');
 
         if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($this->csrfTokenName, $token))) {
             throw new \Exception('Invalid token!');
@@ -107,8 +104,9 @@ class MountAppAjaxController extends AbstractController
             }
 
             $arrUrl[] = sprintf(
-                'contao?do=import_from_csv&key=importAction&id=%s&offset=%s&limit=%s&req_num=%stoken=%s',
+                'contao?do=import_from_csv&key=importAction&id=%s&taskId=%s&offset=%s&limit=%s&req_num=%stoken=%s',
                 $id,
+                $taskId,
                 $offset + $i * $this->perRequest,
                 $limit,
                 $i + 1,

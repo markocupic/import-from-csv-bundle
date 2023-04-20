@@ -22,15 +22,15 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class Validator
 {
-    private ContaoFramework $framework;
-    private TranslatorInterface $translator;
-    private Connection $connection;
 
-    public function __construct(ContaoFramework $framework, TranslatorInterface $translator, Connection $connection)
+
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly TranslatorInterface $translator,
+        private readonly Connection $connection,
+    )
     {
-        $this->framework = $framework;
-        $this->translator = $translator;
-        $this->connection = $connection;
+
     }
 
     public function checkIsValidDate(Widget $objWidget, array $arrDca): void

@@ -89,13 +89,11 @@ declare(strict_types=1);
 
 namespace App\EventListener;
 
-use Contao\CoreBundle\ServiceAnnotation\Hook;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\Widget;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
 
-/**
- * @Hook(MyImportFromCsvHook::HOOK, priority=MyImportFromCsvHook::PRIORITY)
- */
+#[AsHook(MyImportFromCsvHook::HOOK)]
 class MyImportFromCsvHook
 {
     public const HOOK = 'importFromCsv';
@@ -109,7 +107,7 @@ class MyImportFromCsvHook
     public function __invoke(Widget $objWidget, array $arrRecord, int $line, ImportFromCsv $importFromCsv = null): void
     {
         // tl_member
-        if ('tl_super_member' === $objWidget->strTable) {
+        if ('tl_member' === $objWidget->strTable) {
             // Get geolocation from a given address
             if ('geolocation' === $objWidget->strField) {
                 // Do custom validation and skip the Contao-Widget-Input-Validation

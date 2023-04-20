@@ -20,6 +20,7 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Security\Authentication\Token\TokenChecker;
 use Contao\FilesModel;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper;
+use Markocupic\ImportFromCsvBundle\Logger\ImportLogger;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,21 +29,19 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 
 class ImportAjaxController extends AbstractController
 {
-    private ImportFromCsvHelper $importFromCsvHelper;
-    private ContaoFramework $framework;
-    private ContaoCsrfTokenManager $csrfTokenManager;
-    private TokenChecker $tokenChecker;
-    private RequestStack $requestStack;
-    private string $csrfTokenName;
 
-    public function __construct(ImportFromCsvHelper $importFromCsvHelper, ContaoFramework $framework, ContaoCsrfTokenManager $csrfTokenManager, TokenChecker $tokenChecker, RequestStack $requestStack, string $csrfTokenName)
+
+    public function __construct(
+        private readonly ImportFromCsvHelper $importFromCsvHelper,
+        private readonly ContaoFramework $framework,
+        private readonly ContaoCsrfTokenManager $csrfTokenManager,
+        private readonly TokenChecker $tokenChecker,
+        private readonly RequestStack $requestStack,
+        private readonly ImportLogger $importLogger,
+        private readonly string $csrfTokenName,
+        )
     {
-        $this->importFromCsvHelper = $importFromCsvHelper;
-        $this->framework = $framework;
-        $this->csrfTokenManager = $csrfTokenManager;
-        $this->tokenChecker = $tokenChecker;
-        $this->requestStack = $requestStack;
-        $this->csrfTokenName = $csrfTokenName;
+
     }
 
     /**
@@ -59,10 +58,13 @@ class ImportAjaxController extends AbstractController
         $offset = $request->query->get('offset');
         $limit = $request->query->get('limit');
         $isTestMode = !('false' === $request->query->get('isTestMode'));
+        $taskId = $request->query->get('taskId');
 
         if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($this->csrfTokenName, $token))) {
             throw new \Exception('Invalid token!');
         }
+
+        $this->importLogger->initialize($taskId);
 
         if (null !== ($objImportModel = $importFromCsvModelAdapter->findByPk($id))) {
             if (null !== $filesModelAdapter->findByUuid($objImportModel->fileSRC)) {
@@ -74,9 +76,9 @@ class ImportAjaxController extends AbstractController
                 }
 
                 // Use helper class to launch the import process
-                if (true === $this->importFromCsvHelper->importFromModel($objImportModel->current(), $isTestMode)) {
+                if (true === $this->importFromCsvHelper->importFromModel($objImportModel->current(), $isTestMode, $taskId)) {
                     $arrData = [];
-                    $arrData['data'] = $this->importFromCsvHelper->getReport();
+                    $arrData['data'] = $this->importLogger->getLog($taskId);
 
                     $response = new JsonResponse($arrData);
 
@@ -86,7 +88,7 @@ class ImportAjaxController extends AbstractController
         }
 
         $arrData = [];
-        $arrData['data'] = $this->importFromCsvHelper->getReport();
+        $arrData['data'] = $this->importLogger->getLog($taskId);
 
         $response = new JsonResponse($arrData);
 

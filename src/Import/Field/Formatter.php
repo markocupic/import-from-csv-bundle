@@ -21,11 +21,11 @@ use Contao\Widget;
 
 class Formatter
 {
-    private ContaoFramework $framework;
 
-    public function __construct(ContaoFramework $framework)
+    public function __construct(
+        private readonly ContaoFramework $framework,
+    )
     {
-        $this->framework = $framework;
     }
 
     /**
@@ -89,8 +89,7 @@ class Formatter
         $varValue = $objWidget->value;
         $rgxp = $arrDca['eval']['rgxp'] ?? null;
 
-        if ('tstamp' === $objWidget->name && !empty($varValue))
-        {
+        if ('tstamp' === $objWidget->name && !empty($varValue)) {
             if (false !== ($tstamp = strtotime($varValue))) {
                 return $tstamp;
             }
