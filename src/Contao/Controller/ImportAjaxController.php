@@ -61,7 +61,9 @@ class ImportAjaxController extends AbstractController
             throw new \Exception('Invalid token!');
         }
 
-        $this->importLogger->initialize($taskId);
+        if ($request) {
+            $this->importLogger->initialize($taskId);
+        }
 
         if (null !== ($objImportFromCsvModel = $this->importFromCsvModel->findByPk($id))) {
             if (null !== $this->filesModel->findByUuid($objImportFromCsvModel->fileSRC)) {

@@ -18,7 +18,6 @@ use Contao\Controller;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\ServiceAnnotation\Callback;
 use Contao\DataContainer;
 use Contao\File;
 use Contao\FilesModel;
@@ -65,7 +64,6 @@ class ImportFromCsv
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.listLines.input_field', priority: 100)]
     public function generateFileContentMarkup(DataContainer $dc): string
     {
-
         $objFilesModel = $this->filesModel->findByUuid($dc->activeRecord->fileSRC);
 
         if (null === $objFilesModel || !is_file($this->projectDir.'/'.$objFilesModel->path)) {
@@ -97,7 +95,6 @@ class ImportFromCsv
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.skipValidationFields.options', priority: 100)]
     public function optionsCbGetTableColumns(DataContainer $dc): array
     {
-
         $tableName = $dc->activeRecord->importTable;
 
         if (!$tableName) {

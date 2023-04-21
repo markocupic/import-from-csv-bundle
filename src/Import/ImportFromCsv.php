@@ -43,7 +43,7 @@ class ImportFromCsv
     private int $currentLine = 0;
     private int $insertErrors = 0;
     private int $countProcessedRows = 0;
-    private ?\Exception $insertException = null;
+    private \Exception|null $insertException = null;
 
     // Adapters
     private Adapter $config;
@@ -79,7 +79,9 @@ class ImportFromCsv
         // Generate a taskId, if there is none.
         $taskId = $taskId ?? uniqid();
 
-        if (!$this->importLogger->hasInitialized($taskId)) {
+        $request = $this->requestStack->getCurrentRequest();
+
+        if (!$this->importLogger->hasInitialized($taskId) && $request) {
             $taskId = $this->importLogger->initialize($taskId);
         }
 
@@ -228,8 +230,6 @@ class ImportFromCsv
                 $varValue = $this->formatter->convertToArray($varValue, $arrDca, $this->arrData['strArrayDelimiter']);
 
                 // Set $_POST, so the content can be validated
-                $request = $this->requestStack->getCurrentRequest();
-                $request?->request->set($columnName, $varValue);
                 $this->input->setPost($columnName, $varValue);
 
                 // Get the right widget for input validation, etc.
@@ -278,8 +278,7 @@ class ImportFromCsv
                 } else {
                     $set[$objWidget->strField] = \is_array($objWidget->value) ? serialize($objWidget->value) : $objWidget->value;
                 }
-            }
-            // End foreach
+            } // End foreach column
 
             if (!$doNotSave) {
                 // Auto insert "tstamp"
@@ -321,42 +320,48 @@ class ImportFromCsv
                 }
             }
 
-            // Collect data for the logger
-            $arrLog = [];
-            $arrLog['line'] = $this->currentLine;
+            // Collect data for the logger screen in the Contao backend
+            // The logger service requires a running session.
+            // Do not run the logger if there is no request (e.g. cron jobs)
+            if ($this->importLogger->hasInitialized($taskId)) {
+                $arrLog = [];
+                $arrLog['line'] = $this->currentLine;
 
-            if ($doNotSave) {
-                $arrLog['type'] = 'failure';
-                $arrLog['text'] = $this->hasInsertException() ? $this->getInsertExceptionAsString() : '';
+                if ($doNotSave) {
+                    $arrLog['type'] = 'failure';
+                    $arrLog['text'] = $this->hasInsertException() ? $this->getInsertExceptionAsString() : '';
 
-                // Increment the error counter
-                ++$this->insertErrors;
-            } else {
-                $arrLog['type'] = 'success';
-                $arrLog['text'] = '';
-            }
-
-            $arrLog['values'] = [];
-
-            foreach ($arrReportValues as $k => $v) {
-                if (\is_array($v)) {
-                    $v = serialize($v);
+                    // Increment the error counter
+                    ++$this->insertErrors;
+                } else {
+                    $arrLog['type'] = 'success';
+                    $arrLog['text'] = '';
                 }
 
-                $arrLog['values'][] = [
-                    'column' => $k,
-                    'value' => (string) $v,
-                ];
-            }
+                $arrLog['values'] = [];
 
-            if ('failure' === $arrLog['type']) {
-                $this->importLogger->addFailure($this->getData('taskId'), $arrLog['line'], $arrLog['text'], $arrLog['values']);
-            } else {
-                $this->importLogger->addSuccess($this->getData('taskId'), $arrLog['line'], $arrLog['text'], $arrLog['values']);
+                foreach ($arrReportValues as $k => $v) {
+                    if (\is_array($v)) {
+                        $v = serialize($v);
+                    }
+
+                    $arrLog['values'][] = [
+                        'column' => $k,
+                        'value' => (string) $v,
+                    ];
+                }
+
+                if ('failure' === $arrLog['type']) {
+                    $this->importLogger->addFailure($this->getData('taskId'), $arrLog['line'], $arrLog['text'], $arrLog['values']);
+                } else {
+                    $this->importLogger->addSuccess($this->getData('taskId'), $arrLog['line'], $arrLog['text'], $arrLog['values']);
+                }
             }
+        }// End for each data record
+
+        if ($this->importLogger->hasInitialized($taskId)) {
+            $this->importLogger->setSummaryData($this->getData('taskId'), $this->countProcessedRows, $this->countProcessedRows - $this->insertErrors, $this->insertErrors);
         }
-
-        $this->importLogger->setSummaryData($this->getData('taskId'), $this->countProcessedRows, $this->countProcessedRows - $this->insertErrors, $this->insertErrors);
     }
 
     public function getData(string $key)
@@ -422,8 +427,9 @@ class ImportFromCsv
     public function getWidgetFromDca(array $arrDca, string $columnName, string $tableName, $varValue): Widget
     {
         $inputType = $arrDca['inputType'] ?? '';
+        $request = $this->requestStack->getCurrentRequest();
 
-        $objDca = new DC_Table($tableName);
+        $objDca = $request ? new DC_Table($tableName) : null;
 
         $strClass = $GLOBALS['BE_FFL'][$inputType] ?? '';
 

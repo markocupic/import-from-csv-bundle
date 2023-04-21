@@ -106,7 +106,7 @@ class ImportLogger
         $bag->replace($dataAll);
     }
 
-    public function getLog(string $taskId): ?array
+    public function getLog(string $taskId): array|null
     {
         return $this->getData($taskId);
     }
@@ -133,9 +133,15 @@ class ImportLogger
         $bag->replace($dataAll);
     }
 
-    private function getData(string $taskId): ?array
+    private function getData(string $taskId): array|null
     {
-        $session = $this->requestStack->getCurrentRequest()->getSession();
+        $request = $this->requestStack->getCurrentRequest();
+
+        if (!$request) {
+            return null;
+        }
+
+        $session = $request->getSession();
 
         /** @var AttributeBagInterface $bag */
         $bag = $session->getBag(ArrayAttributeBag::ATTRIBUTE_NAME);
