@@ -19,7 +19,6 @@ use Contao\ManagerPlugin\Bundle\BundlePluginInterface;
 use Contao\ManagerPlugin\Bundle\Config\BundleConfig;
 use Contao\ManagerPlugin\Bundle\Parser\ParserInterface;
 use Markocupic\ImportFromCsvBundle\MarkocupicImportFromCsvBundle;
-use Symfony\Component\Config\Loader\LoaderInterface;
 
 class Plugin implements BundlePluginInterface
 {
@@ -34,6 +33,4 @@ class Plugin implements BundlePluginInterface
                 ->setReplace(['import_from_csv']),
         ];
     }
-
-
 }

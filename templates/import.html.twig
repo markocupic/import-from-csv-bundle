@@ -55,7 +55,7 @@
                 </div>
 
                 {# LOG screen #}
-                <div v-if="report.logs" class="ifcb-import-report-box">
+                <div v-if="report.logs" id="ifcbImportReportBox" class="ifcb-import-report-box">
                     <table class="ifcb-import-report-table">
                         <tbody>
                             <template v-for="log in report.logs">
@@ -107,7 +107,7 @@
 </div>
 
 <script>
-    new importFromCsvApp('#ifcbImportFromCsvApp', {
+    new ImportFromCsvApp('#ifcbImportFromCsvApp', {
         id: {{ form.input.id }},
         taskId: '{{ form.input.taskId }}',
         csrfToken: '{{ form.input.csrfToken }}',

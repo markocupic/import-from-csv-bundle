@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Import;
 
+use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\File;
 use Contao\FilesModel;
@@ -21,21 +22,22 @@ use Contao\StringUtil;
 use League\Csv\Exception;
 use League\Csv\InvalidArgument;
 use League\Csv\Reader;
+use League\Csv\SyntaxError;
+use League\Csv\UnavailableStream;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 class ImportFromCsvHelper
 {
-
+    private readonly Adapter $filesModel;
+    private readonly Adapter $stringUtil;
 
     public function __construct(
         private readonly ContaoFramework $framework,
-        private readonly RequestStack $requestStack,
         private readonly ImportFromCsv $importFromCsv,
         private readonly string $projectDir,
-    )
-    {
-
+    ) {
+        $this->filesModel = $this->framework->getAdapter(FilesModel::class);
+        $this->stringUtil = $this->framework->getAdapter(StringUtil::class);
     }
 
     /**
@@ -43,9 +45,7 @@ class ImportFromCsvHelper
      */
     public function countRows(ImportFromCsvModel $model): int
     {
-        $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
-
-        $objFile = $filesModelAdapter->findByUuid($model->fileSRC);
+        $objFile = $this->filesModel->findByUuid($model->fileSRC);
 
         if ($objFile) {
             $objCsvReader = Reader::createFromPath($this->projectDir.'/'.$objFile->path, 'r');
@@ -70,24 +70,22 @@ class ImportFromCsvHelper
 
     /**
      * @throws Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \Doctrine\DBAL\Exception
      * @throws InvalidArgument
+     * @throws SyntaxError
+     * @throws UnavailableStream
+     * @throws \Doctrine\DBAL\Exception
      */
-    public function importFromModel(ImportFromCsvModel $model, bool $isTestMode = false, string $taskId = null): bool
+    public function importFromModel(ImportFromCsvModel $model, bool $isTestMode = false, string|null $taskId = null): bool
     {
-        $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
-        $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
-
         $strTable = $model->importTable;
         $importMode = $model->importMode;
-        $arrSelectedFields = $stringUtilAdapter->deserialize($model->selectedFields, true);
+        $arrSelectedFields = $this->stringUtil->deserialize($model->selectedFields, true);
         $strDelimiter = $model->fieldSeparator;
         $strEnclosure = $model->fieldEnclosure;
         $intOffset = (int) $model->offset;
         $intLimit = (int) $model->limit;
-        $arrSkipValidationFields = $stringUtilAdapter->deserialize($model->skipValidationFields, true);
-        $objFile = $filesModelAdapter->findByUuid($model->fileSRC);
+        $arrSkipValidationFields = $this->stringUtil->deserialize($model->skipValidationFields, true);
+        $objFile = $this->filesModel->findByUuid($model->fileSRC);
 
         // Call the import class if file exists
         if (is_file($this->projectDir.'/'.$objFile->path)) {

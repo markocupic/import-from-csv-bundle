@@ -27,7 +27,7 @@ $GLOBALS['BE_MOD']['system']['import_from_csv'] = [
     'appMountAction' => [MountAppAjaxController::class, 'appMountAction'],
     'importAction' => [ImportAjaxController::class, 'importAction'],
     'javascript' => [
-        'bundles/markocupicimportfromcsv/js/vue@2.6.14.js',
+        'bundles/markocupicimportfromcsv/js/vue@3.2.47_global.prod.min.js',
         'bundles/markocupicimportfromcsv/js/importFromCsvApp.js',
     ],
     'stylesheet' => [

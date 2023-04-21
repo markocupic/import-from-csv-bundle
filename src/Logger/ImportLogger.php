@@ -77,34 +77,12 @@ class ImportLogger
 
     public function addFailure(string $taskId, int $line, string $text, array $values): void
     {
-        $this->addLogItem( $taskId,  self::LOG_LEVEL_FAILURE,  $line,  $text,  $values);
+        $this->addLogItem($taskId, self::LOG_LEVEL_FAILURE, $line, $text, $values);
     }
 
     public function addSuccess(string $taskId, int $line, string $text, array $values): void
     {
-        $this->addLogItem( $taskId,  self::LOG_LEVEL_SUCCESS,  $line,  $text,  $values);
-    }
-
-    private function addLogItem(string $taskId, string $type, int $line, string $text, array $values): void
-    {
-        $arrData = $this->getData($taskId);
-
-        $arrData['logs'][] = [
-            'type' => $type,
-            'line' => $line,
-            'text' => $text,
-            'values' => $values,
-        ];
-
-        $session = $this->requestStack->getCurrentRequest()->getSession();
-
-        /** @var AttributeBagInterface $bag */
-        $bag = $session->getBag(ArrayAttributeBag::ATTRIBUTE_NAME);
-
-        $dataAll = $bag->all();
-        $dataAll[$taskId] = $arrData;
-
-        $bag->replace($dataAll);
+        $this->addLogItem($taskId, self::LOG_LEVEL_SUCCESS, $line, $text, $values);
     }
 
     public function setSummaryData(string $taskId, int $intTotal, int $intSuccess, int $intFailure): void
@@ -131,6 +109,28 @@ class ImportLogger
     public function getLog(string $taskId): ?array
     {
         return $this->getData($taskId);
+    }
+
+    private function addLogItem(string $taskId, string $type, int $line, string $text, array $values): void
+    {
+        $arrData = $this->getData($taskId);
+
+        $arrData['logs'][] = [
+            'type' => $type,
+            'line' => $line,
+            'text' => $text,
+            'values' => $values,
+        ];
+
+        $session = $this->requestStack->getCurrentRequest()->getSession();
+
+        /** @var AttributeBagInterface $bag */
+        $bag = $session->getBag(ArrayAttributeBag::ATTRIBUTE_NAME);
+
+        $dataAll = $bag->all();
+        $dataAll[$taskId] = $arrData;
+
+        $bag->replace($dataAll);
     }
 
     private function getData(string $taskId): ?array

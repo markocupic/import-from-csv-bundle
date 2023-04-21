@@ -32,7 +32,7 @@ use League\Csv\SyntaxError;
 use League\Csv\UnavailableStream;
 use Markocupic\ImportFromCsvBundle\Event\PostImportEvent;
 use Markocupic\ImportFromCsvBundle\Import\Field\Formatter;
-use Markocupic\ImportFromCsvBundle\Import\Field\Validator;
+use Markocupic\ImportFromCsvBundle\Import\Field\ImportValidator;
 use Markocupic\ImportFromCsvBundle\Logger\ImportLogger;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -58,7 +58,7 @@ class ImportFromCsv
         private readonly Formatter $formatter,
         private readonly ImportLogger $importLogger,
         private readonly RequestStack $requestStack,
-        private readonly Validator $validator,
+        private readonly ImportValidator $importValidator,
         private readonly string $projectDir,
     ) {
         $this->config = $this->framework->getAdapter(Config::class);
@@ -74,7 +74,7 @@ class ImportFromCsv
      * @throws SyntaxError
      * @throws UnavailableStream
      */
-    public function importCsv(File $objCsvFile, string $tableName, string $strImportMode, array $arrSelectedFields = [], string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = [], int $intOffset = 0, int $intLimit = 0, string $taskId = null): void
+    public function importCsv(File $objCsvFile, string $tableName, string $strImportMode, array $arrSelectedFields = [], string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = [], int $intOffset = 0, int $intLimit = 0, string|null $taskId = null): void
     {
         // Generate a taskId, if there is none.
         $taskId = $taskId ?? uniqid();
@@ -229,7 +229,7 @@ class ImportFromCsv
 
                 // Set $_POST, so the content can be validated
                 $request = $this->requestStack->getCurrentRequest();
-                $request->request->set($columnName, $varValue);
+                $request?->request->set($columnName, $varValue);
                 $this->input->setPost($columnName, $varValue);
 
                 // Get the right widget for input validation, etc.
@@ -243,7 +243,7 @@ class ImportFromCsv
                 }
 
                 // Validate date, datim or time values
-                $this->validator->checkIsValidDate($objWidget, $arrDca);
+                $this->importValidator->checkIsValidDate($objWidget, $arrDca);
 
                 // Special treatment for password
                 if ('password' === $arrDca['inputType']) {
@@ -256,7 +256,7 @@ class ImportFromCsv
                     $objWidget->validate();
                 }
 
-                $this->validator->checkIsUnique($objWidget, $arrDca);
+                $this->importValidator->checkIsUnique($objWidget, $arrDca);
 
                 // Add value to the report window
                 $arrReportValues[$objWidget->strField] = $objWidget->value;

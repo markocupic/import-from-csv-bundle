@@ -21,11 +21,9 @@ use Doctrine\DBAL\Exception;
 
 class Version5Migration extends AbstractMigration
 {
-
     public function __construct(
         private readonly Connection $connection,
-    )
-    {
+    ) {
     }
 
     /**

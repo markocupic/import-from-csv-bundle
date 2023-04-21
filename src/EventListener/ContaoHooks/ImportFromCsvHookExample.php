@@ -24,7 +24,7 @@ class ImportFromCsvHookExample
     public const HOOK = 'importFromCsv';
     public const PRIORITY = 100;
 
-    private ?string $curlErrorMsg;
+    private string|null $curlErrorMsg;
 
     public function __invoke(Widget $objWidget, array $arrRecord, int $line, ImportFromCsv $importFromCsv = null): void
     {

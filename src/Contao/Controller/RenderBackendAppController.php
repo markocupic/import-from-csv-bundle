@@ -16,11 +16,11 @@ namespace Markocupic\ImportFromCsvBundle\Contao\Controller;
 
 use Contao\Controller;
 use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
+use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\DataContainer;
 use League\Csv\Exception;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper;
-use Markocupic\ImportFromCsvBundle\Logger\ImportLogger;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,15 +31,18 @@ use Twig\Error\SyntaxError;
 
 class RenderBackendAppController
 {
+    private readonly Adapter $controller;
+    private readonly Adapter $importFromCsvModel;
+
     public function __construct(
         private readonly ContaoFramework $framework,
         private readonly ImportFromCsvHelper $importFromCsvHelper,
         private readonly ContaoCsrfTokenManager $csrfTokenManager,
         private readonly TwigEnvironment $twig,
         private readonly RequestStack $requestStack,
-        private readonly ImportLogger $importLogger,
-        private readonly string $csrfTokenName,
     ) {
+        $this->controller = $this->framework->getAdapter(Controller::class);
+        $this->importFromCsvModel = $this->framework->getAdapter(ImportFromCsvModel::class);
     }
 
     /**
@@ -50,17 +53,14 @@ class RenderBackendAppController
      */
     public function renderAppAction(DataContainer $dc): Response
     {
-        $controllerAdapter = $this->framework->getAdapter(Controller::class);
-        $importFromCsvModelAdapter = $this->framework->getAdapter(ImportFromCsvModel::class);
-
         // Load language file
-        $controllerAdapter->loadLanguageFile('tl_import_from_csv');
+        $this->controller->loadLanguageFile('tl_import_from_csv');
 
         $request = $this->requestStack->getCurrentRequest();
-        $model = $importFromCsvModelAdapter->findByPk($dc->id);
+        $model = $this->importFromCsvModel->findByPk($dc->id);
         $arrData = $model->row();
 
-        $csrfToken = $this->csrfTokenManager->getToken($this->csrfTokenName)->getValue();
+        $csrfToken = $this->csrfTokenManager->getDefaultTokenValue();
 
         return new Response($this->twig->render(
             '@MarkocupicImportFromCsv/import.html.twig',

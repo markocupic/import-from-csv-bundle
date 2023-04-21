@@ -15,25 +15,22 @@ declare(strict_types=1);
 namespace Markocupic\ImportFromCsvBundle\Import\Field;
 
 use Contao\Config;
+use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\StringUtil;
 use Contao\Widget;
 
 class Formatter
 {
+    private readonly Adapter $stringUtil;
 
     public function __construct(
         private readonly ContaoFramework $framework,
-    )
-    {
+    ) {
+        $this->stringUtil = $this->framework->getAdapter(StringUtil::class);
     }
 
-    /**
-     * @param $varValue
-     *
-     * @return false|mixed|string
-     */
-    public function getCorrectDateFormat($varValue, array $arrDca)
+    public function getCorrectDateFormat(mixed $varValue, array $arrDca): mixed
     {
         $rgxp = $arrDca['eval']['rgxp'] ?? null;
 
@@ -41,7 +38,7 @@ class Formatter
             $configAdapter = $this->framework->getAdapter(Config::class);
             $df = $configAdapter->get($rgxp.'Format');
 
-            if (false !== ($tstamp = strtotime($varValue))) {
+            if (false !== ($tstamp = strtotime((string) $varValue))) {
                 $varValue = date($df, $tstamp);
             }
         }
@@ -49,12 +46,7 @@ class Formatter
         return $varValue;
     }
 
-    /**
-     * @param $varValue
-     *
-     * @return array|false|mixed|array<string>
-     */
-    public function convertToArray($varValue, array $arrDca, string $strArrDelim)
+    public function convertToArray(mixed $varValue, array $arrDca, string $strArrDelim): mixed
     {
         if (!\is_array($varValue) && isset($arrDca['eval']['multiple']) && $arrDca['eval']['multiple']) {
             // Convert CSV fields
@@ -62,35 +54,27 @@ class Formatter
                 if (null === $varValue || '' === $varValue) {
                     $varValue = [];
                 } else {
-                    $varValue = explode($arrDca['eval']['csv'], $varValue);
+                    $varValue = explode($arrDca['eval']['csv'], (string) $varValue);
                 }
-            } elseif (false !== strpos($varValue, $strArrDelim)) {
+            } elseif (str_contains((string) $varValue, $strArrDelim)) {
                 // Value is e.g. 3||4
-                $varValue = explode($strArrDelim, $varValue);
+                $varValue = explode($strArrDelim, (string) $varValue);
             } else {
-                /** @var StringUtil $stringUtilAdapter */
-                $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
-
                 // The value is a serialized array or simple value e.g 3
-                $varValue = $stringUtilAdapter->deserialize($varValue, true);
+                $varValue = $this->stringUtil->deserialize($varValue, true);
             }
         }
 
         return $varValue;
     }
 
-    /**
-     * @param $arrDca
-     *
-     * @return false|int|mixed|string
-     */
-    public function convertDateToTimestamp(Widget $objWidget, array $arrDca)
+    public function convertDateToTimestamp(Widget $objWidget, array $arrDca): mixed
     {
         $varValue = $objWidget->value;
         $rgxp = $arrDca['eval']['rgxp'] ?? null;
 
         if ('tstamp' === $objWidget->name && !empty($varValue)) {
-            if (false !== ($tstamp = strtotime($varValue))) {
+            if (false !== ($tstamp = strtotime((string) $varValue))) {
                 return $tstamp;
             }
         }
@@ -112,7 +96,7 @@ class Formatter
         return $varValue;
     }
 
-    public function replaceNewlineTags($varValue)
+    public function replaceNewlineTags(mixed $varValue): mixed
     {
         if (\is_string($varValue)) {
             // Replace all '[NEWLINE]' tags with the end of line tag

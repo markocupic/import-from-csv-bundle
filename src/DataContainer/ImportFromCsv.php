@@ -16,6 +16,7 @@ namespace Markocupic\ImportFromCsvBundle\DataContainer;
 
 use Contao\Controller;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
+use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\ServiceAnnotation\Callback;
 use Contao\DataContainer;
@@ -31,6 +32,9 @@ use Twig\Error\SyntaxError;
 
 class ImportFromCsv
 {
+    private readonly Adapter $controller;
+    private readonly Adapter $filesModel;
+
     public function __construct(
         private readonly ContaoFramework $framework,
         private readonly Connection $connection,
@@ -38,6 +42,8 @@ class ImportFromCsv
         private readonly TwigEnvironment $twig,
         private readonly string $projectDir,
     ) {
+        $this->controller = $this->framework->getAdapter(Controller::class);
+        $this->filesModel = $this->framework->getAdapter(FilesModel::class);
     }
 
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.explanation.input_field', priority: 100)]
@@ -52,8 +58,6 @@ class ImportFromCsv
     }
 
     /**
-     * @Callback(table="tl_import_from_csv", target="fields.listLines.input_field")
-     *
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
@@ -61,9 +65,8 @@ class ImportFromCsv
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.listLines.input_field', priority: 100)]
     public function generateFileContentMarkup(DataContainer $dc): string
     {
-        $filesModelAdapter = $this->framework->getAdapter(FilesModel::class);
 
-        $objFilesModel = $filesModelAdapter->findByUuid($dc->activeRecord->fileSRC);
+        $objFilesModel = $this->filesModel->findByUuid($dc->activeRecord->fileSRC);
 
         if (null === $objFilesModel || !is_file($this->projectDir.'/'.$objFilesModel->path)) {
             return (new Response(''))->getContent();
@@ -94,7 +97,6 @@ class ImportFromCsv
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.skipValidationFields.options', priority: 100)]
     public function optionsCbGetTableColumns(DataContainer $dc): array
     {
-        $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
         $tableName = $dc->activeRecord->importTable;
 
@@ -111,7 +113,7 @@ class ImportFromCsv
             return [];
         }
 
-        $controllerAdapter->loadDataContainer($tableName);
+        $this->controller->loadDataContainer($tableName);
         $arrDcaFields = [];
 
         foreach (array_keys($GLOBALS['TL_DCA'][$tableName]['fields'] ?? []) as $k) {

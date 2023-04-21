@@ -56,7 +56,7 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['editItemTitle'] = 'Import bearbeiten'
 // Messages
 $GLOBALS['TL_LANG']['tl_import_from_csv']['data_records'] = 'Anzahl Datensätze';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['successful_inserts'] = 'Erfolgreiche inserts';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['failed_inserts'] = 'Missglückte inserts';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['failed_inserts'] = 'Erfolglose inserts';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['info_text'] = '<span>Eine Einführung und viele Tipps finden sich auf der <a href="https://github.com/markocupic/import-from-csv-bundle">Projektwebseite</a>.</span>';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['data_record_insert_failed'] = 'Datensatz konnte nicht angelegt werden!';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['data_record_insert_succeed'] = 'Datensatz erfolgreich angelegt!';

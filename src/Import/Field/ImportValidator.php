@@ -14,23 +14,24 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Import\Field;
 
+use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\Validator;
 use Contao\Widget;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-class Validator
+class ImportValidator
 {
-
+    private readonly Adapter $validator;
 
     public function __construct(
         private readonly ContaoFramework $framework,
         private readonly TranslatorInterface $translator,
         private readonly Connection $connection,
-    )
-    {
-
+    ) {
+        $this->validator = $this->framework->getAdapter(Validator::class);
     }
 
     public function checkIsValidDate(Widget $objWidget, array $arrDca): void
@@ -42,10 +43,8 @@ class Validator
             return;
         }
 
-        $validatorAdapter = $this->framework->getAdapter(\Contao\Validator::class);
-
         if ('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) {
-            if (!$validatorAdapter->{'is'.ucfirst($rgxp)}($varValue)) {
+            if (!$this->validator->{'is'.ucfirst($rgxp)}($varValue)) {
                 $objWidget->addError(
                     sprintf(
                         $this->translator->trans('ERR.invalidDate', [], 'contao_default'),

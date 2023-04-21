@@ -1,6 +1,6 @@
 {
   "name": "markocupic/import-from-csv-bundle",
-  "description": "Backend extension for the Contao Open Source CMS. Import datarecords from a CSV spreadsheet.",
+  "description": "Backend extension for the Contao Open Source CMS. Import data records from a CSV spreadsheet.",
   "keywords": [
     "contao",
     "import from csv",
