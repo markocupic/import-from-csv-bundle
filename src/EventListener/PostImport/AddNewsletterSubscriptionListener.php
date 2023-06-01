@@ -33,6 +33,11 @@ final class AddNewsletterSubscriptionListener
         $this->stringUtil = $this->framework->getAdapter(StringUtil::class);
     }
 
+    /**
+     * @param PostImportEvent $event
+     * @return void
+     * @throws \Doctrine\DBAL\Exception
+     */
     public function addNewsletterSubscription(PostImportEvent $event): void
     {
         if ('tl_member' !== $event->getTableName()) {
@@ -46,13 +51,21 @@ final class AddNewsletterSubscriptionListener
         }
 
         if (!empty($row['newsletter']) && !empty($row['email'])) {
-            $this->addMemberToNewsletterRecipientList($row);
+            $this->addMemberToNewsletterRecipientList($row, $event);
         }
     }
 
-    private function addMemberToNewsletterRecipientList(array $row): void
+    /**
+     * @param array $row
+     * @param PostImportEvent $event
+     * @return void
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function addMemberToNewsletterRecipientList(array $row, PostImportEvent $event): void
     {
         $newsletters = $this->stringUtil->deserialize($row['newsletter'], true);
+
+        $importInstance = $event->getImportInstance();
 
         foreach ($newsletters as $newsletterId) {
             $id = $this->connection->fetchOne(
@@ -71,7 +84,14 @@ final class AddNewsletterSubscriptionListener
                     'active' => '1',
                 ];
 
-                $this->connection->insert('tl_newsletter_recipients', $set);
+                try {
+                    $this->connection->beginTransaction();
+                    $this->connection->insert('tl_newsletter_recipients', $set);
+                    $this->connection->commit();
+                } catch (\Exception $e) {
+                    $this->connection->rollBack();
+                    $importInstance->addInsertException($e);
+                }
             }
         }
     }

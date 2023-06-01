@@ -43,7 +43,7 @@ class ImportFromCsv
     private int $currentLine = 0;
     private int $insertErrors = 0;
     private int $countProcessedRows = 0;
-    private \Exception|null $insertException = null;
+    private array $insertExceptions = [];
 
     // Adapters
     private Adapter $config;
@@ -182,23 +182,14 @@ class ImportFromCsv
         // Get each line as an associative array -> ['columnName1' => 'value1',  'columnName2' => 'value2']
         $arrRecords = $stmt->process($objCsvReader);
 
-        // Process each row and try to write the values to the database
+        // Process each row and filter/skip empty or not allowed values/columns
         foreach ($arrRecords as $arrRecord) {
             $doNotSave = false;
 
-            $this->resetInsertException();
-
-            // Update current line (CSV)
-            ++$this->currentLine;
-
-            // Update processed rows counter
-            ++$this->countProcessedRows;
-
-            $set = [];
-            $arrReportValues = [];
+            $arrLine = [];
 
             foreach ($arrRecord as $columnName => $varValue) {
-                $varValue = trim($varValue);
+                $varValue = trim((string) $varValue);
 
                 // Do not process empty values
                 if (!\strlen($varValue)) {
@@ -215,6 +206,21 @@ class ImportFromCsv
                     continue;
                 }
 
+                $arrLine[$columnName] = $varValue;
+            }
+
+            $this->resetInsertExceptions();
+
+            // Update current line (CSV)
+            ++$this->currentLine;
+
+            // Update processed rows counter
+            ++$this->countProcessedRows;
+
+            $set = [];
+            $arrReportValues = [];
+
+            foreach ($arrLine as $columnName => $varValue) {
                 // Get the DCA of the current field
                 $arrDca = $this->getDca($columnName, $tableName);
 
@@ -231,6 +237,10 @@ class ImportFromCsv
 
                 // Set $_POST, so the content can be validated
                 $this->input->setPost($columnName, $varValue);
+                
+                // Widget::getPost() takes the value from current request
+                $request = $this->requestStack->getCurrentRequest();
+                $request->request->set($columnName, $varValue);
 
                 // Get the right widget for input validation, etc.
                 $objWidget = $this->getWidgetFromDca($arrDca, $columnName, $this->arrData['tableName'], $varValue);
@@ -238,7 +248,7 @@ class ImportFromCsv
                 // Trigger the importFromCsv HOOK:
                 if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && \is_array($GLOBALS['TL_HOOKS']['importFromCsv'])) {
                     foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback) {
-                        $this->system->importStatic($callback[0])->{$callback[1]}($objWidget, $arrRecord, $this->currentLine, $this);
+                        $this->system->importStatic($callback[0])->{$callback[1]}($objWidget, $arrLine, $this->currentLine, $this);
                     }
                 }
 
@@ -248,6 +258,8 @@ class ImportFromCsv
                 // Special treatment for password
                 if ('password' === $arrDca['inputType']) {
                     $this->input->setPost('password_confirm', $objWidget->value);
+                    // Later we will use a post insert listener to set the correct password
+                    // with the correct password hasher.
                 }
 
                 // Skip validation for selected fields
@@ -303,18 +315,17 @@ class ImportFromCsv
 
                     try {
                         $this->connection->beginTransaction();
-                        $this->connection->insert($this->arrData['tableName'], $set);
+                        $insertId = $this->connection->insert($this->arrData['tableName'], $set);
                         $this->connection->commit();
-                        $insertId = $this->connection->lastInsertId();
                     } catch (\Exception $e) {
                         $doNotSave = true;
-                        $this->insertException = $e;
+                        $this->addInsertException($e);
                         $this->connection->rollBack();
                     }
 
                     // Dispatch import_from_csv.post_import event (Add newsletter recipients, ...)
                     if ($insertId) {
-                        $event = new PostImportEvent($tableName, $set, $insertId, $this);
+                        $event = new PostImportEvent($tableName, $set, $insertId, $arrLine, $this);
                         $this->eventDispatcher->dispatch($event, PostImportEvent::NAME);
                     }
                 }
@@ -329,7 +340,14 @@ class ImportFromCsv
 
                 if ($doNotSave) {
                     $arrLog['type'] = 'failure';
-                    $arrLog['text'] = $this->hasInsertException() ? $this->getInsertExceptionAsString() : '';
+                    $arrLog['text'] = $this->getInsertExceptionsAsString();
+
+                    // Increment the error counter
+                    ++$this->insertErrors;
+                } elseif ($this->hasInsertExceptions()) {
+                    // If an exception has been thrown in a post insert listener...
+                    $arrLog['type'] = 'failure';
+                    $arrLog['text'] = $this->getInsertExceptionsAsString();
 
                     // Increment the error counter
                     ++$this->insertErrors;
@@ -352,9 +370,9 @@ class ImportFromCsv
                 }
 
                 if ('failure' === $arrLog['type']) {
-                    $this->importLogger->addFailure($this->getData('taskId'), $arrLog['line'], $arrLog['text'], $arrLog['values']);
+                    $this->importLogger->addFailure($this->getData('taskId'), $arrLog['line'] ?? 0, $arrLog['text'] ?? '', $arrLog['values']);
                 } else {
-                    $this->importLogger->addSuccess($this->getData('taskId'), $arrLog['line'], $arrLog['text'], $arrLog['values']);
+                    $this->importLogger->addSuccess($this->getData('taskId'), $arrLog['line'] ?? 0, $arrLog['text'] ?? '', $arrLog['values']);
                 }
             }
         }// End for each data record
@@ -458,18 +476,27 @@ class ImportFromCsv
         return isset($columns[strtolower($columnName)]);
     }
 
-    private function resetInsertException(): void
+    public function resetInsertExceptions(): void
     {
-        $this->insertException = null;
+        $this->insertExceptions = [];
     }
 
-    private function hasInsertException(): bool
+    public function hasInsertExceptions(): bool
     {
-        return null !== $this->insertException;
+        return !empty($this->insertExceptions);
     }
 
-    private function getInsertExceptionAsString(): ?string
+    public function getInsertExceptionsAsString(): string
     {
-        return $this->insertException?->getMessage();
+        if ($this->hasInsertExceptions()) {
+            return implode(' ', array_map(static fn ($e) => $e->getMessage(), $this->insertExceptions));
+        }
+
+        return '';
+    }
+
+    public function addInsertException(\Exception $e): void
+    {
+        $this->insertExceptions[] = $e;
     }
 }

@@ -25,6 +25,7 @@ class PostImportEvent extends Event
         private readonly string $tableName,
         private readonly array $dataRecord,
         private readonly int $insertId,
+        private readonly array $arrLine,
         private readonly ImportFromCsv $importInstance,
     ) {
     }
@@ -42,6 +43,11 @@ class PostImportEvent extends Event
     public function getInsertId(): int
     {
         return $this->insertId;
+    }
+
+    public function getLineAsArray(): array
+    {
+        return $this->arrLine;
     }
 
     public function getImportInstance(): ImportFromCsv
