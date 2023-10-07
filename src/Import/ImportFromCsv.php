@@ -237,7 +237,7 @@ class ImportFromCsv
 
                 // Set $_POST, so the content can be validated
                 $this->input->setPost($columnName, $varValue);
-                
+
                 // Widget::getPost() takes the value from current request
                 $request = $this->requestStack->getCurrentRequest();
                 $request->request->set($columnName, $varValue);
@@ -315,7 +315,8 @@ class ImportFromCsv
 
                     try {
                         $this->connection->beginTransaction();
-                        $insertId = $this->connection->insert($this->arrData['tableName'], $set);
+                        $this->connection->insert($this->arrData['tableName'], $set);
+                        $insertId = (int) $this->connection->lastInsertId();
                         $this->connection->commit();
                     } catch (\Exception $e) {
                         $doNotSave = true;
