@@ -74,6 +74,9 @@ class Cron
 
     public function initialize(string $cronLevel): void
     {
+        // Initialize Contao framework
+        $this->framework->initialize();
+
         if (null !== ($objImportModel = $this->importFromCsvModel->findBy(['enableCron = ?', 'cronLevel = ?'], ['1', $cronLevel]))) {
             while ($objImportModel->next()) {
                 $strTable = $objImportModel->importTable;
