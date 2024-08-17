@@ -23,7 +23,7 @@
             <input type="hidden" name="id" value="{{ form.input.id }}">
             <input type="hidden" name="token" value="{{ form.input.csrfToken }}">
             <div class="widget">
-                <h2>{{ model.title }}[{{ model.importTable }}]</h2>
+                <h2>{{ model.title }} [{{ model.importTable }}]</h2>
                 <br>
                 <ul class="ifcb-import-summary">
                     <li>Offset: {{ model.offset }}</li>
@@ -98,6 +98,7 @@
                 <button v-on:click.prevent="importAction(true,true)" type="submit" id="btnTest" name="runImportTest" class="tl_submit ifcb-import-test-button" accesskey="p">
                     {{ lang.tl_import_from_csv.btnImportTest }}
                 </button>
+                &nbsp;
                 <button v-on:click.prevent="importAction(false,true)" type="submit" id="btnImport" name="runImport" class="tl_submit ifcb-import-button" accesskey="s" onclick="return confirm('{{ lang.tl_import_from_csv.confirm_start_import }}')">
                     {{ lang.tl_import_from_csv.btnImport }}
                 </button>
