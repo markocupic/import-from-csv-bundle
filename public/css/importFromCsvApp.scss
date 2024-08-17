@@ -45,6 +45,10 @@ a.renderAppAction > img {
   color: #fb77ec;
 }
 
+.ifcb-file-content-box ul {
+  list-style-type: none;
+}
+
 .ifcb-file-content-box li code {
   font-size: 11px;
   line-height: 15px;
@@ -184,7 +188,7 @@ a.renderAppAction > img {
         border-right-width: 0;
       }
 
-      tr.hiddenRow, tr.hiddenRow td{
+      tr.hiddenRow, tr.hiddenRow td {
         display: none;
       }
 
