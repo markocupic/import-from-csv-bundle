@@ -123,10 +123,12 @@ class ImportFromCsv
         $arrOptions = [];
 
         foreach (array_keys($arrLCFields) as $k) {
+            $sql = $arrDcaFields[$k]['sql'] ?? '';
+            $sql = is_array($sql) ? json_encode($sql) : $sql;
+            $strSql = !empty($sql) ? sprintf(' <span class="ifcb-sql-descr">[%s]</span>', $sql) : '';
+            
             // If exists, take the column name from the DCA
             $strField = $arrDcaFields[$k]['strField'] ?? $k;
-            $sql = $arrDcaFields[$k]['sql'] ?? '';
-            $strSql = !empty($sql) ? sprintf(' <span class="ifcb-sql-descr">[%s]</span>', $sql) : '';
             $arrOptions[$strField] = $strField.$strSql;
         }
 
