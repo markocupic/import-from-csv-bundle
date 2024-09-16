@@ -21,7 +21,7 @@
 
         <div class="tl_formbody_edit">
             <input type="hidden" name="id" value="{{ form.input.id }}">
-            <input type="hidden" name="token" value="{{ form.input.csrfToken }}">
+            <input type="hidden" name="token" value="{{ form.csrfToken }}">
             <div class="widget">
                 <h2>{{ model.title }} [{{ model.importTable }}]</h2>
                 <br>
@@ -58,35 +58,35 @@
                 <div v-if="report.logs" id="ifcbImportReportBox" class="ifcb-import-report-box">
                     <table class="ifcb-import-report-table">
                         <tbody>
-                            <template v-for="log in report.logs">
+                        <template v-for="log in report.logs">
 
+                            <tr v-if="log.type === 'failure'" class="ifcb-import-failure">
+                                <td class="ifcb-td-title" colspan="2">#${log.line} {{ lang.tl_import_from_csv.data_record_insert_failed }}
+                                    <template v-if="log.text !== ''"><br><br>Exception!<br><br>${log.text}</template>
+                                </td>
+                            </tr>
+
+                            <tr v-if="log.type === 'success'" class="ifcb-import-success">
+                                <td class="ifcb-td-title" colspan="2">#${log.line} {{ lang.tl_import_from_csv.data_record_insert_succeed }}</td>
+                            </tr>
+
+                            <template v-for="item in log.values">
                                 <tr v-if="log.type === 'failure'" class="ifcb-import-failure">
-                                    <td class="ifcb-td-title" colspan="2">#${log.line} {{ lang.tl_import_from_csv.data_record_insert_failed }}
-                                        <template v-if="log.text !== ''"><br><br>Exception!<br><br>${log.text}</template>
-                                    </td>
+                                    <td class="col_0">${item.column.substr(0,30)}</td>
+                                    <td class="col_1">${item.value.substr(0,90)}</td>
                                 </tr>
-
                                 <tr v-if="log.type === 'success'" class="ifcb-import-success">
-                                    <td class="ifcb-td-title" colspan="2">#${log.line} {{ lang.tl_import_from_csv.data_record_insert_succeed }}</td>
+                                    <td class="col_0">${item.column.substr(0,30)}</td>
+                                    <td class="col_1">${item.value.substr(0,90)}</td>
                                 </tr>
-
-                                <template v-for="item in log.values">
-                                    <tr v-if="log.type === 'failure'" class="ifcb-import-failure">
-                                        <td class="col_0">${item.column.substr(0,30)}</td>
-                                        <td class="col_1">${item.value.substr(0,90)}</td>
-                                    </tr>
-                                    <tr v-if="log.type === 'success'" class="ifcb-import-success">
-                                        <td class="col_0">${item.column.substr(0,30)}</td>
-                                        <td class="col_1">${item.value.substr(0,90)}</td>
-                                    </tr>
-                                </template>
-
-                                <tr class="ifcb-delim">
-                                    <td class="col_0">&nbsp;</td>
-                                    <td class="col_1">&nbsp;</td>
-                                </tr>
-
                             </template>
+
+                            <tr class="ifcb-delim">
+                                <td class="col_0">&nbsp;</td>
+                                <td class="col_1">&nbsp;</td>
+                            </tr>
+
+                        </template>
                         </tbody>
                     </table>
                 </div>
@@ -108,9 +108,6 @@
 </div>
 
 <script>
-    new ImportFromCsvApp('#ifcbImportFromCsvApp', {
-        id: {{ form.input.id }},
-        taskId: '{{ form.input.taskId }}',
-        csrfToken: '{{ form.input.csrfToken }}',
-    });
+    new ImportFromCsvApp('#ifcbImportFromCsvApp', '{{ appMountUrl|raw }}');
 </script>
+

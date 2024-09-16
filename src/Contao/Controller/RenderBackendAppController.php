@@ -24,6 +24,7 @@ use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as TwigEnvironment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -35,11 +36,12 @@ class RenderBackendAppController
     private readonly Adapter $importFromCsvModel;
 
     public function __construct(
+        private readonly ContaoCsrfTokenManager $csrfTokenManager,
         private readonly ContaoFramework $framework,
         private readonly ImportFromCsvHelper $importFromCsvHelper,
-        private readonly ContaoCsrfTokenManager $csrfTokenManager,
-        private readonly TwigEnvironment $twig,
         private readonly RequestStack $requestStack,
+        private readonly RouterInterface $router,
+        private readonly TwigEnvironment $twig,
     ) {
         $this->controller = $this->framework->getAdapter(Controller::class);
         $this->importFromCsvModel = $this->framework->getAdapter(ImportFromCsvModel::class);
@@ -79,10 +81,16 @@ class RenderBackendAppController
                     'action' => $request->getUri(),
                     'input' => [
                         'id' => $request->query->get('id'),
-                        'taskId' => uniqid(),
-                        'csrfToken' => $csrfToken,
                     ],
+                    'csrfToken' => $csrfToken,
                 ],
+                'appMountUrl' => $this->router->generate('contao_backend',[
+                    'do' => 'import_from_csv',
+                    'key' => 'appMountAction',
+                    'id' => $request->query->get('id'),
+                    'taskId' => uniqid(),
+                    'token' => $this->csrfTokenManager->getDefaultTokenValue(),
+                ]),
             ]
         ));
     }

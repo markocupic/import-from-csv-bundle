@@ -1,7 +1,7 @@
 /*
  * This file is part of Import From CSV Bundle.
  *
- * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2024 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -9,7 +9,7 @@
  */
 
 class ImportFromCsvApp {
-    constructor(vueElement, options) {
+    constructor(vueElement, appMountUrl) {
 
         const {createApp} = Vue
 
@@ -23,11 +23,6 @@ class ImportFromCsvApp {
                     urlStack: [],
                     requestsDone: 0,
                     requestsNeeded: 0,
-                    options: {
-                        id: null,
-                        csrfToken: '',
-                        taskId: '',
-                    },
                     model: {
                         urls: [],
                         count: 0,
@@ -66,18 +61,16 @@ class ImportFromCsvApp {
             // This function will be called when the component is mounted.
             mounted() {
                 // Override defaults
-                this.options = {...this.options, ...options}
                 this.$nextTick(function () {
                     // Code that will run only after the
                     // entire view has been rendered
-                    this.appMountAction();
+                    this.appMountAction(appMountUrl);
                 });
             },
 
             methods: {
-                appMountAction() {
-
-                    fetch('contao?do=import_from_csv&key=appMountAction&id=' + this.options.id + '&taskId=' + this.options.taskId + '&token=' + this.options.csrfToken,
+                appMountAction(appMountUrl) {
+                    fetch(appMountUrl,
                         {
                             method: "GET",
                             headers: {
@@ -124,7 +117,9 @@ class ImportFromCsvApp {
                         return;
                     }
 
-                    fetch(url + '&isTestMode=' + isTestMode + '&taskId=' + this.options.taskId + '&token=' + this.options.csrfToken, {
+                    url = url.replace('_isTestMode_', true === isTestMode ? 'true' : 'false');
+
+                    fetch(url, {
                         method: "GET",
                         headers: {
                             'x-requested-with': 'XMLHttpRequest'
@@ -196,7 +191,7 @@ class ImportFromCsvApp {
 
             },
         });
-        
+
         app.config.compilerOptions.delimiters = ['${', '}'];
         return app.mount(vueElement);
 

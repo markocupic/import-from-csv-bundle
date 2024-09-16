@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Import From CSV Bundle.
  *
- * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2024 <m.cupic@gmx.ch>
  * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -26,6 +26,7 @@ use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 
 class MountAppAjaxController extends AbstractController
@@ -36,9 +37,10 @@ class MountAppAjaxController extends AbstractController
     private readonly Adapter $reader;
 
     public function __construct(
-        private readonly ContaoFramework $framework,
         private readonly ContaoCsrfTokenManager $csrfTokenManager,
+        private readonly ContaoFramework $framework,
         private readonly RequestStack $requestStack,
+        private readonly RouterInterface $router,
         private readonly string $projectDir,
         private readonly string $csrfTokenName,
         private readonly int $perRequest,
@@ -105,15 +107,17 @@ class MountAppAjaxController extends AbstractController
                 $limit = $this->perRequest;
             }
 
-            $arrUrl[] = sprintf(
-                'contao?do=import_from_csv&key=importAction&id=%s&taskId=%s&offset=%s&limit=%s&req_num=%stoken=%s',
-                $id,
-                $taskId,
-                $offset + $i * $this->perRequest,
-                $limit,
-                $i + 1,
-                $token,
-            );
+            $arrUrl[] = $this->router->generate('contao_backend', [
+                'do' => 'import_from_csv',
+                'key' => 'importAction',
+                'id' => $id,
+                'taskId' => $taskId,
+                'offset' => $offset + $i * $this->perRequest,
+                'limit' => $limit,
+                'req_num' => $i + 1,
+                'token' => $token,
+                'isTestMode' => '_isTestMode_',
+            ]);
         }
 
         $arrData['model']['limit'] = $objModel->limit;
