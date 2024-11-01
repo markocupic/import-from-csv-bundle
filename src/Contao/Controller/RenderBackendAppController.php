@@ -58,38 +58,41 @@ class RenderBackendAppController
         // Load language file
         $this->controller->loadLanguageFile('tl_import_from_csv');
 
-        $request = $this->requestStack->getCurrentRequest();
         $model = $this->importFromCsvModel->findByPk($dc->id);
-        $arrData = $model->row();
-
-        $csrfToken = $this->csrfTokenManager->getDefaultTokenValue();
 
         return new Response($this->twig->render(
             '@MarkocupicImportFromCsv/import.html.twig',
             [
-                'backHref' => 'contao?do=import_from_csv',
-                'editHref' => sprintf('contao?do=import_from_csv&act=edit&id=%s&rt=%s', $dc->id, $csrfToken),
-                'model' => $arrData,
-                'head' => [
+                'backHref'    => $this->router->generate('contao_backend', [
+                    'do' => 'import_from_csv',
+                ]),
+                'editHref'    => $this->router->generate('contao_backend', [
+                    'do'  => 'import_from_csv',
+                    'act' => 'edit',
+                    'id'  => $dc->id,
+                    'rt'  => $this->csrfTokenManager->getDefaultTokenValue(),
+                ]),
+                'model'       => $model->row(),
+                'head'        => [
                     'countRows' => $this->importFromCsvHelper->countRows($model),
                 ],
-                'lang' => [
-                    'MSC' => $GLOBALS['TL_LANG']['MSC'],
+                'lang'        => [
+                    'MSC'                => $GLOBALS['TL_LANG']['MSC'],
                     'tl_import_from_csv' => $GLOBALS['TL_LANG']['tl_import_from_csv'],
                 ],
-                'form' => [
-                    'action' => $request->getUri(),
-                    'input' => [
-                        'id' => $request->query->get('id'),
+                'form'        => [
+                    'action'    => $this->requestStack->getCurrentRequest()->getUri(),
+                    'input'     => [
+                        'id' => $dc->id,
                     ],
-                    'csrfToken' => $csrfToken,
+                    'csrfToken' => $this->csrfTokenManager->getDefaultTokenValue(),
                 ],
-                'appMountUrl' => $this->router->generate('contao_backend',[
-                    'do' => 'import_from_csv',
-                    'key' => 'appMountAction',
-                    'id' => $request->query->get('id'),
+                'appMountUrl' => $this->router->generate('contao_backend', [
+                    'do'     => 'import_from_csv',
+                    'key'    => 'appMountAction',
+                    'id'     => $dc->id,
                     'taskId' => uniqid(),
-                    'token' => $this->csrfTokenManager->getDefaultTokenValue(),
+                    'token'  => $this->csrfTokenManager->getDefaultTokenValue(),
                 ]),
             ]
         ));
