@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Import From CSV Bundle.
  *
- * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
+ * (c) Marko Cupic <m.cupic@gmx.ch>
  * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -124,9 +124,9 @@ class ImportFromCsv
 
         foreach (array_keys($arrLCFields) as $k) {
             $sql = $arrDcaFields[$k]['sql'] ?? '';
-            $sql = is_array($sql) ? json_encode($sql) : $sql;
+            $sql = \is_array($sql) ? json_encode($sql) : $sql;
             $strSql = !empty($sql) ? sprintf(' <span class="ifcb-sql-descr">[%s]</span>', $sql) : '';
-            
+
             // If exists, take the column name from the DCA
             $strField = $arrDcaFields[$k]['strField'] ?? $k;
             $arrOptions[$strField] = $strField.$strSql;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Import From CSV Bundle.
  *
- * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
+ * (c) Marko Cupic <m.cupic@gmx.ch>
  * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -26,7 +26,7 @@ class ImportFromCsvHookExample
 
     private string|null $curlErrorMsg;
 
-    public function __invoke(Widget $objWidget, array $arrRecord, int $line, ImportFromCsv $importFromCsv = null): void
+    public function __invoke(Widget $objWidget, array $arrRecord, int $line, ?ImportFromCsv $importFromCsv = null): void
     {
         // tl_member
         if ('tl_super_member' === $objWidget->strTable) {
