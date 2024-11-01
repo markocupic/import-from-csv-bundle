@@ -1,6 +1,6 @@
 ![Logo](https://github.com/markocupic/markocupic/blob/main/logo.png)
 
-# Import from CSV (Backend Modul für Contao 4.x)
+# Import from CSV (Backend Modul für Contao CMS)
 
 Mit dem Modul lassen sich in einem Rutsch über eine CSV Datei massenhaft Datensätze importieren.
   Sehr praktisch, wenn z.B. sehr viele Benutzer oder Mitglieder generiert werden müssen.
