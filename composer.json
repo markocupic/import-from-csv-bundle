@@ -12,6 +12,10 @@
     {
       "name": "Marko Cupic",
       "homepage": "https://github.com/markocupic/import-from-csv-bundle"
+    },
+    {
+      "name": "Alexander Kehr",
+      "homepage": "https://www.kehr-solutions.de"
     }
   ],
   "require": {
@@ -38,7 +42,8 @@
     "allow-plugins": {
       "contao/manager-plugin": true,
       "contao-components/installer": true,
-      "dealerdirect/phpcodesniffer-composer-installer": true
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "php-http/discovery": true
     }
   }
 }
