@@ -288,7 +288,7 @@ class ImportFromCsv
                         $objWidget->getErrorsAsString(' '),
                     );
                 } else {
-                    $set[$objWidget->strField] = \is_array($objWidget->value) ? serialize($objWidget->value) : $objWidget->value;
+                    $set[$this->connection->quoteIdentifier($objWidget->strField)] = \is_array($objWidget->value) ? serialize($objWidget->value) : $objWidget->value;
                 }
             } // End foreach column
 
