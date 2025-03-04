@@ -1,49 +1,45 @@
 {
-  "name": "markocupic/import-from-csv-bundle",
-  "description": "Backend extension for the Contao Open Source CMS. Import data records from a CSV spreadsheet.",
-  "keywords": [
-    "contao",
-    "import from csv",
-    "spreadsheet"
-  ],
-  "type": "contao-module",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Marko Cupic",
-      "homepage": "https://github.com/markocupic/import-from-csv-bundle"
+    "name": "markocupic/import-from-csv-bundle",
+    "description": "Backend extension for the Contao Open Source CMS. Import data records from a CSV spreadsheet.",
+    "keywords": [
+        "contao",
+        "import from csv",
+        "spreadsheet"
+    ],
+    "type": "contao-module",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marko Cupic",
+            "homepage": "https://github.com/markocupic/import-from-csv-bundle"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "contao/core-bundle": "^4.13 || ^5.0",
+        "league/csv": "^9.1"
     },
-    {
-      "name": "Alexander Kehr",
-      "homepage": "https://www.kehr-solutions.de"
+    "require-dev": {
+        "contao/easy-coding-standard": "^5.0",
+        "contao/manager-plugin": "^2.3.1",
+        "contao/test-case": "^4.6",
+        "phpunit/phpunit": "^9.3",
+        "symfony/phpunit-bridge": "^5.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Markocupic\\ImportFromCsvBundle\\": "src/"
+        }
+    },
+    "extra": {
+        "contao-manager-plugin": "Markocupic\\ImportFromCsvBundle\\ContaoManager\\Plugin"
+    },
+    "config": {
+        "allow-plugins": {
+            "contao/manager-plugin": true,
+            "contao-components/installer": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "php-http/discovery": true
+        }
     }
-  ],
-  "require": {
-    "php": "^8.1",
-    "contao/core-bundle": "^4.13 || ^5.0",
-    "league/csv": "^9.1"
-  },
-  "require-dev": {
-    "contao/easy-coding-standard": "^5.0",
-    "contao/manager-plugin": "^2.3.1",
-    "contao/test-case": "^4.6",
-    "phpunit/phpunit": "^9.3",
-    "symfony/phpunit-bridge": "^5.4"
-  },
-  "autoload": {
-    "psr-4": {
-      "Markocupic\\ImportFromCsvBundle\\": "src/"
-    }
-  },
-  "extra": {
-    "contao-manager-plugin": "Markocupic\\ImportFromCsvBundle\\ContaoManager\\Plugin"
-  },
-  "config": {
-    "allow-plugins": {
-      "contao/manager-plugin": true,
-      "contao-components/installer": true,
-      "dealerdirect/phpcodesniffer-composer-installer": true,
-      "php-http/discovery": true
-    }
-  }
 }
