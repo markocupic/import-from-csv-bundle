@@ -24,9 +24,8 @@ class Formatter
 {
     private readonly Adapter $stringUtil;
 
-    public function __construct(
-        private readonly ContaoFramework $framework,
-    ) {
+    public function __construct(private readonly ContaoFramework $framework)
+    {
         $this->stringUtil = $this->framework->getAdapter(StringUtil::class);
     }
 
@@ -90,7 +89,7 @@ class Formatter
                 return $tstamp;
             }
 
-            $objWidget->addError(sprintf('Invalid value "%s" set for field "%s.%s".', $varValue, $objWidget->strTable, $objWidget->strField));
+            $objWidget->addError(\sprintf('Invalid value "%s" set for field "%s.%s".', $varValue, $objWidget->strTable, $objWidget->strField));
         }
 
         return $varValue;

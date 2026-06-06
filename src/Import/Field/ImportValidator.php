@@ -46,10 +46,10 @@ class ImportValidator
         if ('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) {
             if (!$this->validator->{'is'.ucfirst($rgxp)}($varValue)) {
                 $objWidget->addError(
-                    sprintf(
+                    \sprintf(
                         $this->translator->trans('ERR.invalidDate', [], 'contao_default'),
                         $objWidget->value,
-                    )
+                    ),
                 );
             }
         }
@@ -65,7 +65,7 @@ class ImportValidator
             $varValue = $objWidget->value;
 
             if (\strlen((string) $varValue)) {
-                $query = sprintf(
+                $query = \sprintf(
                     'SELECT id FROM %s WHERE %s = ?',
                     $objWidget->strTable,
                     $objWidget->strField,
@@ -73,10 +73,10 @@ class ImportValidator
 
                 if ($this->connection->fetchOne($query, [$varValue])) {
                     $objWidget->addError(
-                        sprintf(
+                        \sprintf(
                             $this->translator->trans('ERR.unique', [], 'contao_default'),
                             $objWidget->strField,
-                        )
+                        ),
                     );
                 }
             }

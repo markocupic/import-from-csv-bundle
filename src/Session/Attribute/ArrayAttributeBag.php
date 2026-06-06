@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
 class ArrayAttributeBag extends AttributeBag implements \ArrayAccess
 {
     public const ATTRIBUTE_NAME = 'markocupic_import_from_csv';
+
     public const ATTRIBUTE_KEY = '_markocupic_import_from_csv_attributes';
 
     public function offsetExists($offset): bool

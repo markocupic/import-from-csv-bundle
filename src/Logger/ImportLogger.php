@@ -21,11 +21,11 @@ use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 class ImportLogger
 {
     public const LOG_LEVEL_FAILURE = 'failure';
+
     public const LOG_LEVEL_SUCCESS = 'success';
 
-    public function __construct(
-        private readonly RequestStack $requestStack,
-    ) {
+    public function __construct(private readonly RequestStack $requestStack)
+    {
     }
 
     public function initialize(string $taskId = ''): string

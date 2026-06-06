@@ -32,8 +32,11 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 class MountAppAjaxController extends AbstractController
 {
     private readonly Adapter $filesModel;
+
     private readonly Adapter $importFromCsvModel;
+
     private readonly Adapter $stringUtil;
+
     private readonly Adapter $reader;
 
     public function __construct(
@@ -65,7 +68,7 @@ class MountAppAjaxController extends AbstractController
             throw new \Exception('Invalid token!');
         }
 
-        $objModel = $this->importFromCsvModel->findByPk($id);
+        $objModel = $this->importFromCsvModel->findById($id);
 
         if (null === $objModel) {
             throw new \Exception('Import from csv model not found.');

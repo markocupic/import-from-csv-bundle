@@ -18,6 +18,7 @@ use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\Date;
 use Contao\DC_Table;
 use Contao\File;
 use Contao\Input;
@@ -40,15 +41,22 @@ use Symfony\Component\HttpFoundation\RequestStack;
 class ImportFromCsv
 {
     private array $arrData = [];
+
     private int $currentLine = 0;
+
     private int $insertErrors = 0;
+
     private int $countProcessedRows = 0;
+
     private array $insertExceptions = [];
 
     // Adapters
     private Adapter $config;
+
     private Adapter $controller;
+
     private Adapter $input;
+
     private Adapter $system;
 
     public function __construct(
@@ -101,16 +109,17 @@ class ImportFromCsv
 
         // Throw an exception if the submitted string length is not equal to 1 byte.
         if (\strlen($strDelimiter) > 1) {
-            throw new \Exception(sprintf('%s expects field delimiter to be a single character. %s given.', __METHOD__, $strDelimiter));
+            throw new \Exception(\sprintf('%s expects field delimiter to be a single character. %s given.', __METHOD__, $strDelimiter));
         }
 
         // Throw an exception if the submitted string length is not equal to 1 byte.
         if (\strlen($strEnclosure) > 1) {
-            throw new \Exception(sprintf('%s expects field enclosure to be a single character. %s given.', __METHOD__, $strEnclosure));
+            throw new \Exception(\sprintf('%s expects field enclosure to be a single character. %s given.', __METHOD__, $strEnclosure));
         }
 
-        // If the CSV document was created or is read on a Macintosh computer,
-        // add the following lines before using the library to help PHP detect line ending in Mac OS X.
+        // If the CSV document was created or is read on a Macintosh computer, add the
+        // following lines before using the library to help PHP detect line ending in Mac
+        // OS X.
         if (!\ini_get('auto_detect_line_endings')) {
             ini_set('auto_detect_line_endings', '1');
         }
@@ -179,7 +188,8 @@ class ImportFromCsv
             $stmt = $stmt->limit($intLimit);
         }
 
-        // Get each line as an associative array -> ['columnName1' => 'value1',  'columnName2' => 'value2']
+        // Get each line as an associative array -> ['columnName1' => 'value1',
+        // 'columnName2' => 'value2']
         $arrRecords = $stmt->process($objCsvReader);
 
         // Process each row and filter/skip empty or not allowed values/columns
@@ -235,14 +245,14 @@ class ImportFromCsv
                 // Convert strings to array
                 $varValue = $this->formatter->convertToArray($varValue, $arrDca, $this->arrData['strArrayDelimiter']);
 
-                // Set $_POST, so the content can be validated
+                // Input::setPost($varValue), so the content can be validated
                 $this->input->setPost($columnName, $varValue);
 
-                // Widget::getPost() takes the value from current request
+                // Widget::getPost() takes the (input encoded) value from current request
                 $request = $this->requestStack->getCurrentRequest();
                 $request->request->set($columnName, $varValue);
 
-                // Get the right widget for input validation, etc.
+                // Get the correct widget for input validation, etc.
                 $objWidget = $this->getWidgetFromDca($arrDca, $columnName, $this->arrData['tableName'], $varValue);
 
                 // Trigger the importFromCsv HOOK:
@@ -258,8 +268,8 @@ class ImportFromCsv
                 // Special treatment for password
                 if ('password' === $arrDca['inputType']) {
                     $this->input->setPost('password_confirm', $objWidget->value);
-                    // Later we will use a post insert listener to set the correct password
-                    // with the correct password hasher.
+                    // Later we will use a post-insert listener to set the correct password with the
+                    // correct password hasher.
                 }
 
                 // Skip validation for selected fields
@@ -282,18 +292,18 @@ class ImportFromCsv
 
                 if ($objWidget->hasErrors()) {
                     $doNotSave = true;
-                    $arrReportValues[$objWidget->strField] = sprintf(
+                    $arrReportValues[$objWidget->strField] = \sprintf(
                         '"%s" => %s',
                         $objWidget->value,
                         $objWidget->getErrorsAsString(' '),
                     );
                 } else {
-                    $set[$this->connection->quoteIdentifier($objWidget->strField)] = \is_array($objWidget->value) ? serialize($objWidget->value) : $objWidget->value;
+                    $set[$objWidget->strField] = \is_array($objWidget->value) ? serialize($objWidget->value) : $objWidget->value;
                 }
             } // End foreach column
 
             if (!$doNotSave) {
-                // Auto insert "tstamp"
+                // Auto-insert "tstamp"
                 if ($this->columnExists('tstamp', $this->arrData['tableName'])) {
                     if (!isset($set['tstamp']) || '' === $set['tstamp']) {
                         $set['tstamp'] = time();
@@ -301,11 +311,11 @@ class ImportFromCsv
                     }
                 }
 
-                // Auto insert "dateAdded"
+                // Auto-insert "dateAdded"
                 if ($this->columnExists('dateAdded', $this->arrData['tableName'])) {
                     if (!isset($set['dateAdded']) || '' === $set['dateAdded']) {
                         $set['dateAdded'] = time();
-                        $arrReportValues['dateAdded'] = date($this->config->get('dateFormat'), time());
+                        $arrReportValues['dateAdded'] = Date::parse($this->config->get('dateFormat'), time());
                     }
                 }
 
@@ -315,7 +325,7 @@ class ImportFromCsv
 
                     try {
                         $this->connection->beginTransaction();
-                        $this->connection->insert($this->arrData['tableName'], $set);
+                        $this->connection->insert($this->arrData['tableName'], $this->quoteKeys($set));
                         $insertId = (int) $this->connection->lastInsertId();
                         $this->connection->commit();
                     } catch (\Exception $e) {
@@ -324,7 +334,7 @@ class ImportFromCsv
                         $this->connection->rollBack();
                     }
 
-                    // Dispatch import_from_csv.post_import event (Add newsletter recipients, ...)
+                    // Dispatch the import_from_csv.post_import event (Add newsletter recipients, ...)
                     if ($insertId) {
                         $event = new PostImportEvent($tableName, $set, $insertId, $arrLine, $this);
                         $this->eventDispatcher->dispatch($event, PostImportEvent::NAME);
@@ -332,9 +342,9 @@ class ImportFromCsv
                 }
             }
 
-            // Collect data for the logger screen in the Contao backend
-            // The logger service requires a running session.
-            // Do not run the logger if there is no request (e.g. cron jobs)
+            // Collect data for the logger screen in the Contao backend The logger service
+            // requires a running session. Do not run the logger if there is no request (e.g.
+            // cron jobs)
             if ($this->importLogger->hasInitialized($taskId)) {
                 $arrLog = [];
                 $arrLog['line'] = $this->currentLine;
@@ -346,7 +356,7 @@ class ImportFromCsv
                     // Increment the error counter
                     ++$this->insertErrors;
                 } elseif ($this->hasInsertExceptions()) {
-                    // If an exception has been thrown in a post insert listener...
+                    // If an exception has been thrown in a post-insert listener...
                     $arrLog['type'] = 'failure';
                     $arrLog['text'] = $this->getInsertExceptionsAsString();
 
@@ -371,9 +381,9 @@ class ImportFromCsv
                 }
 
                 if ('failure' === $arrLog['type']) {
-                    $this->importLogger->addFailure($this->getData('taskId'), $arrLog['line'] ?? 0, $arrLog['text'] ?? '', $arrLog['values']);
+                    $this->importLogger->addFailure($this->getData('taskId'), $arrLog['line'], $arrLog['text'], $arrLog['values']);
                 } else {
-                    $this->importLogger->addSuccess($this->getData('taskId'), $arrLog['line'] ?? 0, $arrLog['text'] ?? '', $arrLog['values']);
+                    $this->importLogger->addSuccess($this->getData('taskId'), $arrLog['line'], $arrLog['text'], $arrLog['values']);
                 }
             }
         }// End for each data record
@@ -413,7 +423,7 @@ class ImportFromCsv
      */
     public function getPrimaryKey(string $tableName): ?string
     {
-        $stmt = $this->connection->executeQuery('SHOW INDEX FROM '.$tableName." WHERE Key_name = 'PRIMARY'");
+        $stmt = $this->connection->executeQuery("SHOW INDEX FROM $tableName WHERE Key_name = 'PRIMARY'");
 
         while (($row = $stmt->fetchAssociative()) !== false) {
             if (!empty($row['Column_name'])) {
@@ -499,5 +509,16 @@ class ImportFromCsv
     public function addInsertException(\Exception $e): void
     {
         $this->insertExceptions[] = $e;
+    }
+
+    private function quoteKeys(array $record): array
+    {
+        $quotedRecord = [];
+
+        foreach ($record as $k => $v) {
+            $quotedRecord[$this->connection->quoteIdentifier($k)] = $v;
+        }
+
+        return $quotedRecord;
     }
 }

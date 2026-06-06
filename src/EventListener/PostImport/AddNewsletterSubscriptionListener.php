@@ -62,7 +62,7 @@ final class AddNewsletterSubscriptionListener
                 [
                     $row['email'],
                     $newsletterId,
-                ]
+                ],
             );
 
             if (!$id) {

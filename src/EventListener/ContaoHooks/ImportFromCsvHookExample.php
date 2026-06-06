@@ -22,6 +22,7 @@ use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
 class ImportFromCsvHookExample
 {
     public const HOOK = 'importFromCsv';
+
     public const PRIORITY = 100;
 
     private string|null $curlErrorMsg;
@@ -46,7 +47,7 @@ class ImportFromCsvHookExample
                 $strAddress = $strStreet.',+'.$strCity.',+'.$strCountry;
 
                 // Get Position from GoogleMaps
-                $arrPos = $this->curlGetCoordinates(sprintf('https://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false', $strAddress));
+                $arrPos = $this->curlGetCoordinates(\sprintf('https://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false', $strAddress));
 
                 if (null !== $arrPos && \is_array($arrPos['results'][0]['geometry'])) {
                     $latPos = $arrPos['results'][0]['geometry']['location']['lat'];
@@ -58,7 +59,7 @@ class ImportFromCsvHookExample
                     if ('' !== $this->curlErrorMsg) {
                         $objWidget->addError($this->curlErrorMsg);
                     } else {
-                        $objWidget->addError(sprintf('Setting geolocation for (%s) failed!', $strAddress));
+                        $objWidget->addError(\sprintf('Setting geolocation for (%s) failed!', $strAddress));
                     }
                 }
             }

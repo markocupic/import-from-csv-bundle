@@ -25,12 +25,17 @@ use Psr\Log\LoggerInterface;
 class Cron
 {
     public const CRON_MINUTELY = 'minutely';
+
     public const CRON_HOURLY = 'hourly';
+
     public const CRON_DAILY = 'daily';
+
     public const CRON_WEEKLY = 'weekly';
+
     public const CRON_MONTHLY = 'monthly';
 
     private readonly Adapter $importFromCsvModel;
+
     private readonly Adapter $filesModel;
 
     public function __construct(
@@ -86,7 +91,7 @@ class Cron
                     if (true === $this->importFromCsvHelper->importFromModel($objImportModel->current())) {
                         // Log new insert
                         if (null !== $this->contaoCronLogger) {
-                            $strText = sprintf('Cron %s: Imported csv file "%s" into %s.', $cronLevel, $objFile->path, $strTable);
+                            $strText = \sprintf('Cron %s: Imported csv file "%s" into %s.', $cronLevel, $objFile->path, $strTable);
                             $this->contaoCronLogger->info($strText);
                         }
                     }

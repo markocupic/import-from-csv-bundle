@@ -29,6 +29,7 @@ use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 class ImportFromCsvHelper
 {
     private readonly Adapter $filesModel;
+
     private readonly Adapter $stringUtil;
 
     public function __construct(

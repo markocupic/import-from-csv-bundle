@@ -22,9 +22,6 @@ use Markocupic\ImportFromCsvBundle\MarkocupicImportFromCsvBundle;
 
 class Plugin implements BundlePluginInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getBundles(ParserInterface $parser): array
     {
         return [

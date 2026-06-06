@@ -21,9 +21,8 @@ use Doctrine\DBAL\Exception;
 
 class Version5Migration extends AbstractMigration
 {
-    public function __construct(
-        private readonly Connection $connection,
-    ) {
+    public function __construct(private readonly Connection $connection)
+    {
     }
 
     /**
@@ -35,8 +34,8 @@ class Version5Migration extends AbstractMigration
 
         $schemaManager = $this->connection->createSchemaManager();
 
-        // Version 5 migration: "Rename fields"
-        // If the database table itself does not exist we should do nothing
+        // Version 5 migration: "Rename fields" If the database table itself does not
+        // exist we should do nothing
         if ($schemaManager->tablesExist(['tl_import_from_csv'])) {
             $columns = $schemaManager->listTableColumns('tl_import_from_csv');
 
@@ -69,7 +68,7 @@ class Version5Migration extends AbstractMigration
 
             foreach ($arrAlterations as $arrAlteration) {
                 if (isset($columns[$arrAlteration['old']]) && !isset($columns[$arrAlteration['new']])) {
-                    $strQuery = sprintf(
+                    $strQuery = \sprintf(
                         'ALTER TABLE tl_import_from_csv CHANGE `%s` `%s` %s',
                         $arrAlteration['old'],
                         $arrAlteration['new'],
@@ -77,7 +76,7 @@ class Version5Migration extends AbstractMigration
                     );
                     $this->connection->query($strQuery);
 
-                    $arrMessage[] = sprintf(
+                    $arrMessage[] = \sprintf(
                         'Rename field tl_import_from_csv.%s to tl_import_from_csv.%s.',
                         $arrAlteration['old'],
                         $arrAlteration['new'],
@@ -88,7 +87,7 @@ class Version5Migration extends AbstractMigration
 
         return new MigrationResult(
             true,
-            implode(' ', $arrMessage)
+            implode(' ', $arrMessage),
         );
     }
 

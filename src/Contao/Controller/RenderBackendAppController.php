@@ -33,6 +33,7 @@ use Twig\Error\SyntaxError;
 class RenderBackendAppController
 {
     private readonly Adapter $controller;
+
     private readonly Adapter $importFromCsvModel;
 
     public function __construct(
@@ -58,7 +59,7 @@ class RenderBackendAppController
         // Load language file
         $this->controller->loadLanguageFile('tl_import_from_csv');
 
-        $model = $this->importFromCsvModel->findByPk($dc->id);
+        $model = $this->importFromCsvModel->findById($dc->id);
 
         return new Response($this->twig->render(
             '@MarkocupicImportFromCsv/import.html.twig',
@@ -94,7 +95,7 @@ class RenderBackendAppController
                     'taskId' => uniqid(),
                     'token' => $this->csrfTokenManager->getDefaultTokenValue(),
                 ]),
-            ]
+            ],
         ));
     }
 }

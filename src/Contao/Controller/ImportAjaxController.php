@@ -30,6 +30,7 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 class ImportAjaxController extends AbstractController
 {
     private readonly Adapter $importFromCsvModel;
+
     private readonly Adapter $filesModel;
 
     public function __construct(
@@ -65,7 +66,7 @@ class ImportAjaxController extends AbstractController
             $this->importLogger->initialize($taskId);
         }
 
-        if (null !== ($objImportFromCsvModel = $this->importFromCsvModel->findByPk($id))) {
+        if (null !== ($objImportFromCsvModel = $this->importFromCsvModel->findById($id))) {
             if (null !== $this->filesModel->findByUuid($objImportFromCsvModel->fileSRC)) {
                 $objImportFromCsvModel->offset = $offset;
                 $objImportFromCsvModel->limit = $limit;
