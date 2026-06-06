@@ -32,6 +32,7 @@ use Twig\Error\SyntaxError;
 class ImportFromCsv
 {
     private readonly Adapter $controller;
+
     private readonly Adapter $filesModel;
 
     public function __construct(
@@ -48,12 +49,9 @@ class ImportFromCsv
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.explanation.input_field', priority: 100)]
     public function generateExplanationMarkup(): string
     {
-        return $this->twig->render(
-            '@MarkocupicImportFromCsv/help_text.html.twig',
-            [
-                'help_text' => $this->translator->trans('tl_import_from_csv.info_text', [], 'contao_default'),
-            ]
-        );
+        return $this->twig->render('@MarkocupicImportFromCsv/help_text.html.twig', [
+            'help_text' => $this->translator->trans('tl_import_from_csv.info_text', [], 'contao_default'),
+        ]);
     }
 
     /**
@@ -72,13 +70,10 @@ class ImportFromCsv
 
         $objFile = new File($objFilesModel->path);
 
-        return $this->twig->render(
-            '@MarkocupicImportFromCsv/file_content.html.twig',
-            [
-                'headline' => $this->translator->trans('tl_import_from_csv.fileContent.0', [], 'contao_default'),
-                'rows' => $objFile->getContentAsArray(),
-            ]
-        );
+        return $this->twig->render('@MarkocupicImportFromCsv/file_content.html.twig', [
+            'headline' => $this->translator->trans('tl_import_from_csv.fileContent.0', [], 'contao_default'),
+            'rows' => $objFile->getContentAsArray(),
+        ]);
     }
 
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.importTable.options', priority: 100)]
@@ -125,7 +120,7 @@ class ImportFromCsv
         foreach ($arrLCFields as $field) {
             $sql = $arrDcaFields[$field->getName()]['sql'] ?? '';
             $sql = \is_array($sql) ? json_encode($sql) : $sql;
-            $strSql = !empty($sql) ? sprintf(' <span class="ifcb-sql-descr">[%s]</span>', $sql) : '';
+            $strSql = !empty($sql) ? \sprintf(' <span class="ifcb-sql-descr">[%s]</span>', $sql) : '';
 
             // If exists, take the column name from the DCA
             $strField = $arrDcaFields[$field->getName()]['strField'] ?? $field->getName();
