@@ -27,28 +27,28 @@ class ImportValidator
     private readonly Adapter $validator;
 
     public function __construct(
+        private readonly Connection $connection,
         private readonly ContaoFramework $framework,
         private readonly TranslatorInterface $translator,
-        private readonly Connection $connection,
     ) {
         $this->validator = $this->framework->getAdapter(Validator::class);
     }
 
-    public function checkIsValidDate(Widget $objWidget, array $arrDca): void
+    public function checkIsValidDate(Widget $widget, array $dca): void
     {
-        $varValue = $objWidget->value;
-        $rgxp = $arrDca['eval']['rgxp'] ?? null;
+        $value = $widget->value;
+        $rgxp = $dca['eval']['rgxp'] ?? null;
 
-        if (!$rgxp || !\strlen((string) $varValue)) {
+        if (!$rgxp || !\strlen((string) $value)) {
             return;
         }
 
         if ('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) {
-            if (!$this->validator->{'is'.ucfirst($rgxp)}($varValue)) {
-                $objWidget->addError(
+            if (!$this->validator->{'is'.ucfirst($rgxp)}($value)) {
+                $widget->addError(
                     \sprintf(
                         $this->translator->trans('ERR.invalidDate', [], 'contao_default'),
-                        $objWidget->value,
+                        $widget->value,
                     ),
                 );
             }
@@ -58,24 +58,24 @@ class ImportValidator
     /**
      * @throws Exception
      */
-    public function checkIsUnique(Widget $objWidget, array $arrDca): void
+    public function checkIsUnique(Widget $widget, array $dca): void
     {
         // Make sure that unique fields are unique
-        if (isset($arrDca['eval']['unique']) && true === $arrDca['eval']['unique']) {
-            $varValue = $objWidget->value;
+        if (isset($dca['eval']['unique']) && true === $dca['eval']['unique']) {
+            $value = $widget->value;
 
-            if (\strlen((string) $varValue)) {
+            if (\strlen((string) $value)) {
                 $query = \sprintf(
                     'SELECT id FROM %s WHERE %s = ?',
-                    $objWidget->strTable,
-                    $objWidget->strField,
+                    $widget->strTable,
+                    $widget->strField,
                 );
 
-                if ($this->connection->fetchOne($query, [$varValue])) {
-                    $objWidget->addError(
+                if ($this->connection->fetchOne($query, [$value])) {
+                    $widget->addError(
                         \sprintf(
                             $this->translator->trans('ERR.unique', [], 'contao_default'),
-                            $objWidget->strField,
+                            $widget->strField,
                         ),
                     );
                 }

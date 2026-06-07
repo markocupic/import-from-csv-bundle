@@ -15,93 +15,92 @@ declare(strict_types=1);
 namespace Markocupic\ImportFromCsvBundle\Import\Field;
 
 use Contao\Config;
-use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\StringUtil;
 use Contao\Widget;
 
 class Formatter
 {
-    private readonly Adapter $stringUtil;
-
     public function __construct(private readonly ContaoFramework $framework)
     {
-        $this->stringUtil = $this->framework->getAdapter(StringUtil::class);
     }
 
-    public function getCorrectDateFormat(mixed $varValue, array $arrDca): mixed
+    public function getCorrectDateFormat(mixed $value, array $dca): mixed
     {
-        $rgxp = $arrDca['eval']['rgxp'] ?? null;
+        $rgxp = $dca['eval']['rgxp'] ?? null;
 
-        if (('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) && '' !== $varValue) {
-            $configAdapter = $this->framework->getAdapter(Config::class);
-            $df = $configAdapter->get($rgxp.'Format');
+        if (!\is_string($value) || !\strlen($value)) {
+            return $value;
+        }
 
-            if (false !== ($tstamp = strtotime((string) $varValue))) {
-                $varValue = date($df, $tstamp);
+        if ('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) {
+            $df = $this->framework->getAdapter(Config::class)->get($rgxp.'Format');
+
+            if (false !== ($tstamp = strtotime($value))) {
+                $value = date($df, $tstamp);
             }
         }
 
-        return $varValue;
+        return $value;
     }
 
-    public function convertToArray(mixed $varValue, array $arrDca, string $strArrDelim): mixed
+    public function convertToArray(mixed $value, array $dca, string $delimiter): mixed
     {
-        if (!\is_array($varValue) && isset($arrDca['eval']['multiple']) && $arrDca['eval']['multiple']) {
+        if (!\is_array($value) && isset($dca['eval']['multiple']) && $dca['eval']['multiple']) {
             // Convert CSV fields
-            if (isset($arrDca['eval']['csv'])) {
-                if (null === $varValue || '' === $varValue) {
-                    $varValue = [];
+            if (isset($dca['eval']['csv'])) {
+                if (null === $value || '' === $value) {
+                    $value = [];
                 } else {
-                    $varValue = explode($arrDca['eval']['csv'], (string) $varValue);
+                    $value = explode($dca['eval']['csv'], (string) $value);
                 }
-            } elseif (str_contains((string) $varValue, $strArrDelim)) {
+            } elseif (str_contains((string) $value, $delimiter)) {
                 // Value is e.g. 3||4
-                $varValue = explode($strArrDelim, (string) $varValue);
+                $value = explode($delimiter, (string) $value);
             } else {
-                // The value is a serialized array or simple value e.g 3
-                $varValue = $this->stringUtil->deserialize($varValue, true);
+                // The value is a serialized array or simple value e.g., 3
+                $value = $this->framework->getAdapter(StringUtil::class)->deserialize($value, true);
             }
         }
 
-        return $varValue;
+        return $value;
     }
 
-    public function convertDateToTimestamp(Widget $objWidget, array $arrDca): mixed
+    public function strtotime(Widget $widget, array $dca): mixed
     {
-        $varValue = $objWidget->value;
-        $rgxp = $arrDca['eval']['rgxp'] ?? null;
+        $value = $widget->value;
+        $rgxp = $dca['eval']['rgxp'] ?? null;
 
-        if ('tstamp' === $objWidget->name && !empty($varValue)) {
-            if (false !== ($tstamp = strtotime((string) $varValue))) {
+        if ('tstamp' === $widget->name && \is_string($value) && \strlen($value)) {
+            if (false !== ($tstamp = strtotime($value))) {
                 return $tstamp;
             }
         }
 
         if ('date' === $rgxp || 'datim' === $rgxp || 'time' === $rgxp) {
-            $varValue = trim((string) $varValue);
+            $value = trim((string) $value);
 
-            if (empty($varValue)) {
+            if (empty($value)) {
                 return null;
             }
 
-            if (false !== ($tstamp = strtotime($varValue))) {
+            if (false !== ($tstamp = strtotime($value))) {
                 return $tstamp;
             }
 
-            $objWidget->addError(\sprintf('Invalid value "%s" set for field "%s.%s".', $varValue, $objWidget->strTable, $objWidget->strField));
+            $widget->addError(\sprintf('Invalid value "%s" set for field "%s.%s".', $value, $widget->strTable, $widget->strField));
         }
 
-        return $varValue;
+        return $value;
     }
 
-    public function replaceNewlineTags(mixed $varValue): mixed
+    public function replaceNewlineTags(mixed $value): mixed
     {
-        if (\is_string($varValue)) {
-            // Replace all '[NEWLINE]' tags with the end of line tag
-            $varValue = str_replace('[NEWLINE]', PHP_EOL, $varValue);
+        if (\is_string($value)) {
+            // Replace all '[NEWLINE]' tags with the end-of-line tag
+            $value = str_replace('[NEWLINE]', PHP_EOL, $value);
         }
 
-        return $varValue;
+        return $value;
     }
 }

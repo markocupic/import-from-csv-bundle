@@ -25,6 +25,7 @@ use League\Csv\Reader;
 use League\Csv\SyntaxError;
 use League\Csv\UnavailableStream;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
+use Symfony\Component\Filesystem\Path;
 
 class ImportFromCsvHelper
 {
@@ -78,22 +79,35 @@ class ImportFromCsvHelper
      */
     public function importFromModel(ImportFromCsvModel $model, bool $isTestMode = false, string|null $taskId = null): bool
     {
-        $strTable = $model->importTable;
+        $tableName = $model->importTable;
         $importMode = $model->importMode;
-        $arrSelectedFields = $this->stringUtil->deserialize($model->selectedFields, true);
-        $strDelimiter = $model->fieldSeparator;
-        $strEnclosure = $model->fieldEnclosure;
-        $intOffset = (int) $model->offset;
-        $intLimit = (int) $model->limit;
-        $arrSkipValidationFields = $this->stringUtil->deserialize($model->skipValidationFields, true);
-        $objFile = $this->filesModel->findByUuid($model->fileSRC);
+        $selectedFields = $this->stringUtil->deserialize($model->selectedFields, true);
+        $delimiter = $model->fieldSeparator;
+        $enclosure = $model->fieldEnclosure;
+        $offset = (int) $model->offset;
+        $limit = (int) $model->limit;
+        $skipValidationFields = $this->stringUtil->deserialize($model->skipValidationFields, true);
+        $file = $this->filesModel->findByUuid($model->fileSRC);
 
         // Call the import class if file exists
-        if (is_file($this->projectDir.'/'.$objFile->path)) {
-            $objFile = new File($objFile->path);
+        if (is_file(Path::join($this->projectDir, $file->path))) {
+            $csvFile = new File($file->path);
 
-            if ('csv' === strtolower($objFile->extension)) {
-                $this->importFromCsv->importCsv($objFile, $strTable, $importMode, $arrSelectedFields, $strDelimiter, $strEnclosure, '||', $isTestMode, $arrSkipValidationFields, $intOffset, $intLimit, $taskId);
+            if ('csv' === strtolower($csvFile->extension)) {
+                $this->importFromCsv->importCsv(
+                    csvFile: $csvFile,
+                    tableName: $tableName,
+                    importMode: $importMode,
+                    selectedFields: $selectedFields,
+                    delimiter: $delimiter,
+                    enclosure: $enclosure,
+                    arrayDelimiter: '||',
+                    isTestMode: $isTestMode,
+                    skipValidationFields: $skipValidationFields,
+                    offset: $offset,
+                    limit: $limit,
+                    taskId: $taskId,
+                );
 
                 return true;
             }

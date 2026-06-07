@@ -25,7 +25,7 @@ class PostImportEvent extends Event
         private readonly string $tableName,
         private readonly array $dataRecord,
         private readonly int $insertId,
-        private readonly array $arrLine,
+        private readonly array $csvRecord,
         private readonly ImportFromCsv $importInstance,
     ) {
     }
@@ -47,7 +47,7 @@ class PostImportEvent extends Event
 
     public function getLineAsArray(): array
     {
-        return $this->arrLine;
+        return $this->csvRecord;
     }
 
     public function getImportInstance(): ImportFromCsv

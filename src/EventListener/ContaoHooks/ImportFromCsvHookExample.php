@@ -27,39 +27,34 @@ class ImportFromCsvHookExample
 
     private string|null $curlErrorMsg;
 
-    public function __invoke(Widget $objWidget, array $arrRecord, int $line, ?ImportFromCsv $importFromCsv = null): void
+    public function __invoke(Widget $widget, array $record, int $line, ImportFromCsv|null $importFromCsv = null): void
     {
         // tl_member
-        if ('tl_super_member' === $objWidget->strTable) {
+        if ('tl_super_member' === $widget->strTable) {
             // Get geolocation from a given address
-            if ('geolocation' === $objWidget->strField) {
-                // Do custom validation and skip the Contao-Widget-Input-Validation
-                $arrSkip = $importFromCsv->getData('arrSkipValidationFields');
-                $arrSkip[] = $objWidget->strField;
-                $importFromCsv->setData('arrSkipValidationFields', $arrSkip);
-
-                $strStreet = $arrRecord['street'];
-                $strCity = $arrRecord['city'];
-                $strCountry = $arrRecord['country'];
+            if ('geolocation' === $widget->strField) {
+                $strStreet = $record['street'];
+                $strCity = $record['city'];
+                $strCountry = $record['country'];
 
                 $strStreet = str_replace(' ', '+', $strStreet);
                 $strCity = str_replace(' ', '+', $strCity);
                 $strAddress = $strStreet.',+'.$strCity.',+'.$strCountry;
 
-                // Get Position from GoogleMaps
-                $arrPos = $this->curlGetCoordinates(\sprintf('https://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false', $strAddress));
+                // Get Position from Google Maps
+                $coords = $this->curlGetCoordinates(\sprintf('https://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false', $strAddress));
 
-                if (null !== $arrPos && \is_array($arrPos['results'][0]['geometry'])) {
-                    $latPos = $arrPos['results'][0]['geometry']['location']['lat'];
-                    $lngPos = $arrPos['results'][0]['geometry']['location']['lng'];
+                if (null !== $coords && \is_array($coords['results'][0]['geometry'])) {
+                    $latPos = $coords['results'][0]['geometry']['location']['lat'];
+                    $lngPos = $coords['results'][0]['geometry']['location']['lng'];
 
-                    $objWidget->value = $latPos.','.$lngPos;
+                    $widget->value = $latPos.','.$lngPos;
                 } else {
                     // Error handling
                     if ('' !== $this->curlErrorMsg) {
-                        $objWidget->addError($this->curlErrorMsg);
+                        $widget->addError($this->curlErrorMsg);
                     } else {
-                        $objWidget->addError(\sprintf('Setting geolocation for (%s) failed!', $strAddress));
+                        $widget->addError(\sprintf('Setting geolocation for (%s) failed!', $strAddress));
                     }
                 }
             }
@@ -78,7 +73,7 @@ class ImportFromCsvHookExample
             return null;
         }
 
-        // Set a timout to avoid the OVER_QUERY_LIMIT
+        // Set a timeout to avoid the OVER_QUERY_LIMIT
         usleep(25000);
 
         // Create a new cURL resource handle
@@ -93,12 +88,12 @@ class ImportFromCsvHookExample
         // Timeout in seconds
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
-        // Download the given URL, and return output
-        $arrOutput = json_decode(curl_exec($ch), true);
+        // Download the given URL and return output
+        $dataCoord = json_decode(curl_exec($ch), true);
 
         // Close the cURL resource, and free system resources
         curl_close($ch);
 
-        return $arrOutput;
+        return $dataCoord;
     }
 }

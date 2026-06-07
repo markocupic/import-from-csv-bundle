@@ -36,11 +36,12 @@ use Markocupic\ImportFromCsvBundle\Import\Field\Formatter;
 use Markocupic\ImportFromCsvBundle\Import\Field\ImportValidator;
 use Markocupic\ImportFromCsvBundle\Logger\ImportLogger;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class ImportFromCsv
 {
-    private array $arrData = [];
+    private ImportConfig|null $config;
 
     private int $currentLine = 0;
 
@@ -51,8 +52,6 @@ class ImportFromCsv
     private array $insertExceptions = [];
 
     // Adapters
-    private Adapter $config;
-
     private Adapter $controller;
 
     private Adapter $input;
@@ -69,7 +68,6 @@ class ImportFromCsv
         private readonly ImportValidator $importValidator,
         private readonly string $projectDir,
     ) {
-        $this->config = $this->framework->getAdapter(Config::class);
         $this->controller = $this->framework->getAdapter(Controller::class);
         $this->input = $this->framework->getAdapter(Input::class);
         $this->system = $this->framework->getAdapter(System::class);
@@ -78,13 +76,13 @@ class ImportFromCsv
     /**
      * @throws Exception
      * @throws InvalidArgument
-     * @throws \Doctrine\DBAL\Exception
      * @throws SyntaxError
      * @throws UnavailableStream
+     * @throws \Doctrine\DBAL\Exception
      */
-    public function importCsv(File $objCsvFile, string $tableName, string $strImportMode, array $arrSelectedFields = [], string $strDelimiter = ';', string $strEnclosure = '"', string $strArrayDelimiter = '||', bool $blnTestMode = false, array $arrSkipValidationFields = [], int $intOffset = 0, int $intLimit = 0, string|null $taskId = null): void
+    public function importCsv(File $csvFile, string $tableName, string $importMode, array $selectedFields = [], string $delimiter = ';', string $enclosure = '"', string $arrayDelimiter = '||', bool $isTestMode = false, array $skipValidationFields = [], int $offset = 0, int $limit = 0, string|null $taskId = null): void
     {
-        // Generate a taskId, if there is none.
+        // Generate a task id if there is none.
         $taskId = $taskId ?? uniqid();
 
         $request = $this->requestStack->getCurrentRequest();
@@ -95,26 +93,19 @@ class ImportFromCsv
 
         $this->controller->loadLanguageFile('tl_import_from_csv');
 
-        if ('' === $strDelimiter) {
-            $strDelimiter = ';';
-        }
+        $csvFile = new \SplFileInfo(Path::join($this->projectDir, $csvFile->path));
+        $delimiter = '' === $delimiter ? ';' : $delimiter;
+        $enclosure = '' === $enclosure ? '"' : $enclosure;
+        $arrayDelimiter = '' === $arrayDelimiter ? '||' : $arrayDelimiter;
 
-        if ('' === $strEnclosure) {
-            $strEnclosure = '"';
-        }
-
-        if (empty($strArrayDelimiter)) {
-            $strArrayDelimiter = '||';
+        // Throw an exception if the submitted string length is not equal to 1 byte.
+        if (\strlen($delimiter) > 1) {
+            throw new \Exception(\sprintf('%s expects field delimiter to be a single character. %s given.', __METHOD__, $delimiter));
         }
 
         // Throw an exception if the submitted string length is not equal to 1 byte.
-        if (\strlen($strDelimiter) > 1) {
-            throw new \Exception(\sprintf('%s expects field delimiter to be a single character. %s given.', __METHOD__, $strDelimiter));
-        }
-
-        // Throw an exception if the submitted string length is not equal to 1 byte.
-        if (\strlen($strEnclosure) > 1) {
-            throw new \Exception(\sprintf('%s expects field enclosure to be a single character. %s given.', __METHOD__, $strEnclosure));
+        if (\strlen($enclosure) > 1) {
+            throw new \Exception(\sprintf('%s expects field enclosure to be a single character. %s given.', __METHOD__, $enclosure));
         }
 
         // If the CSV document was created or is read on a Macintosh computer, add the
@@ -125,98 +116,98 @@ class ImportFromCsv
         }
 
         // Get the League\Csv\Reader object
-        $objCsvReader = Reader::createFromPath($this->projectDir.'/'.$objCsvFile->path, 'r');
+        $reader = Reader::createFromPath($csvFile->getRealPath(), 'r');
 
         // Set the CSV header offset
-        $objCsvReader->setHeaderOffset(0);
+        $reader->setHeaderOffset(0);
 
         // Set the delimiter string
-        $objCsvReader->setDelimiter($strDelimiter);
+        $reader->setDelimiter($delimiter);
 
         // Set enclosure string
-        $objCsvReader->setEnclosure($strEnclosure);
+        $reader->setEnclosure($enclosure);
 
         // Get the primary key
-        $strPrimaryKey = $this->getPrimaryKey($tableName);
+        $primaryKey = $this->getPrimaryKey($tableName);
 
-        if (null === $strPrimaryKey) {
+        if (null === $primaryKey) {
             throw new \Exception('No primary key found in '.$tableName);
         }
 
         // Load language file
         $this->system->loadLanguageFile($tableName);
 
-        // Store the options in $this->arrData
-        $this->arrData = [
-            'taskId' => $taskId,
-            'objCsvFile' => $objCsvFile,
-            'tableName' => $tableName,
-            'primaryKey' => $strPrimaryKey,
-            'importMode' => $strImportMode,
-            'selectedFields' => $arrSelectedFields,
-            'strDelimiter' => $strDelimiter,
-            'strEnclosure' => $strEnclosure,
-            'strArrayDelimiter' => $strArrayDelimiter,
-            'blnTestMode' => $blnTestMode,
-            'arrSkipValidationFields' => $arrSkipValidationFields,
-            'intOffset' => $intOffset,
-            'intLimit' => $intLimit,
-        ];
+        // Store the options in $this->config
+        $this->config = new ImportConfig(
+            taskId: $taskId,
+            csvFile: $csvFile,
+            tableName: $tableName,
+            primaryKey: $primaryKey,
+            importMode: $importMode,
+            selectedFields: $selectedFields,
+            delimiter: $delimiter,
+            enclosure: $enclosure,
+            arrayDelimiter: $arrayDelimiter,
+            isTestMode: $isTestMode,
+            skipValidationFields: $skipValidationFields,
+            offset: $offset,
+            limit: $limit,
+        );
 
         // Truncate table
-        if ('truncate_table' === $this->arrData['importMode'] && false === $blnTestMode) {
-            $this->connection->executeStatement('TRUNCATE TABLE '.$this->arrData['tableName']);
+        if ('truncate_table' === $this->config->importMode && false === $this->config->isTestMode) {
+            $this->connection->executeStatement('TRUNCATE TABLE '.$this->config->tableName);
         }
 
-        if (\count($this->arrData['selectedFields']) < 1) {
+        if (\count($this->config->selectedFields) < 1) {
             return;
         }
 
         // Get Line (Header is line 0)
-        $this->currentLine = $intOffset;
+        $this->currentLine = $this->config->offset;
 
         // Get the League\Csv\Statement object
         $stmt = new Statement();
 
         // Set offset
-        if ($intOffset > 0) {
-            $stmt = $stmt->offset($intOffset);
+        if ($this->config->offset > 0) {
+            $stmt = $stmt->offset($this->config->offset);
         }
 
         // Set limit
-        if ($intLimit > 0) {
-            $stmt = $stmt->limit($intLimit);
+        if ($this->config->limit > 0) {
+            $stmt = $stmt->limit($this->config->limit);
         }
 
         // Get each line as an associative array -> ['columnName1' => 'value1',
         // 'columnName2' => 'value2']
-        $arrRecords = $stmt->process($objCsvReader);
+        $csvLines = $stmt->process($reader);
 
         // Process each row and filter/skip empty or not allowed values/columns
-        foreach ($arrRecords as $arrRecord) {
+        foreach ($csvLines as $csvLine) {
             $doNotSave = false;
 
-            $arrLine = [];
+            $csvRecord = [];
 
-            foreach ($arrRecord as $columnName => $varValue) {
-                $varValue = trim((string) $varValue);
+            foreach ($csvLine as $columnName => $value) {
+                $value = trim((string) $value);
 
                 // Do not process empty values
-                if (!\strlen($varValue)) {
+                if (!\strlen($value)) {
                     continue;
                 }
 
                 // Continue if field is excluded from import
-                if (!\in_array($columnName, $this->arrData['selectedFields'], true)) {
+                if (!\in_array($columnName, $this->config->selectedFields, true)) {
                     continue;
                 }
 
                 // Auto increment if data records are appended
-                if ('append_entries' === $this->arrData['importMode'] && strtolower($columnName) === strtolower($this->arrData['primaryKey'])) {
+                if ('append_entries' === $this->config->importMode && strtolower($columnName) === strtolower($this->config->primaryKey)) {
                     continue;
                 }
 
-                $arrLine[$columnName] = $varValue;
+                $csvRecord[$columnName] = $value;
             }
 
             $this->resetInsertExceptions();
@@ -230,81 +221,81 @@ class ImportFromCsv
             $set = [];
             $arrReportValues = [];
 
-            foreach ($arrLine as $columnName => $varValue) {
+            foreach ($csvRecord as $columnName => $value) {
                 // Get the DCA of the current field
-                $arrDca = $this->getDca($columnName, $tableName);
+                $dca = $this->getDca($columnName, $tableName);
 
                 // Map checkboxWizards to regular checkbox widgets
-                if ('checkboxWizard' === $arrDca['inputType']) {
-                    $arrDca['inputType'] = 'checkbox';
+                if ('checkboxWizard' === $dca['inputType']) {
+                    $dca['inputType'] = 'checkbox';
                 }
 
                 // Set the correct date format
-                $varValue = $this->formatter->getCorrectDateFormat($varValue, $arrDca);
+                $value = $this->formatter->getCorrectDateFormat($value, $dca);
 
                 // Convert strings to array
-                $varValue = $this->formatter->convertToArray($varValue, $arrDca, $this->arrData['strArrayDelimiter']);
+                $value = $this->formatter->convertToArray($value, $dca, $this->config->arrayDelimiter);
 
-                // Input::setPost($varValue), so the content can be validated
-                $this->input->setPost($columnName, $varValue);
+                // Input::setPost($value), so the content can be validated
+                $this->input->setPost($columnName, $value);
 
                 // Widget::getPost() takes the (input encoded) value from current request
                 $request = $this->requestStack->getCurrentRequest();
-                $request->request->set($columnName, $varValue);
+                $request->request->set($columnName, $value);
 
                 // Get the correct widget for input validation, etc.
-                $objWidget = $this->getWidgetFromDca($arrDca, $columnName, $this->arrData['tableName'], $varValue);
+                $widget = $this->getWidgetFromDca($dca, $columnName, $this->config->tableName, $value);
 
                 // Trigger the importFromCsv HOOK:
                 if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && \is_array($GLOBALS['TL_HOOKS']['importFromCsv'])) {
                     foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback) {
-                        $this->system->importStatic($callback[0])->{$callback[1]}($objWidget, $arrLine, $this->currentLine, $this);
+                        $this->system->importStatic($callback[0])->{$callback[1]}($widget, $csvRecord, $this->currentLine, $this);
                     }
                 }
 
                 // Validate date, datim or time values
-                $this->importValidator->checkIsValidDate($objWidget, $arrDca);
+                $this->importValidator->checkIsValidDate($widget, $dca);
 
                 // Special treatment for password
-                if ('password' === $arrDca['inputType']) {
-                    $this->input->setPost('password_confirm', $objWidget->value);
+                if ('password' === $dca['inputType']) {
+                    $this->input->setPost('password_confirm', $widget->value);
                     // Later we will use a post-insert listener to set the correct password with the
                     // correct password hasher.
                 }
 
                 // Skip validation for selected fields
-                if (!\in_array($objWidget->strField, $this->arrData['arrSkipValidationFields'], true)) {
+                if (!\in_array($widget->strField, $this->config->skipValidationFields, true)) {
                     // Validate input
-                    $objWidget->validate();
+                    $widget->validate();
                 }
 
-                $this->importValidator->checkIsUnique($objWidget, $arrDca);
+                $this->importValidator->checkIsUnique($widget, $dca);
 
                 // Add value to the report window
-                $arrReportValues[$objWidget->strField] = $objWidget->value;
+                $arrReportValues[$widget->strField] = $widget->value;
 
-                if (\is_array($objWidget->value)) {
-                    $arrReportValues[$objWidget->strField] = print_r($objWidget->value, true);
+                if (\is_array($widget->value)) {
+                    $arrReportValues[$widget->strField] = print_r($widget->value, true);
                 }
 
-                $objWidget->value = $this->formatter->convertDateToTimestamp($objWidget, $arrDca);
-                $objWidget->value = $this->formatter->replaceNewlineTags($objWidget->value);
+                $widget->value = $this->formatter->strtotime($widget, $dca);
+                $widget->value = $this->formatter->replaceNewlineTags($widget->value);
 
-                if ($objWidget->hasErrors()) {
+                if ($widget->hasErrors()) {
                     $doNotSave = true;
-                    $arrReportValues[$objWidget->strField] = \sprintf(
+                    $arrReportValues[$widget->strField] = \sprintf(
                         '"%s" => %s',
-                        $objWidget->value,
-                        $objWidget->getErrorsAsString(' '),
+                        $widget->value,
+                        $widget->getErrorsAsString(' '),
                     );
                 } else {
-                    $set[$objWidget->strField] = \is_array($objWidget->value) ? serialize($objWidget->value) : $objWidget->value;
+                    $set[$widget->strField] = \is_array($widget->value) ? serialize($widget->value) : $widget->value;
                 }
             } // End foreach column
 
             if (!$doNotSave) {
                 // Auto-insert "tstamp"
-                if ($this->columnExists('tstamp', $this->arrData['tableName'])) {
+                if ($this->columnExists('tstamp', $this->config->tableName)) {
                     if (!isset($set['tstamp']) || '' === $set['tstamp']) {
                         $set['tstamp'] = time();
                         $arrReportValues['tstamp'] = time();
@@ -312,20 +303,20 @@ class ImportFromCsv
                 }
 
                 // Auto-insert "dateAdded"
-                if ($this->columnExists('dateAdded', $this->arrData['tableName'])) {
+                if ($this->columnExists('dateAdded', $this->config->tableName)) {
                     if (!isset($set['dateAdded']) || '' === $set['dateAdded']) {
                         $set['dateAdded'] = time();
-                        $arrReportValues['dateAdded'] = Date::parse($this->config->get('dateFormat'), time());
+                        $arrReportValues['dateAdded'] = Date::parse($this->framework->getAdapter(Config::class)->get('dateFormat'), time());
                     }
                 }
 
                 // Write the data record to the database
-                if (true !== $this->arrData['blnTestMode']) {
+                if (true !== $this->config->isTestMode) {
                     $insertId = null;
 
                     try {
                         $this->connection->beginTransaction();
-                        $this->connection->insert($this->arrData['tableName'], $this->quoteKeys($set));
+                        $this->connection->insert($this->config->tableName, $this->quoteKeys($set));
                         $insertId = (int) $this->connection->lastInsertId();
                         $this->connection->commit();
                     } catch (\Exception $e) {
@@ -336,7 +327,7 @@ class ImportFromCsv
 
                     // Dispatch the import_from_csv.post_import event (Add newsletter recipients, ...)
                     if ($insertId) {
-                        $event = new PostImportEvent($tableName, $set, $insertId, $arrLine, $this);
+                        $event = new PostImportEvent($tableName, $set, $insertId, $csvRecord, $this);
                         $this->eventDispatcher->dispatch($event, PostImportEvent::NAME);
                     }
                 }
@@ -381,26 +372,21 @@ class ImportFromCsv
                 }
 
                 if ('failure' === $arrLog['type']) {
-                    $this->importLogger->addFailure($this->getData('taskId'), $arrLog['line'], $arrLog['text'], $arrLog['values']);
+                    $this->importLogger->addFailure($this->config->taskId, $arrLog['line'], $arrLog['text'], $arrLog['values']);
                 } else {
-                    $this->importLogger->addSuccess($this->getData('taskId'), $arrLog['line'], $arrLog['text'], $arrLog['values']);
+                    $this->importLogger->addSuccess($this->config->taskId, $arrLog['line'], $arrLog['text'], $arrLog['values']);
                 }
             }
         }// End for each data record
 
         if ($this->importLogger->hasInitialized($taskId)) {
-            $this->importLogger->setSummaryData($this->getData('taskId'), $this->countProcessedRows, $this->countProcessedRows - $this->insertErrors, $this->insertErrors);
+            $this->importLogger->setSummaryData($this->config->taskId, $this->countProcessedRows, $this->countProcessedRows - $this->insertErrors, $this->insertErrors);
         }
     }
 
-    public function getData(string $key)
+    public function getConfig(): ImportConfig|null
     {
-        return $this->arrData[$key] ?? null;
-    }
-
-    public function setData(string $key, $varValue): void
-    {
-        $this->arrData[$key] = $varValue;
+        return $this->config;
     }
 
     public function getCurrentLine(): int
@@ -439,13 +425,13 @@ class ImportFromCsv
         $this->controller->loadDataContainer($tableName);
 
         if (\is_array($GLOBALS['TL_DCA'][$tableName]['fields'][$columnName])) {
-            $arrDca = &$GLOBALS['TL_DCA'][$tableName]['fields'][$columnName];
+            $dca = &$GLOBALS['TL_DCA'][$tableName]['fields'][$columnName];
 
-            if (isset($arrDca['inputType']) && \is_string($arrDca['inputType'])) {
-                return $arrDca;
+            if (isset($dca['inputType']) && \is_string($dca['inputType'])) {
+                return $dca;
             }
 
-            $arrDca['inputType'] = 'text';
+            $dca['inputType'] = 'text';
         }
 
         return [
@@ -453,9 +439,9 @@ class ImportFromCsv
         ];
     }
 
-    public function getWidgetFromDca(array $arrDca, string $columnName, string $tableName, $varValue): Widget
+    public function getWidgetFromDca(array $dca, string $columnName, string $tableName, $value): Widget
     {
-        $inputType = $arrDca['inputType'] ?? '';
+        $inputType = $dca['inputType'] ?? '';
         $request = $this->requestStack->getCurrentRequest();
 
         $objDca = $request ? new DC_Table($tableName) : null;
@@ -463,12 +449,12 @@ class ImportFromCsv
         $strClass = $GLOBALS['BE_FFL'][$inputType] ?? '';
 
         if (!empty($strClass) && class_exists($strClass)) {
-            return new $strClass($strClass::getAttributesFromDca($arrDca, $columnName, $varValue, $columnName, $tableName, $objDca));
+            return new $strClass($strClass::getAttributesFromDca($dca, $columnName, $value, $columnName, $tableName, $objDca));
         }
 
         $strClass = $GLOBALS['BE_FFL']['text'];
 
-        return new $strClass($strClass::getAttributesFromDca($arrDca, $columnName, $varValue, $columnName, $tableName, $objDca));
+        return new $strClass($strClass::getAttributesFromDca($dca, $columnName, $value, $columnName, $tableName, $objDca));
     }
 
     /**
@@ -511,11 +497,11 @@ class ImportFromCsv
         $this->insertExceptions[] = $e;
     }
 
-    private function quoteKeys(array $record): array
+    private function quoteKeys(array $csvRecord): array
     {
         $quotedRecord = [];
 
-        foreach ($record as $k => $v) {
+        foreach ($csvRecord as $k => $v) {
             $quotedRecord[$this->connection->quoteIdentifier($k)] = $v;
         }
 
