@@ -16,7 +16,6 @@ namespace Markocupic\ImportFromCsvBundle\Import;
 
 use Contao\Config;
 use Contao\Controller;
-use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\Date;
 use Contao\DC_Table;
@@ -43,34 +42,24 @@ class ImportFromCsv
 {
     private ImportConfig|null $config;
 
+    private array $insertExceptions = [];
+
+    private int $countProcessedRows = 0;
+
     private int $currentLine = 0;
 
     private int $insertErrors = 0;
 
-    private int $countProcessedRows = 0;
-
-    private array $insertExceptions = [];
-
-    // Adapters
-    private Adapter $controller;
-
-    private Adapter $input;
-
-    private Adapter $system;
-
     public function __construct(
-        private readonly ContaoFramework $framework,
         private readonly Connection $connection,
+        private readonly ContaoFramework $framework,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly Formatter $formatter,
         private readonly ImportLogger $importLogger,
-        private readonly RequestStack $requestStack,
         private readonly ImportValidator $importValidator,
+        private readonly RequestStack $requestStack,
         private readonly string $projectDir,
     ) {
-        $this->controller = $this->framework->getAdapter(Controller::class);
-        $this->input = $this->framework->getAdapter(Input::class);
-        $this->system = $this->framework->getAdapter(System::class);
     }
 
     /**
@@ -91,7 +80,7 @@ class ImportFromCsv
             $taskId = $this->importLogger->initialize($taskId);
         }
 
-        $this->controller->loadLanguageFile('tl_import_from_csv');
+        $this->framework->getAdapter(Controller::class)->loadLanguageFile('tl_import_from_csv');
 
         $csvFile = new \SplFileInfo(Path::join($this->projectDir, $csvFile->path));
         $delimiter = '' === $delimiter ? ';' : $delimiter;
@@ -128,14 +117,14 @@ class ImportFromCsv
         $reader->setEnclosure($enclosure);
 
         // Get the primary key
-        $primaryKey = $this->getPrimaryKey($tableName);
+        $primaryKey = $this->findPrimaryKey($tableName);
 
         if (null === $primaryKey) {
             throw new \Exception('No primary key found in '.$tableName);
         }
 
         // Load language file
-        $this->system->loadLanguageFile($tableName);
+        $this->framework->getAdapter(System::class)->loadLanguageFile($tableName);
 
         // Store the options in $this->config
         $this->config = new ImportConfig(
@@ -237,10 +226,9 @@ class ImportFromCsv
                 $value = $this->formatter->convertToArray($value, $dca, $this->config->arrayDelimiter);
 
                 // Input::setPost($value), so the content can be validated
-                $this->input->setPost($columnName, $value);
+                $this->framework->getAdapter(Input::class)->setPost($columnName, $value);
 
                 // Widget::getPost() takes the (input encoded) value from current request
-                $request = $this->requestStack->getCurrentRequest();
                 $request->request->set($columnName, $value);
 
                 // Get the correct widget for input validation, etc.
@@ -249,7 +237,7 @@ class ImportFromCsv
                 // Trigger the importFromCsv HOOK:
                 if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && \is_array($GLOBALS['TL_HOOKS']['importFromCsv'])) {
                     foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback) {
-                        $this->system->importStatic($callback[0])->{$callback[1]}($widget, $csvRecord, $this->currentLine, $this);
+                        $this->framework->getAdapter(System::class)->importStatic($callback[0])->{$callback[1]}($widget, $csvRecord, $this->currentLine, $this);
                     }
                 }
 
@@ -258,7 +246,7 @@ class ImportFromCsv
 
                 // Special treatment for password
                 if ('password' === $dca['inputType']) {
-                    $this->input->setPost('password_confirm', $widget->value);
+                    $this->framework->getAdapter(Input::class)->setPost('password_confirm', $widget->value);
                     // Later we will use a post-insert listener to set the correct password with the
                     // correct password hasher.
                 }
@@ -407,7 +395,7 @@ class ImportFromCsv
     /**
      * @throws \Doctrine\DBAL\Exception
      */
-    public function getPrimaryKey(string $tableName): ?string
+    public function findPrimaryKey(string $tableName): ?string
     {
         $stmt = $this->connection->executeQuery("SHOW INDEX FROM $tableName WHERE Key_name = 'PRIMARY'");
 
@@ -422,7 +410,7 @@ class ImportFromCsv
 
     public function getDca(string $columnName, string $tableName): array
     {
-        $this->controller->loadDataContainer($tableName);
+        $this->framework->getAdapter(Controller::class)->loadDataContainer($tableName);
 
         if (\is_array($GLOBALS['TL_DCA'][$tableName]['fields'][$columnName])) {
             $dca = &$GLOBALS['TL_DCA'][$tableName]['fields'][$columnName];
