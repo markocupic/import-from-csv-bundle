@@ -59,6 +59,8 @@ class ImportFromCsv
         private readonly ImportValidator $importValidator,
         private readonly RequestStack $requestStack,
         private readonly string $projectDir,
+        private readonly WidgetFactory $widgetFactory,
+        private readonly BatchInserter $batchInserter,
     ) {
     }
 
@@ -173,7 +175,8 @@ class ImportFromCsv
         $csvLines = $stmt->process($reader);
 
         // Process each row and filter/skip empty or not allowed values/columns
-        foreach ($csvLines as $csvLine) {
+
+        foreach ($csvLines as $key => $csvLine) {
             $doNotSave = false;
 
             $csvRecord = [];
@@ -232,7 +235,8 @@ class ImportFromCsv
                 $request->request->set($columnName, $value);
 
                 // Get the correct widget for input validation, etc.
-                $widget = $this->getWidgetFromDca($dca, $columnName, $this->config->tableName, $value);
+                // $widget = $this->getWidgetFromDca($dca, $columnName, $this->config->tableName, $value);
+                $widget = $this->widgetFactory->createWidget($dca, $columnName, $this->config->tableName, $value);
 
                 // Trigger the importFromCsv HOOK:
                 if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && \is_array($GLOBALS['TL_HOOKS']['importFromCsv'])) {
@@ -276,7 +280,7 @@ class ImportFromCsv
                         $widget->value,
                         $widget->getErrorsAsString(' '),
                     );
-                } else {
+                } elseif (empty($widget->skipImport)) {
                     $set[$widget->strField] = \is_array($widget->value) ? serialize($widget->value) : $widget->value;
                 }
             } // End foreach column
@@ -303,14 +307,19 @@ class ImportFromCsv
                     $insertId = null;
 
                     try {
-                        $this->connection->beginTransaction();
-                        $this->connection->insert($this->config->tableName, $this->quoteKeys($set));
-                        $insertId = (int) $this->connection->lastInsertId();
-                        $this->connection->commit();
+                        $insertId = $this->batchInserter->insertRow(
+                            $this->config->tableName,
+                            $set,
+                            $csvRecord,
+                            $this,
+                            true, // dispatchPostImportEvent
+                        );
+
+                        $this->batchInserter->commitIfBatchBoundary($this->countProcessedRows);
                     } catch (\Exception $e) {
                         $doNotSave = true;
                         $this->addInsertException($e);
-                        $this->connection->rollBack();
+                        $this->batchInserter->rollbackIfActive();
                     }
 
                     // Dispatch the import_from_csv.post_import event (Add newsletter recipients, ...)
@@ -320,6 +329,8 @@ class ImportFromCsv
                     }
                 }
             }
+
+            $this->batchInserter->commitRemainder();
 
             // Collect data for the logger screen in the Contao backend The logger service
             // requires a running session. Do not run the logger if there is no request (e.g.
