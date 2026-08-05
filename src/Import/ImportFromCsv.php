@@ -176,7 +176,7 @@ class ImportFromCsv
 
         // Process each row and filter/skip empty or not allowed values/columns
 
-        foreach ($csvLines as $key => $csvLine) {
+        foreach ($csvLines as $csvLine) {
             $doNotSave = false;
 
             $csvRecord = [];
