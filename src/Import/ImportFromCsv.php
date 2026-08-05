@@ -58,6 +58,7 @@ class ImportFromCsv
         private readonly ImportLogger $importLogger,
         private readonly ImportValidator $importValidator,
         private readonly RequestStack $requestStack,
+        private readonly WidgetFactory $widgetFactory,
         private readonly string $projectDir,
     ) {
     }
@@ -232,7 +233,7 @@ class ImportFromCsv
                 $request->request->set($columnName, $value);
 
                 // Get the correct widget for input validation, etc.
-                $widget = $this->getWidgetFromDca($dca, $columnName, $this->config->tableName, $value);
+                $widget = $this->widgetFactory->create(dca: $dca, columnName: $columnName, tableName: $this->config->tableName, value: $value);
 
                 // Trigger the importFromCsv HOOK:
                 if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && \is_array($GLOBALS['TL_HOOKS']['importFromCsv'])) {
@@ -425,24 +426,6 @@ class ImportFromCsv
         return [
             'inputType' => 'text',
         ];
-    }
-
-    public function getWidgetFromDca(array $dca, string $columnName, string $tableName, $value): Widget
-    {
-        $inputType = $dca['inputType'] ?? '';
-        $request = $this->requestStack->getCurrentRequest();
-
-        $objDca = $request ? new DC_Table($tableName) : null;
-
-        $strClass = $GLOBALS['BE_FFL'][$inputType] ?? '';
-
-        if (!empty($strClass) && class_exists($strClass)) {
-            return new $strClass($strClass::getAttributesFromDca($dca, $columnName, $value, $columnName, $tableName, $objDca));
-        }
-
-        $strClass = $GLOBALS['BE_FFL']['text'];
-
-        return new $strClass($strClass::getAttributesFromDca($dca, $columnName, $value, $columnName, $tableName, $objDca));
     }
 
     /**
