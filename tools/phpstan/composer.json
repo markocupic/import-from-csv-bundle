@@ -1,0 +1,16 @@
+{
+    "require": {
+        "ext-simplexml": "*",
+        "contao/manager-plugin": "^2.13",
+        "symfony/validator": "^6.0 || ^7.0 || ^8.0",
+        "phpstan/phpstan": "^2.2"
+    },
+    "config": {
+        "allow-plugins": {
+            "contao-community-alliance/composer-plugin": true,
+            "contao-components/installer": true,
+            "contao/manager-plugin": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}

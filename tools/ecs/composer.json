@@ -1,0 +1,10 @@
+{
+    "require": {
+        "markocupic/easy-coding-standard": "^13.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}

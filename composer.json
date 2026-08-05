@@ -20,10 +20,11 @@
         "league/csv": "^9.1"
     },
     "require-dev": {
-        "contao/easy-coding-standard": "^5.0",
+        "markocupic/easy-coding-standard": "^13.0",
         "contao/manager-plugin": "^2.3.1",
-        "contao/test-case": "^4.6",
-        "phpunit/phpunit": "^9.3",
+        "contao/test-case": "^5.7",
+        "phpstan/phpstan": "^2.2",
+        "phpunit/phpunit": "^12.5",
         "symfony/phpunit-bridge": "^5.4"
     },
     "autoload": {
@@ -31,15 +32,28 @@
             "Markocupic\\ImportFromCsvBundle\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Markocupic\\ImportFromCsvBundle\\Tests\\": "tests/"
+        }
+    },
     "extra": {
         "contao-manager-plugin": "Markocupic\\ImportFromCsvBundle\\ContaoManager\\Plugin"
     },
     "config": {
         "allow-plugins": {
-            "contao/manager-plugin": true,
             "contao-components/installer": true,
+            "contao/manager-plugin": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
             "php-http/discovery": true
         }
+    },
+    "scripts": {
+        "cs-fixer": "@php tools/ecs/vendor/bin/ecs check config/ contao/ src/ tests/ --config tools/ecs/config/default.php --fix --ansi",
+        "phpstan": "@php tools/phpstan/vendor/bin/phpstan analyse src tests",
+        "unit-tests": "@php tools/phpunit/vendor/bin/phpunit -c tools/phpunit/phpunit.xml.dist --testsuite unit",
+        "tests": [
+            "@unit-tests"
+        ]
     }
 }
