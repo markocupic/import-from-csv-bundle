@@ -18,11 +18,9 @@ use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\Date;
-use Contao\DC_Table;
 use Contao\File;
 use Contao\Input;
 use Contao\System;
-use Contao\Widget;
 use Doctrine\DBAL\Connection;
 use League\Csv\Exception;
 use League\Csv\InvalidArgument;
@@ -106,7 +104,8 @@ class ImportFromCsv
         }
 
         // Get the League\Csv\Reader object
-        $reader = Reader::createFromPath($csvFile->getRealPath(), 'r');
+        /** @var Reader $reader */
+        $reader = $this->framework->getAdapter(Reader::class)->from($csvFile->getRealPath(), 'r');
 
         // Set the CSV header offset
         $reader->setHeaderOffset(0);
@@ -396,7 +395,7 @@ class ImportFromCsv
     /**
      * @throws \Doctrine\DBAL\Exception
      */
-    public function findPrimaryKey(string $tableName): ?string
+    public function findPrimaryKey(string $tableName): string|null
     {
         $stmt = $this->connection->executeQuery("SHOW INDEX FROM $tableName WHERE Key_name = 'PRIMARY'");
 

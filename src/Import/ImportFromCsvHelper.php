@@ -50,7 +50,7 @@ class ImportFromCsvHelper
         $objFile = $this->filesModel->findByUuid($model->fileSRC);
 
         if ($objFile) {
-            $objCsvReader = Reader::createFromPath($this->projectDir.'/'.$objFile->path, 'r');
+            $objCsvReader = Reader::from(Path::join($this->projectDir, $objFile->path), 'r');
             $objCsvReader->setHeaderOffset(0);
             $count = $objCsvReader->count();
             $count -= (int) $model->offset;

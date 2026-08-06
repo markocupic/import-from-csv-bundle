@@ -24,6 +24,7 @@ use League\Csv\Exception;
 use League\Csv\Reader;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\RouterInterface;
@@ -87,7 +88,7 @@ class MountAppAjaxController extends AbstractController
         $limit = (int) $objModel->limit;
 
         if ($objFile) {
-            $objCsvReader = $this->reader->createFromPath($this->projectDir.'/'.$objFile->path, 'r');
+            $objCsvReader = $this->reader->from(Path::join($this->projectDir, $objFile->path), 'r');
             $objCsvReader->setHeaderOffset(0);
             $count = (int) $objCsvReader->count();
         }
