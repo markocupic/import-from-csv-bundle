@@ -7,4 +7,4 @@ cd..
 cd..
 cd..
 cd..
-vendor\bin\ecs check vendor/markocupic/calendar-event-booking-bundle --fix --config vendor/markocupic/calendar-event-booking-bundle/tools/ecs/config/default.php
+vendor\bin\ecs check vendor/markocupic/import-from-csv-bundle --fix --config vendor/markocupic/import-from-csv-bundle/tools/ecs/config/default.php
