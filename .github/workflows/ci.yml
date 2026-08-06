@@ -13,40 +13,40 @@ jobs:
         name: Coding Style
         runs-on: ubuntu-latest
         steps:
-            - name: Setup PHP
-              uses: shivammathur/setup-php@v2
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
 
-            - name: Checkout
-              uses: actions/checkout@v2
+            -   name: Checkout
+                uses: actions/checkout@v2
 
-            - name: Install ecs
-              run: cd tools/ecs && composer update --no-interaction --no-suggest
+            -   name: Install ecs
+                run: cd tools/ecs && composer update --no-interaction --no-suggest
 
-            - name: Run the CS fixer
-              run: composer cs-fixer
+            -   name: Run the CS fixer
+                run: composer cs-fixer
 
     phpstan:
         name: PHPStan
         runs-on: ubuntu-latest
         steps:
-            - name: Setup PHP
-              uses: shivammathur/setup-php@v2
-              with:
-                  php-version: 8.3
-                  extensions: dom, fileinfo, filter, gd, hash, intl, json, mbstring, mysqli, pcre, pdo_mysql, zlib
-                  coverage: none
-              env:
-                  COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: 8.3
+                    extensions: dom, fileinfo, filter, gd, hash, intl, json, mbstring, mysqli, pcre, pdo_mysql, zlib
+                    coverage: none
+                env:
+                    COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Checkout
-              uses: actions/checkout@v3
+            -   name: Checkout
+                uses: actions/checkout@v3
 
-            - name: Install the dependencies
-              run: |
-                  composer update --no-interaction --no-progress
-                  cd tools/phpstan && composer update --no-interaction --no-suggest
-            - name: Run PHPStan
-              run: composer phpstan
+            -   name: Install the dependencies
+                run: |
+                    composer update --no-interaction --no-progress
+                    cd tools/phpstan && composer update --no-interaction --no-suggest
+            -   name: Run PHPStan
+                run: composer phpstan
 
     tests:
         name: PHP ${{ matrix.php }}
@@ -56,21 +56,21 @@ jobs:
             matrix:
                 php: [ 8.3,8.4,8.5 ]
         steps:
-            - name: Setup PHP
-              uses: shivammathur/setup-php@v2
-              with:
-                  php-version: ${{ matrix.php }}
-                  extensions: pdo_sqlite, sqlite3
-                  coverage: none
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: ${{ matrix.php }}
+                    extensions: pdo_sqlite, sqlite3
+                    coverage: none
 
-            - name: Checkout
-              uses: actions/checkout@v4
+            -   name: Checkout
+                uses: actions/checkout@v4
 
-            - name: Install phpunit
-              run: cd tools/phpunit && composer update --no-interaction --no-suggest
+            -   name: Install phpunit
+                run: cd tools/phpunit && composer update --no-interaction --no-suggest
 
-            - name: Install the dependencies
-              run: composer update --no-interaction --no-suggest
+            -   name: Install the dependencies
+                run: composer update --no-interaction --no-suggest
 
-            - name: Run the unit tests
-              run: composer unit-tests
+            -   name: Run the unit tests
+                run: composer unit-tests
