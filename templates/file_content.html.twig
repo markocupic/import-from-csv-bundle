@@ -2,12 +2,19 @@
     <label>
         <h3>{{ headline }}</h3>
     </label>
-
     <div class="ifcb-file-content-box">
-        <ul>
-            {% for row in rows %}
-                <li><code>{{ row }}</code></li>
-            {% endfor %}
-        </ul>
+        {% if has_error|default %}
+            <p><code>{{ error_message }}</code></p>
+            <p><code>{{ exception.getMessage() }}</code></p>
+        {% else %}
+            <ul>
+                {% for row in rows %}
+                    <li><code>{{ row }}</code></li>
+                {% endfor %}
+                {% if truncated|default %}
+                    <li>...</li>
+                {% endif %}
+            </ul>
+        {% endif %}
     </div>
 </div>

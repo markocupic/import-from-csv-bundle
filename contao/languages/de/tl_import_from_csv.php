@@ -66,3 +66,4 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['import_process_completed'] = 'Importv
 $GLOBALS['TL_LANG']['tl_import_from_csv']['import_process_completed_with_errors'] = 'Importvorgang mit einem oder mehreren Fehlern abgeschlossen. Hinweise zur Fehlerursache finden Sie im Error-Log.';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['import_process_started'] = 'Importvorgang gestartet. Bitte dieses Fenster nicht schliessen, bevor der Import nicht abgeschlossen ist.';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['loading_application'] = 'lade App';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['could_not_load_file'] = 'Konnte Datei "%s" nicht laden.';

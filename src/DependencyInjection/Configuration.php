@@ -27,7 +27,12 @@ class Configuration implements ConfigurationInterface
 
         $treeBuilder->getRootNode()
             ->children()
+                ->integerNode('preview_limit')
+                    ->min(1)
+                    ->defaultValue(-200)
+                ->end()
                 ->integerNode('max_inserts_per_request')
+                    ->min(1)
                     ->defaultValue(25)
                 ->end()
             ->end()

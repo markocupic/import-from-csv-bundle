@@ -42,6 +42,7 @@ class MarkocupicImportFromCsvExtension extends Extension
         $loader->load('services.yaml');
 
         $rootKey = $this->getAlias();
+        $container->setParameter($rootKey.'.preview_limit', $config['preview_limit']);
         $container->setParameter($rootKey.'.max_inserts_per_request', $config['max_inserts_per_request']);
     }
 }

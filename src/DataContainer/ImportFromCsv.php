@@ -19,15 +19,13 @@ use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\DataContainer;
-use Contao\File;
 use Contao\FilesModel;
 use Doctrine\DBAL\Connection;
-use Symfony\Component\HttpFoundation\Response;
+use Markocupic\ImportFromCsvBundle\Reader\CsvLineReader;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as TwigEnvironment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class ImportFromCsv
 {
@@ -36,10 +34,13 @@ class ImportFromCsv
     private readonly Adapter $filesModel;
 
     public function __construct(
-        private readonly ContaoFramework $framework,
         private readonly Connection $connection,
+        private readonly ContaoFramework $framework,
+        private readonly CsvLineReader $csvLineReader,
         private readonly TranslatorInterface $translator,
         private readonly TwigEnvironment $twig,
+        #[Autowire('%markocupic_import_from_csv.preview_limit%')]
+        private readonly int $previewLimit,
         private readonly string $projectDir,
     ) {
         $this->controller = $this->framework->getAdapter(Controller::class);
@@ -54,25 +55,35 @@ class ImportFromCsv
         ]);
     }
 
-    /**
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.listLines.input_field', priority: 100)]
     public function generateFileContentMarkup(DataContainer $dc): string
     {
-        $objFilesModel = $this->filesModel->findByUuid($dc->activeRecord->fileSRC);
+        $filesModel = $this->filesModel->findByUuid($dc->activeRecord->fileSRC);
 
-        if (null === $objFilesModel || !is_file($this->projectDir.'/'.$objFilesModel->path)) {
-            return (new Response(''))->getContent();
+        if (null === $filesModel) {
+            return '';
         }
 
-        $objFile = new File($objFilesModel->path);
+        $filePath = Path::join($this->projectDir, $filesModel->path);
+        $offset = 0;
+
+        try {
+            $splFile = new \SplFileObject($filePath);
+            $rows = $this->csvLineReader->readLines(file: $splFile, offset: $offset, limit: $this->previewLimit);
+            $truncated = $this->csvLineReader->countLines(file: $splFile) > $this->previewLimit;
+        } catch (\Throwable $e) {
+            return $this->twig->render('@MarkocupicImportFromCsv/file_content.html.twig', [
+                'headline' => $this->translator->trans('tl_import_from_csv.fileContent.0', [], 'contao_default'),
+                'has_error' => true,
+                'exception' => $e,
+                'error_message' => $this->translator->trans('tl_import_from_csv.could_not_load_file', [$filesModel->path], 'contao_default'),
+            ]);
+        }
 
         return $this->twig->render('@MarkocupicImportFromCsv/file_content.html.twig', [
             'headline' => $this->translator->trans('tl_import_from_csv.fileContent.0', [], 'contao_default'),
-            'rows' => $objFile->getContentAsArray(),
+            'rows' => $rows,
+            'truncated' => $truncated,
         ]);
     }
 
