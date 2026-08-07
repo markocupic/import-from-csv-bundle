@@ -138,13 +138,13 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
             'inputType' => 'rowWizard',
             'fields' => [
                 'field_name' => [
-                    'label' => ['Feldname in der Datenbank', ''],
+                    'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['selectedFields_fields']['field_name'],
                     'inputType' => 'select',
                     'options_callback' => [ImportFromCsv::class, 'optionsCbGetTableColumns'],
                     'eval' => ['chosen' => true, 'includeBlankOption' => true],
                 ],
                 'csv_field_name' => [
-                    'label' => ['Feldwert in der CSV-Datei', ''],
+                    'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['selectedFields_fields']['csv_field_name'],
                     'inputType' => 'select',
                     'options_callback' => [ImportFromCsv::class, 'optionsCbGetCsvColumns'],
                     'eval' => ['chosen' => true, 'includeBlankOption' => true],
@@ -161,28 +161,28 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
             'inputType' => 'rowWizard',
             'fields' => [
                 'field_name' => [
-                    'label' => ['Feldname in der Datenbank', ''],
+                    'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['field_name'],
                     'inputType' => 'select',
                     'options_callback' => [ImportFromCSV::class, 'optionsCbGetTableColumns'],
                     'eval' => ['style' => 'width: 300px', 'chosen' => true, 'includeBlankOption' => true],
                 ],
                 'csv_field_value' => [
-                    'label' => ['Feldwert in der CSV-Datei', ''],
+                    'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['csv_field_value'],
                     'inputType' => 'text',
                     'eval' => [],
                 ],
                 'transform_to' => [
-                    'label' => ['Feldwert transformieren', ''],
+                    'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['transform_to'],
                     'inputType' => 'text',
                     'eval' => [],
                 ],
                 'lowercase' => [
-                    'label' => ['Feldwert in Kleinbuchstaben transformieren', ''],
+                    'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['lowercase'],
                     'inputType' => 'checkbox',
                     'eval' => [],
                 ],
                 'uppercase' => [
-                    'label' => ['Feldwert in Großbuchstaben transformieren', ''],
+                    'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['uppercase'],
                     'inputType' => 'checkbox',
                     'eval' => [],
                 ],

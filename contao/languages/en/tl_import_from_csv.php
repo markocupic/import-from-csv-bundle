@@ -39,6 +39,16 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['offset'] = ['Skip entries', 'Please s
 $GLOBALS['TL_LANG']['tl_import_from_csv']['limit'] = ['Limit entries', 'Please select the number of entries that will be imported (0 = all).'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['enableCron'] = ['Enable cron', 'Run import as a cronjob.'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['cronLevel'] = ['Cron level', 'Select a cron level'];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['matchBy'] = ['Match by field', 'Select the field by which the records should be matched.'];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues'] = ['Transform values', 'Specify which field values should be transformed.'];
+
+$GLOBALS['TL_LANG']['tl_import_from_csv']['selectedFields_fields']['field_name'] = ['Field name in the database', ''];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['selectedFields_fields']['csv_field_name'] = ['Value in the CSV file', ''];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['field_name'] = ['Field name in the database', ''];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['csv_field_value'] = ['Value in the CSV file', ''];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['transform_to'] = ['Change to', ''];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['lowercase'] = ['Transform field value to lowercase', ''];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['uppercase'] = ['Transform field value to uppercase', ''];
 
 // References
 $GLOBALS['TL_LANG']['tl_import_from_csv']['truncate_table'] = ['truncate the target table before importing data'];
