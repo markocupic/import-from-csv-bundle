@@ -16,7 +16,6 @@ namespace Markocupic\ImportFromCsvBundle\DataContainer;
 
 use Contao\Controller;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
-use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\DataContainer;
 use Contao\FilesModel;
@@ -28,24 +27,18 @@ use Symfony\Component\Filesystem\Path;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as TwigEnvironment;
 
-class ImportFromCsv
+readonly class ImportFromCsv
 {
-    private readonly Adapter $controller;
-
-    private readonly Adapter $filesModel;
-
     public function __construct(
-        private readonly Connection $connection,
-        private readonly ContaoFramework $framework,
-        private readonly CsvLineReader $csvLineReader,
-        private readonly TranslatorInterface $translator,
-        private readonly TwigEnvironment $twig,
+        private Connection $connection,
+        private ContaoFramework $framework,
+        private CsvLineReader $csvLineReader,
+        private TranslatorInterface $translator,
+        private TwigEnvironment $twig,
         #[Autowire('%markocupic_import_from_csv.preview_limit%')]
-        private readonly int $previewLimit,
-        private readonly string $projectDir,
+        private int $previewLimit,
+        private string $projectDir,
     ) {
-        $this->controller = $this->framework->getAdapter(Controller::class);
-        $this->filesModel = $this->framework->getAdapter(FilesModel::class);
     }
 
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.explanation.input_field', priority: 100)]
@@ -59,7 +52,10 @@ class ImportFromCsv
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.listLines.input_field', priority: 100)]
     public function generateFileContentMarkup(DataContainer $dc): string
     {
-        $filesModel = $this->filesModel->findByUuid($dc->activeRecord->fileSRC);
+        $filesModel = $this->framework
+            ->getAdapter(FilesModel::class)
+            ->findByUuid($dc->activeRecord->fileSRC)
+        ;
 
         if (null === $filesModel) {
             return '';
@@ -93,9 +89,7 @@ class ImportFromCsv
     {
         $schemaManager = $this->connection->createSchemaManager();
 
-        $arrTables = $schemaManager->listTableNames();
-
-        return \is_array($arrTables) ? $arrTables : [];
+        return $schemaManager->listTableNames();
     }
 
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.matchBy.options', priority: 100)]
@@ -111,58 +105,64 @@ class ImportFromCsv
         $schemaManager = $this->connection->createSchemaManager();
 
         // Get a list of all lowercase column names
-        $arrLCFields = $schemaManager->listTableColumns($tableName);
+        $lowerCaseFields = $schemaManager->listTableColumns($tableName);
 
-        if (!\is_array($arrLCFields)) {
-            return [];
-        }
+        $this->framework->getAdapter(Controller::class)->loadDataContainer($tableName);
 
-        $this->controller->loadDataContainer($tableName);
-        $arrDcaFields = [];
+        $dcaFields = [];
 
         foreach (array_keys($GLOBALS['TL_DCA'][$tableName]['fields'] ?? []) as $k) {
-            $arrDcaFields[strtolower($k)] = [
-                'strField' => $k,
+            $dcaFields[strtolower($k)] = [
+                'fieldName' => $k,
                 'sql' => $GLOBALS['TL_DCA'][$tableName]['fields'][$k]['sql'] ?? null,
             ];
         }
 
         $arrOptions = [];
 
-        foreach ($arrLCFields as $field) {
-            $sql = $arrDcaFields[$field->getName()]['sql'] ?? '';
+        foreach ($lowerCaseFields as $field) {
+            $sql = $dcaFields[$field->getName()]['sql'] ?? '';
             $sql = \is_array($sql) ? json_encode($sql) : $sql;
-            $strSql = !empty($sql) ? \sprintf(' <span class="ifcb-sql-descr">[%s]</span>', $sql) : '';
+            $sql = !empty($sql) ? \sprintf(' <span class="ifcb-sql-descr">[%s]</span>', $sql) : '';
 
             // If exists, take the column name from the DCA
-            $strField = $arrDcaFields[$field->getName()]['strField'] ?? $field->getName();
-            $arrOptions[$strField] = $strField.$strSql;
+            $fieldName = $dcaFields[$field->getName()]['fieldName'] ?? $field->getName();
+            $arrOptions[$fieldName] = $fieldName.$sql;
         }
 
         return $arrOptions;
     }
 
-    public function optionsCbGetCsvColumns(?DataContainer $dc = null, bool $includeCustomFields = false): array
+    public function optionsCbGetCsvColumns(DataContainer|null $dc = null, bool $includeCustomFields = false): array
     {
-        if ($dc === null || $dc->id === null) {
+        if (null === $dc || null === $dc->id) {
             return [];
         }
 
         $headers = [];
-        $objFile = $this->filesModel->findOneBy(['uuid = ?'], [$dc->activeRecord->fileSRC]);
 
-        if ($objFile) {
-            $objCsvReader = Reader::createFromPath($this->projectDir.'/'.$objFile->path, 'r');
-            $objCsvReader->setHeaderOffset(0);
-            $objCsvReader->setDelimiter(';');
-            $headers = $objCsvReader->getHeader();
+        $fileModel = $this->framework
+            ->getAdapter(FilesModel::class)
+            ->findOneBy(['uuid = ?'], [$dc->activeRecord->fileSRC])
+        ;
+
+        if ($fileModel) {
+            $csvReader = $this->framework
+                ->getAdapter(Reader::class)
+                ->from(Path::join($this->projectDir, $fileModel->path), 'r')
+            ;
+            $csvReader->setHeaderOffset(0);
+            $csvReader->setDelimiter($dc->getCurrentRecord()['fieldSeparator'] ?: ';');
+            $headers = $csvReader->getHeader();
         }
 
         if (!empty($headers) && $includeCustomFields) {
             $newHeaders = [];
-            foreach ($headers as &$header) {
+
+            foreach ($headers as $header) {
                 $newHeaders[$header] = $header;
             }
+
             $headers = $newHeaders;
         }
 
