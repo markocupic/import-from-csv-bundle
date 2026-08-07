@@ -32,7 +32,8 @@ final class ImportConfig
         public readonly array $skipValidationFields,
         public readonly int $offset,
         public readonly int $limit,
-    ) {}
+    ) {
+    }
 
     public function setConfig(self $config): self
     {

@@ -31,8 +31,8 @@ use League\Csv\Statement;
 use League\Csv\SyntaxError;
 use League\Csv\UnavailableStream;
 use Markocupic\ImportFromCsvBundle\Event\ConfigImportEvent;
-use Markocupic\ImportFromCsvBundle\Event\PreImportEvent;
 use Markocupic\ImportFromCsvBundle\Event\PostImportEvent;
+use Markocupic\ImportFromCsvBundle\Event\PreImportEvent;
 use Markocupic\ImportFromCsvBundle\Import\Field\Formatter;
 use Markocupic\ImportFromCsvBundle\Import\Field\ImportValidator;
 use Markocupic\ImportFromCsvBundle\Logger\ImportLogger;
@@ -200,6 +200,7 @@ class ImportFromCsv
         $importData = [];
         // Process each row and filter/skip empty or not allowed values/columns
         $doNotSave = false;
+
         foreach ($csvLines as $csvLine) {
             $csvRecord = [];
 
@@ -235,6 +236,7 @@ class ImportFromCsv
             $arrReportValues = [];
 
             $set = [];
+
             foreach ($csvRecord as $columnName => $value) {
                 // Get the DCA of the current field
                 $dca = $this->getDca($columnName, $this->config->tableName);
@@ -309,7 +311,6 @@ class ImportFromCsv
                 } else {
                     $set[$widget->strField] = \is_array($widget->value) ? serialize($widget->value) : $widget->value;
                 }
-
             } // End foreach column
 
             if (!empty($updateRecords[$set[$this->config->matchBy]])) {
@@ -531,19 +532,21 @@ class ImportFromCsv
         $qb = $this->connection->createQueryBuilder();
 
         $qb
-            ->select('t.id, t.' . $matchBy)
+            ->select('t.id, t.'.$matchBy)
             ->from($table, 't')
-            ->where($qb->expr()->in('t.' . $matchBy, ':matchBy'))
+            ->where($qb->expr()->in('t.'.$matchBy, ':matchBy'))
             ->setParameter(
                 'matchBy',
                 $updateRecords,
                 $this->inferArrayParameterType($table, $matchBy),
-            );
+            )
+        ;
 
         /** @var array<int, array{id: int, match: string|int}> $rows */
         $rows = $qb->executeQuery()->fetchAllAssociative();
 
         $indexed = [];
+
         foreach ($rows as $row) {
             $key = $row[$matchBy];
             if (\is_int($key) || \is_string($key)) {
@@ -583,7 +586,7 @@ class ImportFromCsv
         $columns = $this->connection->createSchemaManager()->listTableColumns($table);
 
         if (!isset($columns[$column])) {
-            throw new \InvalidArgumentException(sprintf('Unknown column "%s" on table "%s".', $column, $table));
+            throw new \InvalidArgumentException(\sprintf('Unknown column "%s" on table "%s".', $column, $table));
         }
 
         $type = $columns[$column]->getType(); // Doctrine\DBAL\Types\Type instance

@@ -14,8 +14,8 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Event;
 
-use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
 use Markocupic\ImportFromCsvBundle\Import\ImportConfig;
+use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class ConfigImportEvent extends Event

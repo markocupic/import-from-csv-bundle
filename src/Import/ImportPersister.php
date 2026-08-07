@@ -9,9 +9,8 @@ use Doctrine\DBAL\Exception;
 
 final class ImportPersister
 {
-    public function __construct(
-        private readonly Connection $connection,
-    ) {
+    public function __construct(private readonly Connection $connection)
+    {
     }
 
     /**
@@ -49,11 +48,12 @@ final class ImportPersister
             return $insertId;
         } catch (\Throwable $e) {
             $this->connection->rollBack();
+
             throw $e;
         }
     }
 
-    private function normalizePrimaryKeyValue(mixed $value): ?int
+    private function normalizePrimaryKeyValue(mixed $value): int|null
     {
         if (null === $value) {
             return null;
