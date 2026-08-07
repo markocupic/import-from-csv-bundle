@@ -22,7 +22,9 @@ final class ImportConfig
         public readonly string $tableName,
         public readonly string $primaryKey,
         public readonly string $importMode,
+        public readonly string $matchBy,
         public readonly array $selectedFields,
+        public readonly array $mapValues,
         public readonly string $delimiter,
         public readonly string $enclosure,
         public readonly string $arrayDelimiter,
@@ -30,6 +32,26 @@ final class ImportConfig
         public readonly array $skipValidationFields,
         public readonly int $offset,
         public readonly int $limit,
-    ) {
+    ) {}
+
+    public function setConfig(self $config): self
+    {
+        return new self(
+            taskId: $config->taskId,
+            csvFile: $config->csvFile,
+            tableName: $config->tableName,
+            primaryKey: $config->primaryKey,
+            importMode: $config->importMode,
+            matchBy: $config->matchBy,
+            selectedFields: $config->selectedFields,
+            mapValues: $config->mapValues,
+            delimiter: $config->delimiter,
+            enclosure: $config->enclosure,
+            arrayDelimiter: $config->arrayDelimiter,
+            isTestMode: $config->isTestMode,
+            skipValidationFields: $config->skipValidationFields,
+            offset: $config->offset,
+            limit: $config->limit,
+        );
     }
 }

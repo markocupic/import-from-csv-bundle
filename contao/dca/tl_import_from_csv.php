@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 use Contao\DC_Table;
 use Contao\DataContainer;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Markocupic\ImportFromCsvBundle\DataContainer\ImportFromCsv;
 
 $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
     'config'      => [
@@ -73,7 +75,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
         'default'      => '
             {title_legend},title;
             {docs_legend},explanation;
-            {settings_legend},importTable,selectedFields,fieldSeparator,fieldEnclosure,importMode,fileSRC,listLines,skipValidationFields;
+            {settings_legend},importTable,matchBy,selectedFields,mapValues,fieldSeparator,fieldEnclosure,importMode,fileSRC,listLines,skipValidationFields;
             {limitAndOffset_legend},offset,limit;
             {cron_legend},enableCron
         ',
@@ -92,7 +94,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
             'sorting'   => true,
             'filter'    => true,
             'inputType' => 'text',
-            'eval'      => ['mandatory' => true, 'decodeEntities' => true, 'maxlength' => 255, 'tl_class' => 'w50'],
+            'eval'      => ['mandatory' => true, 'decodeEntities' => true, 'maxlength' => 255, 'tl_class' => 'w50', 'includeBlankOption' => true],
             'sql'       => "varchar(255) NOT NULL default ''",
         ],
         'tstamp'               => [
@@ -127,10 +129,70 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
             'eval'      => ['multiple' => false, 'mandatory' => true],
             'sql'       => "varchar(255) NOT NULL default ''",
         ],
+        'matchBy'              => [
+            'inputType' => 'select',
+            'eval'      => ['multiple' => false, 'includeBlankOption' => true],
+            'sql'       => "varchar(255) NOT NULL default ''",
+        ],
         'selectedFields'       => [
-            'inputType' => 'checkbox',
-            'eval'      => ['multiple' => true, 'mandatory' => true],
-            'sql'       => 'blob NULL',
+            'inputType' => 'rowWizard',
+            'fields' => [
+                'field_name' => [
+                    'label' => ['Feldname in der Datenbank', ''],
+                    'inputType' => 'select',
+                    'options_callback' => [ImportFromCsv::class, 'optionsCbGetTableColumns'],
+                    'eval' => ['chosen' => true, 'includeBlankOption' => true],
+                ],
+                'csv_field_name' => [
+                    'label' => ['Feldwert in der CSV-Datei', ''],
+                    'inputType' => 'select',
+                    'options_callback' => [ImportFromCsv::class, 'optionsCbGetCsvColumns'],
+                    'eval' => ['chosen' => true, 'includeBlankOption' => true],
+                ],
+            ],
+            'eval' => ['tl_class' => 'clr'],
+            'sql' => [
+                'type' => 'text',
+                'length' => MySQLPlatform::LENGTH_LIMIT_BLOB,
+                'notnull' => false,
+            ],
+        ],
+        'mapValues'       => [
+            'inputType' => 'rowWizard',
+            'fields' => [
+                'field_name' => [
+                    'label' => ['Feldname in der Datenbank', ''],
+                    'inputType' => 'select',
+                    'options_callback' => [ImportFromCSV::class, 'optionsCbGetTableColumns'],
+                    'eval' => ['style' => 'width: 300px', 'chosen' => true, 'includeBlankOption' => true],
+                ],
+                'csv_field_value' => [
+                    'label' => ['Feldwert in der CSV-Datei', ''],
+                    'inputType' => 'text',
+                    'eval' => [],
+                ],
+                'transform_to' => [
+                    'label' => ['Feldwert transformieren', ''],
+                    'inputType' => 'text',
+                    'eval' => [],
+                ],
+                'lowercase' => [
+                    'label' => ['Feldwert in Kleinbuchstaben transformieren', ''],
+                    'inputType' => 'checkbox',
+                    'eval' => [],
+                ],
+                'uppercase' => [
+                    'label' => ['Feldwert in Großbuchstaben transformieren', ''],
+                    'inputType' => 'checkbox',
+                    'eval' => [],
+                ],
+            ],
+            'eval' => ['tl_class' => 'clr'],
+            'sql' => [
+                'type' => 'text',
+                'length' => MySQLPlatform::LENGTH_LIMIT_BLOB,
+                'notnull' => false,
+            ],
         ],
         'skipValidationFields' => [
             'inputType' => 'select',

@@ -82,7 +82,9 @@ class ImportFromCsvHelper
         $tableName = $model->importTable;
         $importMode = $model->importMode;
         $selectedFields = $this->stringUtil->deserialize($model->selectedFields, true);
+        $mapValues = $this->stringUtil->deserialize($model->mapValues, true);
         $delimiter = $model->fieldSeparator;
+        $matchBy = $model->matchBy;
         $enclosure = $model->fieldEnclosure;
         $offset = (int) $model->offset;
         $limit = (int) $model->limit;
@@ -99,6 +101,7 @@ class ImportFromCsvHelper
                     tableName: $tableName,
                     importMode: $importMode,
                     selectedFields: $selectedFields,
+                    mapValues: $mapValues,
                     delimiter: $delimiter,
                     enclosure: $enclosure,
                     arrayDelimiter: '||',
@@ -107,6 +110,7 @@ class ImportFromCsvHelper
                     offset: $offset,
                     limit: $limit,
                     taskId: $taskId,
+                    matchBy: $matchBy,
                 );
 
                 return true;

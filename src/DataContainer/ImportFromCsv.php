@@ -21,6 +21,7 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\DataContainer;
 use Contao\FilesModel;
 use Doctrine\DBAL\Connection;
+use League\Csv\Reader;
 use Markocupic\ImportFromCsvBundle\Reader\CsvLineReader;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Path;
@@ -97,7 +98,7 @@ class ImportFromCsv
         return \is_array($arrTables) ? $arrTables : [];
     }
 
-    #[AsCallback(table: 'tl_import_from_csv', target: 'fields.selectedFields.options', priority: 100)]
+    #[AsCallback(table: 'tl_import_from_csv', target: 'fields.matchBy.options', priority: 100)]
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.skipValidationFields.options', priority: 100)]
     public function optionsCbGetTableColumns(DataContainer $dc): array
     {
@@ -139,5 +140,32 @@ class ImportFromCsv
         }
 
         return $arrOptions;
+    }
+
+    public function optionsCbGetCsvColumns(?DataContainer $dc = null, bool $includeCustomFields = false): array
+    {
+        if ($dc === null || $dc->id === null) {
+            return [];
+        }
+
+        $headers = [];
+        $objFile = $this->filesModel->findOneBy(['uuid = ?'], [$dc->activeRecord->fileSRC]);
+
+        if ($objFile) {
+            $objCsvReader = Reader::createFromPath($this->projectDir.'/'.$objFile->path, 'r');
+            $objCsvReader->setHeaderOffset(0);
+            $objCsvReader->setDelimiter(';');
+            $headers = $objCsvReader->getHeader();
+        }
+
+        if (!empty($headers) && $includeCustomFields) {
+            $newHeaders = [];
+            foreach ($headers as &$header) {
+                $newHeaders[$header] = $header;
+            }
+            $headers = $newHeaders;
+        }
+
+        return $headers ?? [];
     }
 }

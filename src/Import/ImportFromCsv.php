@@ -21,13 +21,17 @@ use Contao\Date;
 use Contao\File;
 use Contao\Input;
 use Contao\System;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Types\Type;
 use League\Csv\Exception;
 use League\Csv\InvalidArgument;
 use League\Csv\Reader;
 use League\Csv\Statement;
 use League\Csv\SyntaxError;
 use League\Csv\UnavailableStream;
+use Markocupic\ImportFromCsvBundle\Event\ConfigImportEvent;
+use Markocupic\ImportFromCsvBundle\Event\PreImportEvent;
 use Markocupic\ImportFromCsvBundle\Event\PostImportEvent;
 use Markocupic\ImportFromCsvBundle\Import\Field\Formatter;
 use Markocupic\ImportFromCsvBundle\Import\Field\ImportValidator;
@@ -57,6 +61,7 @@ class ImportFromCsv
         private readonly ImportValidator $importValidator,
         private readonly RequestStack $requestStack,
         private readonly WidgetFactory $widgetFactory,
+        private readonly ImportPersister $importPersister,
         private readonly string $projectDir,
     ) {
     }
@@ -68,7 +73,7 @@ class ImportFromCsv
      * @throws UnavailableStream
      * @throws \Doctrine\DBAL\Exception
      */
-    public function importCsv(File $csvFile, string $tableName, string $importMode, array $selectedFields = [], string $delimiter = ';', string $enclosure = '"', string $arrayDelimiter = '||', bool $isTestMode = false, array $skipValidationFields = [], int $offset = 0, int $limit = 0, string|null $taskId = null): void
+    public function importCsv(File $csvFile, string $tableName, string $importMode, array $selectedFields = [], array $mapValues = [], string $delimiter = ';', string $enclosure = '"', string $arrayDelimiter = '||', bool $isTestMode = false, array $skipValidationFields = [], int $offset = 0, int $limit = 0, string|null $taskId = null, string|null $matchBy = null): void
     {
         // Generate a task id if there is none.
         $taskId = $taskId ?? uniqid();
@@ -126,14 +131,18 @@ class ImportFromCsv
         // Load language file
         $this->framework->getAdapter(System::class)->loadLanguageFile($tableName);
 
+        $selectedFields = $this->normalizeSelectedFields($selectedFields);
+
         // Store the options in $this->config
-        $this->config = new ImportConfig(
+        $config = new ImportConfig(
             taskId: $taskId,
             csvFile: $csvFile,
             tableName: $tableName,
             primaryKey: $primaryKey,
             importMode: $importMode,
+            matchBy: $matchBy,
             selectedFields: $selectedFields,
+            mapValues: $mapValues,
             delimiter: $delimiter,
             enclosure: $enclosure,
             arrayDelimiter: $arrayDelimiter,
@@ -142,6 +151,11 @@ class ImportFromCsv
             offset: $offset,
             limit: $limit,
         );
+
+        $configImportEvent = new ConfigImportEvent($tableName, $config, $this);
+        $this->eventDispatcher->dispatch($configImportEvent, ConfigImportEvent::NAME);
+
+        $this->config = $configImportEvent->getConfig();
 
         // Truncate table
         if ('truncate_table' === $this->config->importMode && false === $this->config->isTestMode) {
@@ -168,14 +182,25 @@ class ImportFromCsv
             $stmt = $stmt->limit($this->config->limit);
         }
 
+        $headerFields = $this->mapHeaderNames(
+            $reader->getHeader(),
+            $this->config->selectedFields,
+        );
+
         // Get each line as an associative array -> ['columnName1' => 'value1',
         // 'columnName2' => 'value2']
-        $csvLines = $stmt->process($reader);
+        $csvLines = $stmt->process($reader, $headerFields);
 
+        $updateRecords = $this->getUpdateRecords(
+            $csvLines,
+            $this->config->tableName,
+            $this->config->matchBy,
+        );
+
+        $importData = [];
         // Process each row and filter/skip empty or not allowed values/columns
+        $doNotSave = false;
         foreach ($csvLines as $csvLine) {
-            $doNotSave = false;
-
             $csvRecord = [];
 
             foreach ($csvLine as $columnName => $value) {
@@ -187,7 +212,7 @@ class ImportFromCsv
                 }
 
                 // Continue if field is excluded from import
-                if (!\in_array($columnName, $this->config->selectedFields, true)) {
+                if (empty($this->config->selectedFields[$columnName])) {
                     continue;
                 }
 
@@ -207,17 +232,19 @@ class ImportFromCsv
             // Update processed rows counter
             ++$this->countProcessedRows;
 
-            $set = [];
             $arrReportValues = [];
 
+            $set = [];
             foreach ($csvRecord as $columnName => $value) {
                 // Get the DCA of the current field
-                $dca = $this->getDca($columnName, $tableName);
+                $dca = $this->getDca($columnName, $this->config->tableName);
 
                 // Map checkboxWizards to regular checkbox widgets
                 if ('checkboxWizard' === $dca['inputType']) {
                     $dca['inputType'] = 'checkbox';
                 }
+
+                $value = $this->mapValues($columnName, $value);
 
                 // Set the correct date format
                 $value = $this->formatter->getCorrectDateFormat($value, $dca);
@@ -269,7 +296,10 @@ class ImportFromCsv
                 $widget->value = $this->formatter->strtotime($widget, $dca);
                 $widget->value = $this->formatter->replaceNewlineTags($widget->value);
 
-                if ($widget->hasErrors()) {
+                if (
+                    $widget->strField !== $this->config->matchBy
+                    && $widget->hasErrors()
+                ) {
                     $doNotSave = true;
                     $arrReportValues[$widget->strField] = \sprintf(
                         '"%s" => %s',
@@ -279,46 +309,56 @@ class ImportFromCsv
                 } else {
                     $set[$widget->strField] = \is_array($widget->value) ? serialize($widget->value) : $widget->value;
                 }
+
             } // End foreach column
 
-            if (!$doNotSave) {
-                // Auto-insert "tstamp"
-                if ($this->columnExists('tstamp', $this->config->tableName)) {
-                    if (!isset($set['tstamp']) || '' === $set['tstamp']) {
-                        $set['tstamp'] = time();
-                        $arrReportValues['tstamp'] = time();
-                    }
+            if (!empty($updateRecords[$set[$this->config->matchBy]])) {
+                $set[$this->config->primaryKey] = $updateRecords[$set[$this->config->matchBy]][$this->config->primaryKey];
+            }
+
+            // Auto-insert "tstamp"
+            if ($this->columnExists('tstamp', $this->config->tableName)) {
+                if (!isset($set['tstamp']) || '' === $set['tstamp']) {
+                    $set['tstamp'] = time();
+                    $arrReportValues['tstamp'] = time();
                 }
+            }
 
-                // Auto-insert "dateAdded"
-                if ($this->columnExists('dateAdded', $this->config->tableName)) {
-                    if (!isset($set['dateAdded']) || '' === $set['dateAdded']) {
-                        $set['dateAdded'] = time();
-                        $arrReportValues['dateAdded'] = Date::parse($this->framework->getAdapter(Config::class)->get('dateFormat'), time());
-                    }
+            // Auto-insert "dateAdded"
+            if ($this->columnExists('dateAdded', $this->config->tableName)) {
+                if (!isset($set['dateAdded']) || '' === $set['dateAdded']) {
+                    $set['dateAdded'] = time();
+                    $arrReportValues['dateAdded'] = Date::parse($this->framework->getAdapter(Config::class)->get('dateFormat'), time());
                 }
+            }
 
-                // Write the data record to the database
-                if (true !== $this->config->isTestMode) {
-                    $insertId = null;
+            $importData[$this->currentLine] = $set;
+        }// End for each data record
 
-                    try {
-                        $this->connection->beginTransaction();
-                        $this->connection->insert($this->config->tableName, $this->quoteKeys($set));
-                        $insertId = (int) $this->connection->lastInsertId();
-                        $this->connection->commit();
-                    } catch (\Exception $e) {
-                        $doNotSave = true;
-                        $this->addInsertException($e);
-                        $this->connection->rollBack();
-                    }
+        foreach ($importData as $currentLine => $set) {
+            if ($doNotSave) {
+                continue;
+            }
 
-                    // Dispatch the import_from_csv.post_import event (Add newsletter recipients, ...)
-                    if ($insertId) {
-                        $event = new PostImportEvent($tableName, $set, $insertId, $csvRecord, $this);
-                        $this->eventDispatcher->dispatch($event, PostImportEvent::NAME);
-                    }
-                }
+            if (true === $this->config->isTestMode) {
+                continue;
+            }
+
+            try {
+                $preImportEvent = new PreImportEvent($this->config->tableName, $set, $csvRecord, $this);
+                $this->eventDispatcher->dispatch($preImportEvent, PreImportEvent::NAME);
+
+                $id = $this->importPersister->upsert(
+                    (string) $this->config->tableName,
+                    $this->config->primaryKey,
+                    $preImportEvent->getDataRecord(),
+                );
+
+                $postImportEvent = new PostImportEvent($this->config->tableName, $set, $id, $csvRecord, $this);
+                $this->eventDispatcher->dispatch($postImportEvent, PostImportEvent::NAME);
+            } catch (\Throwable $e) {
+                $doNotSave = true;
+                $this->addInsertException($e);
             }
 
             // Collect data for the logger screen in the Contao backend The logger service
@@ -326,7 +366,7 @@ class ImportFromCsv
             // cron jobs)
             if ($this->importLogger->hasInitialized($taskId)) {
                 $arrLog = [];
-                $arrLog['line'] = $this->currentLine;
+                $arrLog['line'] = $currentLine;
 
                 if ($doNotSave) {
                     $arrLog['type'] = 'failure';
@@ -365,7 +405,7 @@ class ImportFromCsv
                     $this->importLogger->addSuccess($this->config->taskId, $arrLog['line'], $arrLog['text'], $arrLog['values']);
                 }
             }
-        }// End for each data record
+        }
 
         if ($this->importLogger->hasInitialized($taskId)) {
             $this->importLogger->setSummaryData($this->config->taskId, $this->countProcessedRows, $this->countProcessedRows - $this->insertErrors, $this->insertErrors);
@@ -412,6 +452,11 @@ class ImportFromCsv
     {
         $this->framework->getAdapter(Controller::class)->loadDataContainer($tableName);
 
+        if (!isset($GLOBALS['TL_DCA'][$tableName]['fields'][$columnName])) {
+            return [
+                'inputType' => 'text',
+            ];
+        }
         if (\is_array($GLOBALS['TL_DCA'][$tableName]['fields'][$columnName])) {
             $dca = &$GLOBALS['TL_DCA'][$tableName]['fields'][$columnName];
 
@@ -467,14 +512,116 @@ class ImportFromCsv
         $this->insertExceptions[] = $e;
     }
 
-    private function quoteKeys(array $csvRecord): array
+    private function getUpdateRecords(iterable $csvLines, string $table, string|null $matchBy): array
     {
-        $quotedRecord = [];
+        $updateRecords = [];
 
-        foreach ($csvRecord as $k => $v) {
-            $quotedRecord[$this->connection->quoteIdentifier($k)] = $v;
+        if (null === $matchBy) {
+            return $updateRecords;
         }
 
-        return $quotedRecord;
+        foreach ($csvLines as $csvLine) {
+            if (!isset($csvLine[$matchBy])) {
+                continue;
+            }
+
+            $updateRecords[] = $csvLine[$matchBy];
+        }
+
+        $qb = $this->connection->createQueryBuilder();
+
+        $qb
+            ->select('t.id, t.' . $matchBy)
+            ->from($table, 't')
+            ->where($qb->expr()->in('t.' . $matchBy, ':matchBy'))
+            ->setParameter(
+                'matchBy',
+                $updateRecords,
+                $this->inferArrayParameterType($table, $matchBy),
+            );
+
+        /** @var array<int, array{id: int, match: string|int}> $rows */
+        $rows = $qb->executeQuery()->fetchAllAssociative();
+
+        $indexed = [];
+        foreach ($rows as $row) {
+            $key = $row[$matchBy];
+            if (\is_int($key) || \is_string($key)) {
+                $indexed[$key] = $row;
+            }
+        }
+
+        return $indexed;
+    }
+
+    private function normalizeSelectedFields(array $selectedFields): array
+    {
+        $normalizedSelectedFields = [];
+
+        foreach ($selectedFields as $field) {
+            $normalizedSelectedFields[$field['field_name'] ?? $field['csv_field_name']] = $field['csv_field_name'];
+        }
+
+        return $normalizedSelectedFields;
+    }
+
+    private function mapHeaderNames(array $csvHeaderFields, array $selectedFields): array
+    {
+        foreach ($selectedFields as $tableFieldName => $csvFieldName) {
+            $headerFieldIndex = array_search($csvFieldName, $csvHeaderFields, true);
+            $csvHeaderFields[$headerFieldIndex] = $tableFieldName;
+        }
+
+        return $csvHeaderFields;
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function inferArrayParameterType(string $table, string $column): ArrayParameterType
+    {
+        $columns = $this->connection->createSchemaManager()->listTableColumns($table);
+
+        if (!isset($columns[$column])) {
+            throw new \InvalidArgumentException(sprintf('Unknown column "%s" on table "%s".', $column, $table));
+        }
+
+        $type = $columns[$column]->getType(); // Doctrine\DBAL\Types\Type instance
+
+        // Works across DBAL versions: resolve the registered type name from the TypeRegistry.
+        $typeName = Type::getTypeRegistry()->lookupName($type);
+
+        return \in_array($typeName, ['integer', 'bigint', 'smallint'], true)
+            ? ArrayParameterType::INTEGER
+            : ArrayParameterType::STRING;
+    }
+
+    private function mapValues(string $columnName, mixed $value): string
+    {
+        if (empty($this->config->mapValues) || empty($value)) {
+            return $value;
+        }
+
+        foreach ($this->config->mapValues as $mapping) {
+            if ($mapping['field_name'] !== $columnName) {
+                continue;
+            }
+
+            if ($mapping['lowercase']) {
+                $value = strtolower($value);
+            }
+
+            if ($mapping['uppercase']) {
+                $value = strtoupper($value);
+            }
+
+            if (empty($mapping['csv_field_value']) || strtolower($mapping['csv_field_value']) !== strtolower($value)) {
+                continue;
+            }
+
+            return $mapping['transform_to'];
+        }
+
+        return $value;
     }
 }
