@@ -201,6 +201,8 @@ class ImportFromCsv
         // Process each row and filter/skip empty or not allowed values/columns
         $doNotSave = false;
 
+        $arrReportValues = [];
+
         foreach ($csvLines as $csvLine) {
             $csvRecord = [];
 
@@ -232,8 +234,6 @@ class ImportFromCsv
 
             // Update processed rows counter
             ++$this->countProcessedRows;
-
-            $arrReportValues = [];
 
             $set = [];
 
@@ -289,10 +289,10 @@ class ImportFromCsv
                 $this->importValidator->checkIsUnique($widget, $dca);
 
                 // Add value to the report window
-                $arrReportValues[$widget->strField] = $widget->value;
+                $arrReportValues[$this->currentLine][$widget->strField] = $widget->value;
 
                 if (\is_array($widget->value)) {
-                    $arrReportValues[$widget->strField] = print_r($widget->value, true);
+                    $arrReportValues[$this->currentLine][$widget->strField] = print_r($widget->value, true);
                 }
 
                 $widget->value = $this->formatter->strtotime($widget, $dca);
@@ -303,7 +303,7 @@ class ImportFromCsv
                     && $widget->hasErrors()
                 ) {
                     $doNotSave = true;
-                    $arrReportValues[$widget->strField] = \sprintf(
+                    $arrReportValues[$this->currentLine][$widget->strField] = \sprintf(
                         '"%s" => %s',
                         $widget->value,
                         $widget->getErrorsAsString(' '),
@@ -321,7 +321,7 @@ class ImportFromCsv
             if ($this->columnExists('tstamp', $this->config->tableName)) {
                 if (!isset($set['tstamp']) || '' === $set['tstamp']) {
                     $set['tstamp'] = time();
-                    $arrReportValues['tstamp'] = time();
+                    $arrReportValues[$this->currentLine]['tstamp'] = time();
                 }
             }
 
@@ -329,7 +329,7 @@ class ImportFromCsv
             if ($this->columnExists('dateAdded', $this->config->tableName)) {
                 if (!isset($set['dateAdded']) || '' === $set['dateAdded']) {
                     $set['dateAdded'] = time();
-                    $arrReportValues['dateAdded'] = Date::parse($this->framework->getAdapter(Config::class)->get('dateFormat'), time());
+                    $arrReportValues[$this->currentLine]['dateAdded'] = Date::parse($this->framework->getAdapter(Config::class)->get('dateFormat'), time());
                 }
             }
 
@@ -342,24 +342,22 @@ class ImportFromCsv
             }
 
             if (true === $this->config->isTestMode) {
-                continue;
-            }
+                try {
+                    $preImportEvent = new PreImportEvent($this->config->tableName, $set, $csvRecord, $this);
+                    $this->eventDispatcher->dispatch($preImportEvent, PreImportEvent::NAME);
 
-            try {
-                $preImportEvent = new PreImportEvent($this->config->tableName, $set, $csvRecord, $this);
-                $this->eventDispatcher->dispatch($preImportEvent, PreImportEvent::NAME);
+                    $id = $this->importPersister->upsert(
+                        (string) $this->config->tableName,
+                        $this->config->primaryKey,
+                        $preImportEvent->getDataRecord(),
+                    );
 
-                $id = $this->importPersister->upsert(
-                    (string) $this->config->tableName,
-                    $this->config->primaryKey,
-                    $preImportEvent->getDataRecord(),
-                );
-
-                $postImportEvent = new PostImportEvent($this->config->tableName, $set, $id, $csvRecord, $this);
-                $this->eventDispatcher->dispatch($postImportEvent, PostImportEvent::NAME);
-            } catch (\Throwable $e) {
-                $doNotSave = true;
-                $this->addInsertException($e);
+                    $postImportEvent = new PostImportEvent($this->config->tableName, $set, $id, $csvRecord, $this);
+                    $this->eventDispatcher->dispatch($postImportEvent, PostImportEvent::NAME);
+                } catch (\Throwable $e) {
+                    $doNotSave = true;
+                    $this->addInsertException($e);
+                }
             }
 
             // Collect data for the logger screen in the Contao backend The logger service
@@ -389,7 +387,7 @@ class ImportFromCsv
 
                 $arrLog['values'] = [];
 
-                foreach ($arrReportValues as $k => $v) {
+                foreach ($arrReportValues[$currentLine] as $k => $v) {
                     if (\is_array($v)) {
                         $v = serialize($v);
                     }
