@@ -39,7 +39,7 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['offset'] = ['Skip entries', 'Please s
 $GLOBALS['TL_LANG']['tl_import_from_csv']['limit'] = ['Limit entries', 'Please select the number of entries that will be imported (0 = all).'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['enableCron'] = ['Enable cron', 'Run import as a cronjob.'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['cronLevel'] = ['Cron level', 'Select a cron level'];
-$GLOBALS['TL_LANG']['tl_import_from_csv']['matchBy'] = ['Match by field', 'Select the field by which the records should be matched.'];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['matchBy'] = ['Unique field for updates', 'Select the field whose value is used to identify existing records. If a record with this value already exists, it will be updated; otherwise, a new record will be created. The field should ideally be unique (e.g. email, username, external ID).'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues'] = ['Transform values', 'Specify which field values should be transformed.'];
 
 $GLOBALS['TL_LANG']['tl_import_from_csv']['selectedFields_fields']['field_name'] = ['Field name in the database', ''];

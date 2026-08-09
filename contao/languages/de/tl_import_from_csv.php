@@ -39,7 +39,7 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['offset'] = ['Datensätze überspringe
 $GLOBALS['TL_LANG']['tl_import_from_csv']['limit'] = ['Datensätze limitieren', 'Geben Sie an, wie viele Datensätze importiert werden sollen (0=alle).'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['enableCron'] = ['Cron aktivieren', 'Aktivieren Sie den CSV-Import als Cronjob.'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['cronLevel'] = ['Cron Level', 'Bestimmen Sie, in welchem Intervall die Cronjobs durchgeführt werden sollen.'];
-$GLOBALS['TL_LANG']['tl_import_from_csv']['matchBy'] = ['Nach Feld abgleichen', 'Wählen Sie das Feld aus, nach dem die Datensätze abgeglichen werden sollen.'];
+$GLOBALS['TL_LANG']['tl_import_from_csv']['matchBy'] = ['Eindeutiges Feld für Updates', 'Wählen Sie ein Feld aus, dessen Wert zur Identifizierung bestehender Datensätze verwendet wird. Wenn ein Datensatz mit diesem Wert bereits existiert, wird er aktualisiert; andernfalls wird ein neuer Datensatz angelegt. Das Feld sollte möglichst eindeutig sein (z.B. E‑Mail, Benutzername, externe ID).'];
 $GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues'] = ['Werte transformieren', 'Geben Sie an, welche Feldwerte transformiert werden sollen.'];
 
 $GLOBALS['TL_LANG']['tl_import_from_csv']['selectedFields_fields']['field_name'] = ['Feldname in der Datenbank', ''];
