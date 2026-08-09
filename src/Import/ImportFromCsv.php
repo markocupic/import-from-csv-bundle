@@ -194,6 +194,7 @@ class ImportFromCsv
         $updateRecords = $this->getUpdateRecords(
             $csvLines,
             $this->config->tableName,
+            $this->config->primaryKey,
             $this->config->matchBy,
         );
 
@@ -518,7 +519,7 @@ class ImportFromCsv
         $this->insertExceptions[] = $e;
     }
 
-    private function getUpdateRecords(iterable $csvLines, string $table, string|null $matchBy): array
+    private function getUpdateRecords(iterable $csvLines, string $tableName, string $primaryKey, string|null $matchBy): array
     {
         $updateRecords = [];
 
@@ -537,13 +538,13 @@ class ImportFromCsv
         $qb = $this->connection->createQueryBuilder();
 
         $qb
-            ->select('t.id, t.'.$matchBy)
-            ->from($table, 't')
+            ->select('t.'.$primaryKey, 't.'.$matchBy)
+            ->from($tableName, 't')
             ->where($qb->expr()->in('t.'.$matchBy, ':matchBy'))
             ->setParameter(
                 'matchBy',
                 $updateRecords,
-                $this->inferArrayParameterType($table, $matchBy),
+                $this->inferArrayParameterType($tableName, $matchBy),
             )
         ;
 
