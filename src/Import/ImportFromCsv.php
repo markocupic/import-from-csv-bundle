@@ -610,7 +610,7 @@ class ImportFromCsv
         $type = $columns[$column]->getType(); // Doctrine\DBAL\Types\Type instance
 
         // Works across DBAL versions: resolve the registered type name from the TypeRegistry.
-        $typeName = Type::getTypeRegistry()->lookupName($type);
+        $typeName = $this->framework->getAdapter(Type::class)->getTypeRegistry()->lookupName($type);
 
         return match ($typeName) {
             'integer', 'bigint', 'smallint' => ArrayParameterType::INTEGER,
