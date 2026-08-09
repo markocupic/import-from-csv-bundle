@@ -24,6 +24,7 @@ use League\Csv\Exception;
 use League\Csv\Reader;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -45,8 +46,11 @@ class MountAppAjaxController extends AbstractController
         private readonly ContaoFramework $framework,
         private readonly RequestStack $requestStack,
         private readonly RouterInterface $router,
+        #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
+        #[Autowire('%contao.csrf_token_name%')]
         private readonly string $csrfTokenName,
+        #[Autowire('%markocupic_import_from_csv.max_inserts_per_request%')]
         private readonly int $perRequest,
     ) {
         $this->filesModel = $this->framework->getAdapter(FilesModel::class);

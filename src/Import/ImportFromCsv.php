@@ -37,6 +37,7 @@ use Markocupic\ImportFromCsvBundle\Event\PreValidateWidgetEvent;
 use Markocupic\ImportFromCsvBundle\Import\Field\Formatter;
 use Markocupic\ImportFromCsvBundle\Import\Field\ImportValidator;
 use Markocupic\ImportFromCsvBundle\Logger\ImportLogger;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -63,6 +64,7 @@ class ImportFromCsv
         private readonly RequestStack $requestStack,
         private readonly WidgetFactory $widgetFactory,
         private readonly ImportPersister $importPersister,
+        #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
     ) {
     }
@@ -111,7 +113,10 @@ class ImportFromCsv
 
         // Get the League\Csv\Reader object
         /** @var Reader $reader */
-        $reader = $this->framework->getAdapter(Reader::class)->from($csvFile->getRealPath(), 'r');
+        $reader = $this->framework
+            ->getAdapter(Reader::class)
+            ->from($csvFile->getRealPath(), 'r')
+        ;
 
         // Set the CSV header offset
         $reader->setHeaderOffset(0);

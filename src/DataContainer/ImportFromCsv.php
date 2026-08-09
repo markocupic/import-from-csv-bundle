@@ -37,6 +37,7 @@ readonly class ImportFromCsv
         private TwigEnvironment $twig,
         #[Autowire('%markocupic_import_from_csv.preview_limit%')]
         private int $previewLimit,
+        #[Autowire('%kernel.project_dir%')]
         private string $projectDir,
     ) {
     }
@@ -147,13 +148,13 @@ readonly class ImportFromCsv
         ;
 
         if ($fileModel) {
-            $csvReader = $this->framework
+            $reader = $this->framework
                 ->getAdapter(Reader::class)
                 ->from(Path::join($this->projectDir, $fileModel->path), 'r')
             ;
-            $csvReader->setHeaderOffset(0);
-            $csvReader->setDelimiter($dc->getCurrentRecord()['fieldSeparator'] ?: ';');
-            $headers = $csvReader->getHeader();
+            $reader->setHeaderOffset(0);
+            $reader->setDelimiter($dc->getCurrentRecord()['fieldSeparator'] ?: ';');
+            $headers = $reader->getHeader();
         }
 
         if (!empty($headers) && $includeCustomFields) {
