@@ -16,7 +16,6 @@ namespace Markocupic\ImportFromCsvBundle\Contao\Controller;
 
 use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
 use Contao\CoreBundle\Exception\ResponseException;
-use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FilesModel;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvFactory;
@@ -30,21 +29,15 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 
 class ImportAjaxController extends AbstractController
 {
-    private readonly Adapter $importFromCsvModel;
-
-    private readonly Adapter $filesModel;
-
     public function __construct(
-        private readonly ImportFromCsvFactory $importFromCsvFactory,
-        private readonly ContaoFramework $framework,
         private readonly ContaoCsrfTokenManager $csrfTokenManager,
-        private readonly RequestStack $requestStack,
+        private readonly ContaoFramework $framework,
+        private readonly ImportFromCsvFactory $importFromCsvFactory,
         private readonly ImportLogger $importLogger,
+        private readonly RequestStack $requestStack,
         #[Autowire('%contao.csrf_token_name%')]
         private readonly string $csrfTokenName,
     ) {
-        $this->importFromCsvModel = $this->framework->getAdapter(ImportFromCsvModel::class);
-        $this->filesModel = $this->framework->getAdapter(FilesModel::class);
     }
 
     /**
@@ -68,17 +61,17 @@ class ImportAjaxController extends AbstractController
             $this->importLogger->initialize($taskId);
         }
 
-        if (null !== ($objImportFromCsvModel = $this->importFromCsvModel->findById($id))) {
-            if (null !== $this->filesModel->findByUuid($objImportFromCsvModel->fileSRC)) {
-                $objImportFromCsvModel->offset = $offset;
-                $objImportFromCsvModel->limit = $limit;
+        if (null !== ($importModel = $this->framework->getAdapter(ImportFromCsvModel::class)->findById($id))) {
+            if (null !== $this->framework->getAdapter(FilesModel::class)->findByUuid($importModel->fileSRC)) {
+                $importModel->offset = $offset;
+                $importModel->limit = $limit;
 
                 if ((int) $request->query->get('req_num') > 1) {
-                    $objImportFromCsvModel->importMode = 'append_entries';
+                    $importModel->importMode = 'append_entries';
                 }
 
                 // Use helper class to launch the import process
-                if (null !== $this->importFromCsvFactory->createFromModel($objImportFromCsvModel->current(), $isTestMode, $taskId)) {
+                if (null !== $this->importFromCsvFactory->createFromModel($importModel->current(), $isTestMode, $taskId)) {
                     $arrData = [];
                     $arrData['data'] = $this->importLogger->getLog($taskId);
 

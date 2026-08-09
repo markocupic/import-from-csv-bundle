@@ -16,7 +16,6 @@ namespace Markocupic\ImportFromCsvBundle\Contao\Controller;
 
 use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
 use Contao\CoreBundle\Exception\ResponseException;
-use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FilesModel;
 use Contao\StringUtil;
@@ -33,14 +32,6 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 
 class MountAppAjaxController extends AbstractController
 {
-    private readonly Adapter $filesModel;
-
-    private readonly Adapter $importFromCsvModel;
-
-    private readonly Adapter $stringUtil;
-
-    private readonly Adapter $reader;
-
     public function __construct(
         private readonly ContaoCsrfTokenManager $csrfTokenManager,
         private readonly ContaoFramework $framework,
@@ -53,10 +44,6 @@ class MountAppAjaxController extends AbstractController
         #[Autowire('%markocupic_import_from_csv.max_inserts_per_request%')]
         private readonly int $perRequest,
     ) {
-        $this->filesModel = $this->framework->getAdapter(FilesModel::class);
-        $this->importFromCsvModel = $this->framework->getAdapter(ImportFromCsvModel::class);
-        $this->stringUtil = $this->framework->getAdapter(StringUtil::class);
-        $this->reader = $this->framework->getAdapter(Reader::class);
     }
 
     /**
@@ -73,28 +60,39 @@ class MountAppAjaxController extends AbstractController
             throw new \Exception('Invalid token!');
         }
 
-        $objModel = $this->importFromCsvModel->findById($id);
+        $importModel = $this->framework
+            ->getAdapter(ImportFromCsvModel::class)
+            ->findById($id)
+        ;
 
-        if (null === $objModel) {
+        if (null === $importModel) {
             throw new \Exception('Import from csv model not found.');
         }
 
-        $arrData['model'] = $objModel->row();
+        $arrData['model'] = $importModel->row();
 
-        $objFile = $this->filesModel->findByUuid($objModel->fileSRC);
+        $file = $this->framework
+            ->getAdapter(FilesModel::class)
+            ->findByUuid($importModel->fileSRC)
+        ;
 
-        $arrData['model']['fileSRC'] = $objFile ? $objFile->path : '';
-        $arrData['model']['selectedFields'] = $this->stringUtil->deserialize($objModel->selectedFields, true);
-        $arrData['model']['skipValidationFields'] = $this->stringUtil->deserialize($objModel->skipValidationFields, true);
+        $stringUtil = $this->framework->getAdapter(StringUtil::class);
+
+        $arrData['model']['fileSRC'] = null !== $file ? $file->path : '';
+        $arrData['model']['selectedFields'] = $stringUtil->deserialize($importModel->selectedFields, true);
+        $arrData['model']['skipValidationFields'] = $stringUtil->deserialize($importModel->skipValidationFields, true);
 
         $count = 0;
-        $offset = (int) $objModel->offset;
-        $limit = (int) $objModel->limit;
+        $offset = (int) $importModel->offset;
+        $limit = (int) $importModel->limit;
 
-        if ($objFile) {
-            $objCsvReader = $this->reader->from(Path::join($this->projectDir, $objFile->path), 'r');
-            $objCsvReader->setHeaderOffset(0);
-            $count = (int) $objCsvReader->count();
+        if (null !== $file) {
+            $reader = $this->framework
+                ->getAdapter(Reader::class)
+                ->from(Path::join($this->projectDir, $file->path), 'r')
+            ;
+            $reader->setHeaderOffset(0);
+            $count = (int) $reader->count();
         }
 
         $intRows = $offset > $count ? 0 : $count - $offset;
@@ -128,8 +126,8 @@ class MountAppAjaxController extends AbstractController
             ]);
         }
 
-        $arrData['model']['limit'] = $objModel->limit;
-        $arrData['model']['offset'] = $objModel->offset;
+        $arrData['model']['limit'] = $importModel->limit;
+        $arrData['model']['offset'] = $importModel->offset;
         $arrData['model']['count'] = $count;
         $arrData['urlStack'] = $arrUrl;
 
