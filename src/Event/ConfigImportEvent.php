@@ -20,7 +20,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class ConfigImportEvent extends Event
 {
-    public const NAME = 'import_from_csv.config_import';
+    public const string NAME = 'import_from_csv.config_import';
 
     public function __construct(
         private readonly string $tableName,
@@ -37,11 +37,6 @@ class ConfigImportEvent extends Event
     public function getConfig(): ImportConfig
     {
         return $this->config;
-    }
-
-    public function setConfig(ImportConfig $config): void
-    {
-        $this->config = $config;
     }
 
     public function getImportInstance(): ImportFromCsv
