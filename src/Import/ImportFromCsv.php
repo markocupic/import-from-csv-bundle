@@ -33,6 +33,7 @@ use League\Csv\UnavailableStream;
 use Markocupic\ImportFromCsvBundle\Event\ConfigImportEvent;
 use Markocupic\ImportFromCsvBundle\Event\PostImportEvent;
 use Markocupic\ImportFromCsvBundle\Event\PreImportEvent;
+use Markocupic\ImportFromCsvBundle\Event\PreValidateWidgetEvent;
 use Markocupic\ImportFromCsvBundle\Import\Field\Formatter;
 use Markocupic\ImportFromCsvBundle\Import\Field\ImportValidator;
 use Markocupic\ImportFromCsvBundle\Logger\ImportLogger;
@@ -264,12 +265,8 @@ class ImportFromCsv
                 // Get the correct widget for input validation, etc.
                 $widget = $this->widgetFactory->create(dca: $dca, columnName: $columnName, tableName: $this->config->tableName, value: $value);
 
-                // Trigger the importFromCsv HOOK:
-                if (isset($GLOBALS['TL_HOOKS']['importFromCsv']) && \is_array($GLOBALS['TL_HOOKS']['importFromCsv'])) {
-                    foreach ($GLOBALS['TL_HOOKS']['importFromCsv'] as $callback) {
-                        $this->framework->getAdapter(System::class)->importStatic($callback[0])->{$callback[1]}($widget, $csvRecord, $this->currentLine, $this);
-                    }
-                }
+                $preValidateWidgetEvent = new PreValidateWidgetEvent($widget, $csvRecord, $this, $request);
+                $this->eventDispatcher->dispatch($preValidateWidgetEvent, PreValidateWidgetEvent::NAME);
 
                 // Validate date, datim or time values
                 $this->importValidator->checkIsValidDate($widget, $dca);

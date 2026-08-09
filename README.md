@@ -109,113 +109,11 @@ Beide Werte müssen ganze Zahlen grösser 0 sein. Ungültige Angaben (0, negativ
 > [!IMPORTANT]
 > **Passwörter:** Werden beim Import Passwörter gehasht (z.B. beim Import in `tl_member` oder `tl_user` mit einer `password`-Spalte), ist das Hashing (bcrypt/argon2) bewusst sehr rechenintensiv. Wählen Sie `max_inserts_per_request` in diesem Fall **klein** (z.B. 5–10), damit ein einzelner Request nicht in das PHP-Zeitlimit (`max_execution_time`) oder ins Speicherlimit läuft. Ohne Passwort-Hashing kann der Wert deutlich höher gewählt werden.
 
-## Importmechanismus über einen Hook anpassen
+## Importmechanismus über Event-Listener anpassen
 
-Über einen updatesicheren Hook lässt sich die Validierung umgehen oder anpassen. Im folgenden Beispiel werden die Geokoordinaten beim Import anhand von Strasse, Stadt und Länderkürzel automatisch per cURL-Request von Google Maps ermittelt. Ausserdem lassen sich Fehlermeldungen erzeugen, etwa wenn keine Geokoordinaten ermittelt werden konnten – der betreffende Datensatz wird dann übersprungen und nicht in die Datenbank geschrieben.
+Über einen Event Listener lässt sich die Validierung umgehen oder anpassen. Im folgenden Beispiel werden die Geokoordinaten beim Import anhand von Strasse, Stadt und Länderkürzel automatisch per cURL-Request von Google Maps ermittelt. Ausserdem lassen sich Fehlermeldungen erzeugen, etwa wenn keine Geokoordinaten ermittelt werden konnten – der betreffende Datensatz wird dann übersprungen und nicht in die Datenbank geschrieben.
 
-Aufbau einer möglichen Hook-Klasse:
-
-```php
-
-<?php
-
-// src/EventListener/MyImportFromCsvHook.php
-
-declare(strict_types=1);
-
-namespace App\EventListener;
-
-use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
-use Contao\Widget;
-use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
-
-#[AsHook(MyImportFromCsvHook::HOOK)]
-class MyImportFromCsvHook
-{
-    public const HOOK = 'importFromCsv';
-    public const PRIORITY = 100;
-
-    /**
-     * @var string
-     */
-    private $curlErrorMsg;
-
-    public function __invoke(Widget $objWidget, array $arrRecord, int $line, ImportFromCsv $importFromCsv = null): void
-    {
-        // tl_member
-        if ('tl_member' === $objWidget->strTable) {
-            // Get geolocation from a given address
-            if ('geolocation' === $objWidget->strField) {
-                // Do custom validation and skip the Contao-Widget-Input-Validation
-                $arrSkip = $importFromCsv->getData('arrSkipValidationFields');
-                $arrSkip[] = $objWidget->strField;
-                $importFromCsv->setData('arrSkipValidationFields', $arrSkip);
-
-                $strStreet = $arrRecord['street'];
-                $strCity = $arrRecord['city'];
-                $strCountry = $arrRecord['country'];
-
-                $strStreet = str_replace(' ', '+', $strStreet);
-                $strCity = str_replace(' ', '+', $strCity);
-                $strAddress = $strStreet.',+'.$strCity.',+'.$strCountry;
-
-                // Get position from Google Maps
-                $arrPos = $this->curlGetCoordinates(sprintf('https://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false', $strAddress));
-
-                if (null !== $arrPos && \is_array($arrPos['results'][0]['geometry'])) {
-                    $latPos = $arrPos['results'][0]['geometry']['location']['lat'];
-                    $lngPos = $arrPos['results'][0]['geometry']['location']['lng'];
-
-                    $objWidget->value = $latPos.','.$lngPos;
-                } else {
-                    // Error handling
-                    if ('' !== $this->curlErrorMsg) {
-                        $objWidget->addError($this->curlErrorMsg);
-                    } else {
-                        $objWidget->addError(sprintf('Setting geolocation for (%s) failed!', $strAddress));
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Curl helper method.
-     */
-    private function curlGetCoordinates(string $url): array|null
-    {
-        // is cURL installed on the webserver?
-        if (!\function_exists('curl_init')) {
-            $this->curlErrorMsg = 'Sorry cURL is not installed on your webserver!';
-
-            return null;
-        }
-
-        // Set a timout to avoid the OVER_QUERY_LIMIT
-        usleep(25000);
-
-        // Create a new cURL resource handle
-        $ch = curl_init();
-
-        // Set URL to download
-        curl_setopt($ch, CURLOPT_URL, $url);
-
-        // Should cURL return or print out the data? (true = return, false = print)
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        // Timeout in seconds
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-
-        // Download the given URL, and return output
-        $arrOutput = json_decode(curl_exec($ch), true);
-
-        // Close the cURL resource, and free system resources
-        curl_close($ch);
-
-        return $arrOutput;
-    }
-}
-
+Hier der Aufbau einer möglichen [Event-Listener-Klasse](src/EventListener/PreValidateWidget/PreValidateWidgetDemoListener.php).
 
 ```
 
