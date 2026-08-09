@@ -191,7 +191,7 @@ class ImportFromCsv
         // 'columnName2' => 'value2']
         $csvLines = $stmt->process($reader, $headerFields);
 
-        $updateRecords = $this->getUpdateRecords(
+        $existingPrimaryKeys = $this->findExistingPrimaryKeysByMatchField(
             $csvLines,
             $this->config->tableName,
             $this->config->primaryKey,
@@ -314,8 +314,8 @@ class ImportFromCsv
                 }
             } // End foreach column
 
-            if (!empty($updateRecords[$set[$this->config->matchBy]])) {
-                $set[$this->config->primaryKey] = $updateRecords[$set[$this->config->matchBy]][$this->config->primaryKey];
+            if (!empty($existingPrimaryKeys[$set[$this->config->matchBy]])) {
+                $set[$this->config->primaryKey] = $existingPrimaryKeys[$set[$this->config->matchBy]];
             }
 
             // Auto-insert "tstamp"
@@ -519,48 +519,60 @@ class ImportFromCsv
         $this->insertExceptions[] = $e;
     }
 
-    private function getUpdateRecords(iterable $csvLines, string $tableName, string $primaryKey, string|null $matchBy): array
+    /**
+     * Finds existing database records by comparing CSV match-field values against the given table.
+     *
+     * The function extracts all non-empty values of the `$matchBy` field from the CSV lines,
+     * performs a lookup in the database table, and returns a map where each match-field value
+     * is mapped to the corresponding primary key of an existing record.
+     *
+     * This allows the import pipeline to decide whether a CSV row should update an existing
+     * record (match found) or create a new one (no match found).
+     *
+     * Example return value:
+     *
+     * [
+     *     'marko@example.com' => 42,
+     *     'sascha@example.com' => 17,
+     * ]
+     *
+     * @return array<string|int, int> map of match-field values to existing primary keys
+     */
+    private function findExistingPrimaryKeysByMatchField(iterable $csvLines, string $tableName, string $primaryKey, string|null $matchBy): array
     {
-        $updateRecords = [];
-
         if (null === $matchBy) {
-            return $updateRecords;
+            return [];
         }
 
-        foreach ($csvLines as $csvLine) {
-            if (!isset($csvLine[$matchBy])) {
+        $matchFieldValues = [];
+
+        foreach ($csvLines as $line) {
+            $value = $line[$matchBy] ?? null;
+
+            if (null === $value || '' === $value) {
                 continue;
             }
 
-            $updateRecords[] = $csvLine[$matchBy];
+            $matchFieldValues[] = $value;
+        }
+
+        if ([] === $matchFieldValues) {
+            return [];
         }
 
         $qb = $this->connection->createQueryBuilder();
-
         $qb
-            ->select('t.'.$primaryKey, 't.'.$matchBy)
+            ->select("t.$matchBy", "t.$primaryKey")
             ->from($tableName, 't')
-            ->where($qb->expr()->in('t.'.$matchBy, ':matchBy'))
+            ->where($qb->expr()->in("t.$matchBy", ':matchBy'))
             ->setParameter(
                 'matchBy',
-                $updateRecords,
+                $matchFieldValues,
                 $this->inferArrayParameterType($tableName, $matchBy),
             )
         ;
 
-        /** @var array<int, array{id: int, match: string|int}> $rows */
-        $rows = $qb->executeQuery()->fetchAllAssociative();
-
-        $indexed = [];
-
-        foreach ($rows as $row) {
-            $key = $row[$matchBy];
-            if (\is_int($key) || \is_string($key)) {
-                $indexed[$key] = $row;
-            }
-        }
-
-        return $indexed;
+        return $qb->fetchAllKeyValue();
     }
 
     private function normalizeSelectedFields(array $selectedFields): array
