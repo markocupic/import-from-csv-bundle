@@ -599,12 +599,12 @@ class ImportFromCsv
     /**
      * @throws Exception
      */
-    private function inferArrayParameterType(string $table, string $column): ArrayParameterType
+    private function inferArrayParameterType(string $tableName, string $column): ArrayParameterType
     {
-        $columns = $this->connection->createSchemaManager()->listTableColumns($table);
+        $columns = $this->connection->createSchemaManager()->listTableColumns($tableName);
 
         if (!isset($columns[$column])) {
-            throw new \InvalidArgumentException(\sprintf('Unknown column "%s" on table "%s".', $column, $table));
+            throw new \InvalidArgumentException(\sprintf('Unknown column "%s" on table "%s".', $column, $tableName));
         }
 
         $type = $columns[$column]->getType(); // Doctrine\DBAL\Types\Type instance
