@@ -2,7 +2,6 @@
     <a href="{{ backHref }}" class="ifcb-custom-header-back" title="{{ lang.MSC.backBTTitle }}" accesskey="b">{{ lang.MSC.backBTTitle }}</a>
     <a href="{{ editHref }}" class="ifcb-edit-header" title="{{ lang.tl_import_from_csv.editItemTitle }}" accesskey="c">{{ lang.tl_import_from_csv.editItemTitle }}</a>
 </div>
-
 <div id="ifcbImportFromCsvApp" v-cloak>
     <div v-if="status === 'ifcb-status-preparing'" class="ifcb-loader-box ifcb-flex-column">
         <div class="ifcb-flex-center">
@@ -16,12 +15,10 @@
             <div>... {{ lang.tl_import_from_csv.loading_application }} ...</div>
         </div>
     </div>
-
     <form action="{{ form.action }}" v-bind:class="status" class="ifcb-import-from-csv-app tl_form tl_edit_form" method="get">
-
         <div class="tl_formbody_edit">
             <input type="hidden" name="id" value="{{ form.input.id }}">
-            <input type="hidden" name="token" value="{{ form.csrfToken }}">
+            <input type="hidden" name="csrf_token" value="{{ form.csrfToken }}">
             <div class="widget">
                 <h2>{{ model.title }} [{{ model.importTable }}]</h2>
                 <br>
@@ -33,43 +30,36 @@
                     <li class="ifcb-import-failure">{{ lang.tl_import_from_csv.failed_inserts }}: ${report.summary.errors}</li>
                     <li v-if="isTestMode">Testmode: ON</li>
                 </ul>
-
                 <div
                     v-if="report.summary.errors>0">
                     <button v-on:click.prevent="filterInsertListing($event)" class="tl_submit ifcb-display-errors-btn" data-lbl-error-only="{{ lang.tl_import_from_csv.showErrorsBtn }}" data-lbl-all="{{ lang.tl_import_from_csv.showAllBtn }}">
                         {{ lang.tl_import_from_csv.showErrorsBtn }}
                     </button>
                 </div>
-
                 <div class="ifcb-progress-bar-container">
                     <div id="importProgress" class="ifcb-progress-bar-inner">
                         <span class="ifcb-percentage"></span>
                     </div>
                 </div>
-
                 <div class="ifcb-status-box tl_message">
                     <p v-if="status === 'ifcb-status-pending'" class="tl_info">{{ lang.tl_import_from_csv.import_process_started }}</p>
                     <p v-if="status === 'ifcb-status-error'" class="tl_error">{{ lang.tl_import_from_csv.exception_message }}</p>
                     <p v-if="status === 'ifcb-status-completed' && report.summary.errors" class="tl_error">{{ lang.tl_import_from_csv.import_process_completed_with_errors }}</p>
                     <p v-if="status === 'ifcb-status-completed' && !report.summary.errors" class="tl_confirm">{{ lang.tl_import_from_csv.import_process_completed }}</p>
                 </div>
-
                 {# LOG screen #}
                 <div v-if="report.logs" id="ifcbImportReportBox" class="ifcb-import-report-box">
                     <table class="ifcb-import-report-table">
                         <tbody>
                         <template v-for="log in report.logs">
-
                             <tr v-if="log.type === 'failure'" class="ifcb-import-failure">
                                 <td class="ifcb-td-title" colspan="2">#${log.line} {{ lang.tl_import_from_csv.data_record_insert_failed }}
                                     <template v-if="log.text !== ''"><br><br>Exception!<br><br>${log.text}</template>
                                 </td>
                             </tr>
-
                             <tr v-if="log.type === 'success'" class="ifcb-import-success">
                                 <td class="ifcb-td-title" colspan="2">#${log.line} {{ lang.tl_import_from_csv.data_record_insert_succeed }}</td>
                             </tr>
-
                             <template v-for="item in log.values">
                                 <tr v-if="log.type === 'failure'" class="ifcb-import-failure">
                                     <td class="col_0">${item.column.substr(0,30)}</td>
@@ -80,19 +70,16 @@
                                     <td class="col_1">${item.value.substr(0,90)}</td>
                                 </tr>
                             </template>
-
                             <tr class="ifcb-delim">
                                 <td class="col_0">&nbsp;</td>
                                 <td class="col_1">&nbsp;</td>
                             </tr>
-
                         </template>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-
         <div class="tl_formbody_submit">
             <div class="tl_submit_container">
                 <button v-on:click.prevent="importAction(true,true)" type="submit" id="btnTest" name="runImportTest" class="tl_submit ifcb-import-test-button" accesskey="p">
@@ -110,4 +97,3 @@
 <script>
     new ImportFromCsvApp('#ifcbImportFromCsvApp', '{{ appMountUrl|raw }}');
 </script>
-

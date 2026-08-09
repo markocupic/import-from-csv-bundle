@@ -12,7 +12,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-namespace Markocupic\ImportFromCsvBundle\Contao\Controller;
+namespace Markocupic\ImportFromCsvBundle\Controller\Backend;
 
 use Contao\Controller;
 use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
@@ -93,7 +93,7 @@ class RenderBackendAppController
                     'key' => 'appMountAction',
                     'id' => $dc->id,
                     'taskId' => uniqid(),
-                    'token' => $this->csrfTokenManager->getDefaultTokenValue(),
+                    'csrf_token' => $this->csrfTokenManager->getDefaultTokenValue(),
                 ]),
             ],
         ));

@@ -12,9 +12,10 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-namespace Markocupic\ImportFromCsvBundle\Contao\Controller;
+namespace Markocupic\ImportFromCsvBundle\Controller\Backend;
 
 use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
+use Contao\CoreBundle\Exception\InvalidRequestTokenException;
 use Contao\CoreBundle\Exception\ResponseException;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FilesModel;
@@ -46,16 +47,14 @@ class ImportAjaxController extends AbstractController
     public function importAction(): JsonResponse
     {
         $request = $this->requestStack->getCurrentRequest();
-        $token = $request->query->get('token');
+        $csrfToken = $request->query->get('csrf_token');
         $id = $request->query->get('id');
         $offset = $request->query->get('offset');
         $limit = $request->query->get('limit');
         $isTestMode = !('false' === $request->query->get('isTestMode'));
         $taskId = $request->query->get('taskId');
 
-        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($this->csrfTokenName, $token))) {
-            throw new \Exception('Invalid token!');
-        }
+        $this->validateCsrfToken($csrfToken);
 
         if ($request) {
             $this->importLogger->initialize($taskId);
@@ -88,5 +87,12 @@ class ImportAjaxController extends AbstractController
         $response = new JsonResponse($arrData);
 
         throw new ResponseException($response);
+    }
+
+    private function validateCsrfToken(string $token): void
+    {
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($this->csrfTokenName, $token))) {
+            throw new InvalidRequestTokenException('Invalid CSRF token!');
+        }
     }
 }
