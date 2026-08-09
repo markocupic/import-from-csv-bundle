@@ -599,9 +599,10 @@ class ImportFromCsv
         // Works across DBAL versions: resolve the registered type name from the TypeRegistry.
         $typeName = Type::getTypeRegistry()->lookupName($type);
 
-        return \in_array($typeName, ['integer', 'bigint', 'smallint'], true)
-            ? ArrayParameterType::INTEGER
-            : ArrayParameterType::STRING;
+        return match ($typeName) {
+            'integer', 'bigint', 'smallint' => ArrayParameterType::INTEGER,
+            default => ArrayParameterType::STRING,
+        };
     }
 
     private function mapValues(string $columnName, mixed $value): string
