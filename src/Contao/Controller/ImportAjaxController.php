@@ -19,10 +19,11 @@ use Contao\CoreBundle\Exception\ResponseException;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FilesModel;
-use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvHelper;
+use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvFactory;
 use Markocupic\ImportFromCsvBundle\Logger\ImportLogger;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Csrf\CsrfToken;
@@ -34,11 +35,12 @@ class ImportAjaxController extends AbstractController
     private readonly Adapter $filesModel;
 
     public function __construct(
-        private readonly ImportFromCsvHelper $importFromCsvHelper,
+        private readonly ImportFromCsvFactory $importFromCsvFactory,
         private readonly ContaoFramework $framework,
         private readonly ContaoCsrfTokenManager $csrfTokenManager,
         private readonly RequestStack $requestStack,
         private readonly ImportLogger $importLogger,
+        #[Autowire('%contao.csrf_token_name%')]
         private readonly string $csrfTokenName,
     ) {
         $this->importFromCsvModel = $this->framework->getAdapter(ImportFromCsvModel::class);
@@ -76,7 +78,7 @@ class ImportAjaxController extends AbstractController
                 }
 
                 // Use helper class to launch the import process
-                if (true === $this->importFromCsvHelper->importFromModel($objImportFromCsvModel->current(), $isTestMode, $taskId)) {
+                if (null !== $this->importFromCsvFactory->createFromModel($objImportFromCsvModel->current(), $isTestMode, $taskId)) {
                     $arrData = [];
                     $arrData['data'] = $this->importLogger->getLog($taskId);
 

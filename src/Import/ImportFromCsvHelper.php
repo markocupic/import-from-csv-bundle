@@ -14,47 +14,42 @@ declare(strict_types=1);
 
 namespace Markocupic\ImportFromCsvBundle\Import;
 
-use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\File;
 use Contao\FilesModel;
-use Contao\StringUtil;
 use League\Csv\Exception;
-use League\Csv\InvalidArgument;
 use League\Csv\Reader;
-use League\Csv\SyntaxError;
-use League\Csv\UnavailableStream;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Path;
 
-class ImportFromCsvHelper
+readonly class ImportFromCsvHelper
 {
-    private readonly Adapter $filesModel;
-
-    private readonly Adapter $stringUtil;
-
     public function __construct(
-        private readonly ContaoFramework $framework,
-        private readonly ImportFromCsv $importFromCsv,
-        private readonly string $projectDir,
+        private ContaoFramework $framework,
+        #[Autowire('%kernel.project_dir%')]
+        private string $projectDir,
     ) {
-        $this->filesModel = $this->framework->getAdapter(FilesModel::class);
-        $this->stringUtil = $this->framework->getAdapter(StringUtil::class);
     }
 
     /**
      * @throws Exception
      */
-    public function countRows(ImportFromCsvModel $model): int
+    public function countRows(ImportFromCsvModel $importModel): int
     {
-        $objFile = $this->filesModel->findByUuid($model->fileSRC);
+        $fileModel = $this->framework
+            ->getAdapter(FilesModel::class)
+            ->findByUuid($importModel->fileSRC)
+        ;
 
-        if ($objFile) {
-            $objCsvReader = Reader::from(Path::join($this->projectDir, $objFile->path), 'r');
-            $objCsvReader->setHeaderOffset(0);
-            $count = $objCsvReader->count();
-            $count -= (int) $model->offset;
-            $limit = (int) $model->limit;
+        if (null !== $fileModel) {
+            $reader = $this->framework
+                ->getAdapter(Reader::class)
+                ->from(Path::join($this->projectDir, $fileModel->path), 'r')
+            ;
+            $reader->setHeaderOffset(0);
+            $count = $reader->count();
+            $count -= (int) $importModel->offset;
+            $limit = (int) $importModel->limit;
 
             if ($count < 1) {
                 return 0;
@@ -68,55 +63,5 @@ class ImportFromCsvHelper
         }
 
         return 0;
-    }
-
-    /**
-     * @throws Exception
-     * @throws InvalidArgument
-     * @throws SyntaxError
-     * @throws UnavailableStream
-     * @throws \Doctrine\DBAL\Exception
-     */
-    public function importFromModel(ImportFromCsvModel $model, bool $isTestMode = false, string|null $taskId = null): bool
-    {
-        $tableName = $model->importTable;
-        $importMode = $model->importMode;
-        $selectedFields = $this->stringUtil->deserialize($model->selectedFields, true);
-        $mapValues = $this->stringUtil->deserialize($model->mapValues, true);
-        $delimiter = $model->fieldSeparator;
-        $matchBy = $model->matchBy;
-        $enclosure = $model->fieldEnclosure;
-        $offset = (int) $model->offset;
-        $limit = (int) $model->limit;
-        $skipValidationFields = $this->stringUtil->deserialize($model->skipValidationFields, true);
-        $file = $this->filesModel->findByUuid($model->fileSRC);
-
-        // Call the import class if file exists
-        if (is_file(Path::join($this->projectDir, $file->path))) {
-            $csvFile = new File($file->path);
-
-            if ('csv' === strtolower($csvFile->extension)) {
-                $this->importFromCsv->importCsv(
-                    csvFile: $csvFile,
-                    tableName: $tableName,
-                    importMode: $importMode,
-                    selectedFields: $selectedFields,
-                    mapValues: $mapValues,
-                    delimiter: $delimiter,
-                    enclosure: $enclosure,
-                    arrayDelimiter: '||',
-                    isTestMode: $isTestMode,
-                    skipValidationFields: $skipValidationFields,
-                    offset: $offset,
-                    limit: $limit,
-                    taskId: $taskId,
-                    matchBy: $matchBy,
-                );
-
-                return true;
-            }
-        }
-
-        return false;
     }
 }
