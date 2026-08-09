@@ -7,9 +7,9 @@ namespace Markocupic\ImportFromCsvBundle\Import;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 
-final class ImportPersister
+final readonly class ImportPersister
 {
-    public function __construct(private readonly Connection $connection)
+    public function __construct(private Connection $connection)
     {
     }
 
@@ -23,34 +23,22 @@ final class ImportPersister
         $pkValue = $this->normalizePrimaryKeyValue($set[$primaryKey] ?? null);
 
         $set = $this->quoteKeys($set);
-        $this->connection->beginTransaction();
 
-        try {
-            if (null !== $pkValue) {
-                $data = $this->removePrimaryKey($primaryKey, $set);
+        if (null !== $pkValue) {
+            $data = $this->removePrimaryKey($primaryKey, $set);
 
-                if ([] === $data) {
-                    throw new \InvalidArgumentException('No updatable fields provided.');
-                }
-
-                $this->connection->update($tableName, $data, [$primaryKey => $pkValue]);
-
-                $this->connection->commit();
-
-                return $pkValue;
+            if ([] === $data) {
+                throw new \InvalidArgumentException('No updatable fields provided.');
             }
 
-            $this->connection->insert($tableName, $set);
-            $insertId = (int) $this->connection->lastInsertId();
+            $this->connection->update($tableName, $data, [$primaryKey => $pkValue]);
 
-            $this->connection->commit();
-
-            return $insertId;
-        } catch (\Throwable $e) {
-            $this->connection->rollBack();
-
-            throw $e;
+            return $pkValue;
         }
+
+        $this->connection->insert($tableName, $set);
+
+        return (int) $this->connection->lastInsertId();
     }
 
     private function normalizePrimaryKeyValue(mixed $value): int|null

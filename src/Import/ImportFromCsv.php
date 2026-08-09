@@ -341,23 +341,30 @@ class ImportFromCsv
                 continue;
             }
 
-            if (true === $this->config->isTestMode) {
-                try {
-                    $preImportEvent = new PreImportEvent($this->config->tableName, $set, $csvRecord, $this);
-                    $this->eventDispatcher->dispatch($preImportEvent, PreImportEvent::NAME);
+            $this->connection->beginTransaction();
 
-                    $id = $this->importPersister->upsert(
-                        (string) $this->config->tableName,
-                        $this->config->primaryKey,
-                        $preImportEvent->getDataRecord(),
-                    );
+            try {
+                $preImportEvent = new PreImportEvent($this->config->tableName, $set, $csvRecord, $this);
+                $this->eventDispatcher->dispatch($preImportEvent, PreImportEvent::NAME);
 
-                    $postImportEvent = new PostImportEvent($this->config->tableName, $set, $id, $csvRecord, $this);
-                    $this->eventDispatcher->dispatch($postImportEvent, PostImportEvent::NAME);
-                } catch (\Throwable $e) {
-                    $doNotSave = true;
-                    $this->addInsertException($e);
+                $id = $this->importPersister->upsert(
+                    $this->config->tableName,
+                    $this->config->primaryKey,
+                    $preImportEvent->getDataRecord(),
+                );
+
+                if (true !== $this->config->isTestMode) {
+                    $this->connection->commit();
+                } else {
+                    $this->connection->rollBack();
                 }
+
+                $postImportEvent = new PostImportEvent($this->config->tableName, $set, $id, $csvRecord, $this);
+                $this->eventDispatcher->dispatch($postImportEvent, PostImportEvent::NAME);
+            } catch (\Throwable $e) {
+                $doNotSave = true;
+                $this->addInsertException($e);
+                $this->connection->rollBack();
             }
 
             // Collect data for the logger screen in the Contao backend The logger service

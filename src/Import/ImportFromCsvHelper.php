@@ -60,7 +60,7 @@ class ImportFromCsvHelper
                 return 0;
             }
 
-            if ($limit === 0 || $limit > $count) {
+            if (0 === $limit || $limit > $count) {
                 return $count;
             }
 
