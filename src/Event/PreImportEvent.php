@@ -19,7 +19,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class PreImportEvent extends Event
 {
-    public const NAME = 'import_from_csv.pre_import';
+    public const string NAME = 'import_from_csv.pre_import';
 
     public function __construct(
         private readonly string $tableName,
