@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 use Contao\DC_Table;
 use Contao\DataContainer;
+use Contao\System;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Markocupic\ImportFromCsvBundle\DataContainer\ImportFromCsv;
 
@@ -67,7 +68,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
             ],
             'renderAppAction' => [
                 'href' => 'key=renderAppAction',
-                'icon' => 'bundles/markocupicimportfromcsv/import.svg',
+                'icon' => System::getContainer()->get('assets.packages')->getUrl('images/import.svg', 'markocupic_import_from_csv'),
             ],
         ],
     ],

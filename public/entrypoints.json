@@ -1,0 +1,14 @@
+{
+  "entrypoints": {
+    "css/import_from_csv_app": {
+      "css": [
+        "/bundles/markocupicimportfromcsv/css/import_from_csv_app.06a92088.css"
+      ]
+    },
+    "css/loader": {
+      "css": [
+        "/bundles/markocupicimportfromcsv/css/loader.e2aad614.css"
+      ]
+    }
+  }
+}

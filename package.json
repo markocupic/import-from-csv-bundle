@@ -1,0 +1,37 @@
+{
+    "name": "import-from-csv-bundle",
+    "repository": {
+        "type": "git",
+        "url": "git+github.com/markocupic/import-from-csv-bundle"
+    },
+    "scripts": {
+        "dev-server": "encore dev-server",
+        "dev": "encore dev",
+        "watch": "encore dev --watch",
+        "build": "encore production --progress"
+    },
+    "license": "MIT",
+    "devDependencies": {
+        "@babel/preset-env": "^7.0",
+        "@symfony/webpack-encore": "^5.0",
+        "autoprefixer": "^10.2",
+        "core-js": "^3.15",
+        "file-loader": "^6.2.0",
+        "postcss-loader": "^8.0",
+        "sass": "^1.89.2",
+        "sass-loader": "^16.0.5",
+        "swapy": "^1.0.5",
+        "vue": "^3.5.41"
+    },
+    "browserslist": [
+        "defaults"
+    ],
+    "description": "![Alt text](docs/logo.png?raw=true \"logo\")",
+    "version": "1.0.0",
+    "main": "postcss.config.js",
+    "directories": {
+        "doc": "docs",
+        "test": "tests"
+    },
+    "author": "Marko Cupic"
+}

@@ -1,3 +1,5 @@
+@use "sass:color";
+
 $green: #5eaf4c;
 $red: red;
 $error: #ff7d7d;
@@ -100,11 +102,11 @@ a.renderAppAction > img {
 }
 
 .ifcb-custom-header-back {
-  background-image: url('../../../system/themes/flexible/icons/back.svg');
+  background-image: url('../../../../../system/themes/flexible/icons/back.svg');
 }
 
 .ifcb-edit-header {
-  background-image: url('../../../system/themes/flexible/icons/edit.svg');
+  background-image: url('../../../../../system/themes/flexible/icons/edit.svg');
 }
 
 .ifcb-import-from-csv-app {
@@ -139,8 +141,8 @@ a.renderAppAction > img {
   }
 
   button.tl_submit.ifcb-display-errors-btn:hover {
-    background-color: darken($red, 20);
-    border-color: darken($red, 20) !important;
+    background-color: color.scale($red, $lightness: -20%);
+    border-color: color.scale($red, $lightness: -20%);
   }
 
   button.tl_submit.ifcb-display-errors-btn.hideSuccess {
@@ -176,7 +178,7 @@ a.renderAppAction > img {
       }
 
       tr.ifcb-import-success td {
-        color: lighten($green, 10) !important;
+        color: color.scale($green, $lightness: 10%) !important;
       }
 
       tr.ifcb-import-failure td {
@@ -224,8 +226,8 @@ a.renderAppAction > img {
     }
 
     button:not([disabled]).ifcb-import-button:hover {
-      background: darken($red, 15);
-      border-color: darken($red, 15);
+      background: color.scale($red, $lightness: -15%);
+      border-color: color.scale($red, $lightness: -15%);
     }
 
     button:not([disabled]).ifcb-import-test-button {

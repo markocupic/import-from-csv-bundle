@@ -12,11 +12,11 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-use Markocupic\ImportFromCsvBundle\Contao\Controller\ImportAjaxController;
-use Markocupic\ImportFromCsvBundle\Contao\Controller\MountAppAjaxController;
-use Markocupic\ImportFromCsvBundle\Contao\Controller\RenderBackendAppController;
+use Contao\System;
+use Markocupic\ImportFromCsvBundle\Controller\Backend\ImportAjaxController;
+use Markocupic\ImportFromCsvBundle\Controller\Backend\MountAppAjaxController;
+use Markocupic\ImportFromCsvBundle\Controller\Backend\RenderBackendAppController;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
-
 /*
  * Back end modules
  */
@@ -27,12 +27,12 @@ $GLOBALS['BE_MOD']['system']['import_from_csv'] = [
     'appMountAction'  => [MountAppAjaxController::class, 'appMountAction'],
     'importAction'    => [ImportAjaxController::class, 'importAction'],
     'javascript'      => [
-        'bundles/markocupicimportfromcsv/js/vue@3.2.47_global.prod.min.js',
-        'bundles/markocupicimportfromcsv/js/importFromCsvApp.js?version=5.3.6',
+        System::getContainer()->get('assets.packages')->getUrl('js/vue/dist/vue.global.prod.js', 'markocupic_import_from_csv'),
+        System::getContainer()->get('assets.packages')->getUrl('js/import_from_csv_app.js', 'markocupic_import_from_csv'),
     ],
     'stylesheet'      => [
-        'bundles/markocupicimportfromcsv/css/importFromCsvApp.css',
-        'bundles/markocupicimportfromcsv/css/loader.css',
+        System::getContainer()->get('assets.packages')->getUrl('css/import_from_csv_app.css', 'markocupic_import_from_csv'),
+        System::getContainer()->get('assets.packages')->getUrl('css/loader.css', 'markocupic_import_from_csv'),
     ],
 ];
 
