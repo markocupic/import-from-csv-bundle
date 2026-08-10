@@ -62,10 +62,10 @@ Dieses Feld wird genutzt, um Datensätze zu identifizieren, die bereits in der D
 Hier können pro Zeile ein Feld in der Datenbank und das entsprechende Feld in der CSV-Datei angegeben werden. Die Feldnamen in der CSV-Datei müssen exakt mit den Feldnamen in der Kopfzeile der CSV-Datei übereinstimmen.
 
 | Feldname in der Datenbank | Feldname in der CSV-Datei |
-| --------------------------| ------------------------- |
-| `firstname` | `Vorname` |
-| `lastname` | `Nachname` |
-| `phone` | `Tel.` |
+|---------------------------|---------------------------|
+| `firstname`               | `Vorname`                 |
+| `lastname`                | `Nachname`                |
+| `phone`                   | `Tel.`                    |
 
 ### Werte transformieren
 
@@ -74,12 +74,12 @@ Da die Daten in der CSV-Datei nicht immer exakt so vorliegen, wie Contao sie erw
 Beispiel:
 
 | Feldname in der Datenbank | Wert in der CSV-Datei | Ändern in | Feldwert in Kleinbuchstaben transformieren | Feldwert in Großbuchstaben transformieren |
-| --------------------------- | -------------------- | --------- | --------------------------------- | --------------------------------- |
-| `gender` | `Herr` | `male` | | |
-| `gender` | `Frau` | `female` | | |
-| `gender` | `Divers` | `other` | | |
-| `country` | | | | 1 |
-| `language` | | | 1 | |
+|---------------------------|-----------------------|-----------|--------------------------------------------|-------------------------------------------|
+| `gender`                  | `Herr`                | `male`    |                                            |                                           |
+| `gender`                  | `Frau`                | `female`  |                                            |                                           |
+| `gender`                  | `Divers`              | `other`   |                                            |                                           |
+| `country`                 |                       |           |                                            | 1                                         |
+| `language`                |                       |           | 1                                          |                                           |
 
 ### Felder getrennt von (Pflichtfeld)
 
@@ -141,11 +141,11 @@ Hier der Aufbau einer möglichen [Event-Listener-Klasse](src/EventListener/PreVa
 
 ### Verfügbare Events
 
-| Eventname | Beschreibung |
-| --------- | ------------ |
-| PreValidateWidgetEvent | Wird vor der Validierung eines Feldes ausgelöst. |
-| PreImportEvent | Wird vor dem Import eines Datensatzes ausgelöst. |
-| PostImportEvent | Wird nach dem Import eines Datensatzes ausgelöst. |
-| ConfigImportEvent | Wird nachdem die Konfiguration erzeugt wurde ausgelöst. |
+| Eventname              | Beschreibung                                            |
+|------------------------|---------------------------------------------------------|
+| PreValidateWidgetEvent | Wird vor der Validierung eines Feldes ausgelöst.        |
+| PreImportEvent         | Wird vor dem Import eines Datensatzes ausgelöst.        |
+| PostImportEvent        | Wird nach dem Import eines Datensatzes ausgelöst.       |
+| ConfigImportEvent      | Wird nachdem die Konfiguration erzeugt wurde ausgelöst. |
 
 Viel Spass mit dem Import From CSV Bundle!
