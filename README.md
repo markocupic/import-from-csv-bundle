@@ -53,9 +53,33 @@ Tipp: Speichern Sie möglichst **UTF-8 ohne BOM**. Ein vorangestelltes BOM (Byte
 
 Wählen Sie die Tabelle, in die die Datensätze importiert werden sollen.
 
+### Eindeutiges Feld für Updates
+
+Dieses Feld wird genutzt, um Datensätze zu identifizieren, die bereits in der Datenbank existieren. Wird ein Datensatz mit einem bereits vorhandenen Wert in diesem Feld gefunden, wird er aktualisiert. Ansonsten wird ein neuer Datensatz angelegt.
+
 ### Felder für den Importvorgang auswählen (Pflichtfeld)
 
-In der Datenbanktabelle wird nur in die ausgewählten Felder geschrieben. Meist ist es sinnvoll, hier alle Felder auszuwählen.
+Hier können pro Zeile ein Feld in der Datenbank und das entsprechende Feld in der CSV-Datei angegeben werden. Die Feldnamen in der CSV-Datei müssen exakt mit den Feldnamen in der Kopfzeile der CSV-Datei übereinstimmen.
+
+| Feldname in der Datenbank | Feldname in der CSV-Datei |
+| --------------------------| ------------------------- |
+| `firstname` | `Vorname` |
+| `lastname` | `Nachname` |
+| `phone` | `Tel.` |
+
+### Werte transformieren
+
+Da die Daten in der CSV-Datei nicht immer exakt so vorliegen, wie Contao sie erwartet, können die Feldinhalte vor dem Import transformiert werden.
+
+Beispiel:
+
+| Feldname in der Datenbank | Wert in der CSV-Datei | Ändern in | Feldwert in Kleinbuchstaben transformieren | Feldwert in Großbuchstaben transformieren |
+| --------------------------- | -------------------- | --------- | --------------------------------- | --------------------------------- |
+| `gender` | `Herr` | `male` | | |
+| `gender` | `Frau` | `female` | | |
+| `gender` | `Divers` | `other` | | |
+| `country` | | | | 1 |
+| `language` | | | 1 | |
 
 ### Felder getrennt von (Pflichtfeld)
 
@@ -115,6 +139,13 @@ Beide Werte müssen ganze Zahlen grösser 0 sein. Ungültige Angaben (0, negativ
 
 Hier der Aufbau einer möglichen [Event-Listener-Klasse](src/EventListener/PreValidateWidget/PreValidateWidgetDemoListener.php).
 
-```
+### Verfügbare Events
+
+| Eventname | Beschreibung |
+| --------- | ------------ |
+| PreValidateWidgetEvent | Wird vor der Validierung eines Feldes ausgelöst. |
+| PreImportEvent | Wird vor dem Import eines Datensatzes ausgelöst. |
+| PostImportEvent | Wird nach dem Import eines Datensatzes ausgelöst. |
+| ConfigImportEvent | Wird nachdem die Konfiguration erzeugt wurde ausgelöst. |
 
 Viel Spass mit dem Import From CSV Bundle!
