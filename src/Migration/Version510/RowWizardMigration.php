@@ -44,24 +44,29 @@ class RowWizardMigration extends AbstractMigration
             return false;
         }
 
-        $rows = $this->connection->fetchAllAssociative("
-            SELECT
-                id
-            FROM
-                tl_import_from_csv
-            WHERE
-                selectedFields LIKE 'a:%'
-            AND
-                selectedFields NOT LIKE '%field_name%'
-            AND
-                selectedFields NOT LIKE '%csv_field_name%'
-        ");
-
-        if (empty($rows)) {
-            return false;
+        $count = (int) $this->connection->fetchOne('SELECT COUNT(id) FROM tl_import_from_csv WHERE selectedFields IS NOT NULL');
+        if (0 === $count) {
+            return false; // The field is NULL or empty in all rows. -> No migration needed.
         }
 
-        return true;
+        $values = $this->connection->fetchFirstColumn('
+            SELECT selectedFields
+            FROM tl_import_from_csv
+        ');
+
+        foreach ($values as $value) {
+            $arr = StringUtil::deserialize($value, true);
+
+            if (empty($arr)) {
+                return true; // Empty arrays should be migrated to NULL
+            }
+
+            if (!isset($arr[0]) || !\is_array($arr[0])) {
+                return true; // Old format should be migrated to new format.
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -69,18 +74,10 @@ class RowWizardMigration extends AbstractMigration
      */
     public function run(): MigrationResult
     {
-        $rows = $this->connection->fetchAllKeyValue("
-            SELECT
-                id, selectedFields
-            FROM
-                tl_import_from_csv
-            WHERE
-                selectedFields LIKE 'a:%'
-            AND
-                selectedFields NOT LIKE '%field_name%'
-            AND
-                selectedFields NOT LIKE '%csv_field_name%'
-          ");
+        $rows = $this->connection->fetchAllKeyValue('
+            SELECT id, selectedFields
+            FROM tl_import_from_csv
+        ');
 
         foreach ($rows as $id => $selectedFields) {
             $this->updateField($id, $selectedFields);
@@ -98,13 +95,11 @@ class RowWizardMigration extends AbstractMigration
         $arrValue = $stringUtil->deserialize($selectedFields, true);
 
         if (empty($arrValue)) {
-            $this->connection->update(
-                'tl_import_from_csv',
+            // Empty arrays should be migrated to NULL
+            $this->connection->executeStatement(
+                'UPDATE tl_import_from_csv SET selectedFields = NULL WHERE id = ?',
                 [
-                    'selectedFields' => null,
-                ],
-                [
-                    'id' => $id,
+                    $id,
                 ],
                 [
                     Types::INTEGER,
@@ -114,28 +109,22 @@ class RowWizardMigration extends AbstractMigration
             return;
         }
 
-        $migratedValue = [];
+        if (!isset($arrValue[0]) || !\is_array($arrValue[0])) {
+            // Old format should be migrated to new format.
+            $migratedValue = [];
 
-        if (!\is_array($arrValue[0])) {
             foreach ($arrValue as $v) {
                 $migratedValue[] = [
                     'field_name' => $v,
                     'csv_field_name' => $v,
                 ];
             }
-        }
 
-        $this->connection->update(
-            'tl_import_from_csv',
-            [
-                'selectedFields' => serialize($migratedValue),
-            ],
-            [
-                'id' => $id,
-            ],
-            [
-                Types::INTEGER,
-            ],
-        );
+            $this->connection->executeStatement(
+                'UPDATE tl_import_from_csv SET selectedFields = ? WHERE id = ?',
+                [serialize($migratedValue), $id],
+                [Types::STRING, Types::INTEGER],
+            );
+        }
     }
 }
