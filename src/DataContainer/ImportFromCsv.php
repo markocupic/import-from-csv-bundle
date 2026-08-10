@@ -17,7 +17,6 @@ namespace Markocupic\ImportFromCsvBundle\DataContainer;
 use Contao\Controller;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\StringUtil;
 use Contao\DataContainer;
 use Contao\FilesModel;
 use Doctrine\DBAL\Connection;
@@ -169,27 +168,5 @@ readonly class ImportFromCsv
         }
 
         return $headers ?? [];
-    }
-
-    #[AsCallback(table: 'tl_import_from_csv', target: 'fields.selectedFields.load', priority: 100)]
-    public function migrateSelectedFields(string $value, DataContainer $dc): mixed
-    {
-        if (!$dc->id) {
-            return $value;
-        }
-
-        $stringUtil = $this->framework->getAdapter(StringUtil::class);
-        $arrValue = $stringUtil->deserialize($value, true);
-
-        if (!\is_array($arrValue[0])) {
-            foreach ($arrValue as $k => $v) {
-                $arrValue[$k] = [
-                    'field_name' => $v,
-                    'csv_field_name' => $v,
-                ];
-            }
-        }
-
-        return $arrValue;
     }
 }
