@@ -12,14 +12,14 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-namespace Markocupic\ImportFromCsvBundle\Migration;
+namespace Markocupic\ImportFromCsvBundle\Migration\Version500;
 
 use Contao\CoreBundle\Migration\AbstractMigration;
 use Contao\CoreBundle\Migration\MigrationResult;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 
-class Version5Migration extends AbstractMigration
+class RenameFieldsMigration extends AbstractMigration
 {
     public function __construct(private readonly Connection $connection)
     {
@@ -35,7 +35,7 @@ class Version5Migration extends AbstractMigration
         $schemaManager = $this->connection->createSchemaManager();
 
         // Version 5 migration: "Rename fields" If the database table itself does not
-        // exist we should do nothing
+        // exist, we should do nothing
         if ($schemaManager->tablesExist(['tl_import_from_csv'])) {
             $columns = $schemaManager->listTableColumns('tl_import_from_csv');
 
@@ -68,13 +68,14 @@ class Version5Migration extends AbstractMigration
 
             foreach ($arrAlterations as $arrAlteration) {
                 if (isset($columns[$arrAlteration['old']]) && !isset($columns[$arrAlteration['new']])) {
-                    $strQuery = \sprintf(
+                    $sql = \sprintf(
                         'ALTER TABLE tl_import_from_csv CHANGE `%s` `%s` %s',
                         $arrAlteration['old'],
                         $arrAlteration['new'],
                         $arrAlteration['sql'],
                     );
-                    $this->connection->query($strQuery);
+
+                    $this->connection->executeStatement($sql);
 
                     $arrMessage[] = \sprintf(
                         'Rename field tl_import_from_csv.%s to tl_import_from_csv.%s.',
