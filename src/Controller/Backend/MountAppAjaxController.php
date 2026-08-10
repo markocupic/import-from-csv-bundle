@@ -28,6 +28,8 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\UriSigner;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 
@@ -38,6 +40,7 @@ class MountAppAjaxController extends AbstractController
         private readonly ContaoFramework $framework,
         private readonly RequestStack $requestStack,
         private readonly RouterInterface $router,
+        private readonly UriSigner $uriSigner,
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
         #[Autowire('%contao.csrf_token_name%')]
@@ -112,17 +115,23 @@ class MountAppAjaxController extends AbstractController
                 $limit = $this->perRequest;
             }
 
-            $arrUrl[] = $this->router->generate('contao_backend', [
-                'do' => 'import_from_csv',
-                'key' => 'importAction',
-                'id' => $id,
-                'taskId' => $taskId,
-                'offset' => $offset + $i * $this->perRequest,
-                'limit' => $limit,
-                'req_num' => $i + 1,
-                'csrf_token' => $csrfToken,
-                'isTestMode' => '_isTestMode_',
-            ]);
+            $url = $this->router->generate(
+                'contao_backend',
+                [
+                    'do' => 'import_from_csv',
+                    'key' => 'importAction',
+                    'id' => $id,
+                    'taskId' => $taskId,
+                    'offset' => $offset + $i * $this->perRequest,
+                    'limit' => $limit,
+                    'req_num' => $i + 1,
+                    'req_total' => $countRequests,
+                ],
+                UrlGeneratorInterface::ABSOLUTE_URL,
+            );
+            $url = $this->uriSigner->sign($url);
+
+            $arrUrl[] = $url;
         }
 
         $arrData['model']['limit'] = $importModel->limit;

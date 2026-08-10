@@ -95,6 +95,7 @@ class RenderBackendAppController
                     'taskId' => uniqid(),
                     'csrf_token' => $this->csrfTokenManager->getDefaultTokenValue(),
                 ]),
+                'csrfToken' => $this->csrfTokenManager->getDefaultTokenValue(),
             ],
         ));
     }

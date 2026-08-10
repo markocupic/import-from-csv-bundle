@@ -97,7 +97,7 @@ readonly class ImportFromCsv
     #[AsCallback(table: 'tl_import_from_csv', target: 'fields.skipValidationFields.options', priority: 100)]
     public function optionsCbGetTableColumns(DataContainer $dc): array
     {
-        $tableName = $dc->activeRecord->importTable;
+        $tableName = $dc->activeRecord?->importTable;
 
         if (!$tableName) {
             return [];

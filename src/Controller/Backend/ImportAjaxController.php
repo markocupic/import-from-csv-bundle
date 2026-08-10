@@ -25,7 +25,9 @@ use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\UriSigner;
 use Symfony\Component\Security\Csrf\CsrfToken;
 
 class ImportAjaxController extends AbstractController
@@ -36,6 +38,7 @@ class ImportAjaxController extends AbstractController
         private readonly ImportFromCsvFactory $importFromCsvFactory,
         private readonly ImportLogger $importLogger,
         private readonly RequestStack $requestStack,
+        private readonly UriSigner $uriSigner,
         #[Autowire('%contao.csrf_token_name%')]
         private readonly string $csrfTokenName,
     ) {
@@ -47,18 +50,17 @@ class ImportAjaxController extends AbstractController
     public function importAction(): JsonResponse
     {
         $request = $this->requestStack->getCurrentRequest();
-        $csrfToken = $request->query->get('csrf_token');
+
+        // POST-Request is signed and should be validated first.
+        $this->validateRequest($request);
+
         $id = $request->query->get('id');
         $offset = $request->query->get('offset');
         $limit = $request->query->get('limit');
-        $isTestMode = !('false' === $request->query->get('isTestMode'));
+        $isTestMode = !('false' === $request->request->get('isTestMode'));
         $taskId = $request->query->get('taskId');
 
-        $this->validateCsrfToken($csrfToken);
-
-        if ($request) {
-            $this->importLogger->initialize($taskId);
-        }
+        $this->importLogger->initialize($taskId);
 
         if (null !== ($importModel = $this->framework->getAdapter(ImportFromCsvModel::class)->findById($id))) {
             if (null !== $this->framework->getAdapter(FilesModel::class)->findByUuid($importModel->fileSRC)) {
@@ -89,9 +91,21 @@ class ImportAjaxController extends AbstractController
         throw new ResponseException($response);
     }
 
-    private function validateCsrfToken(string $token): void
+    private function validateRequest(Request|null $request): void
     {
-        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($this->csrfTokenName, $token))) {
+        if (null === $request) {
+            throw new \RuntimeException('No HTTP request available for validation.');
+        }
+
+        if (Request::METHOD_POST !== $request->getMethod()) {
+            throw new \RuntimeException('Invalid HTTP method: expected POST.');
+        }
+
+        if (!$this->uriSigner->checkRequest($request)) {
+            throw new \InvalidArgumentException('The request signature is invalid or has been tampered with.');
+        }
+
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($this->csrfTokenName, $request->request->get('REQUEST_TOKEN')))) {
             throw new InvalidRequestTokenException('Invalid CSRF token!');
         }
     }

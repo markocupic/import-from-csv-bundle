@@ -9,7 +9,7 @@
  */
 
 class ImportFromCsvApp {
-	constructor(vueElement, appMountUrl) {
+	constructor(vueElement, appMountUrl, csrfToken) {
 
 		const {createApp} = Vue
 
@@ -18,6 +18,7 @@ class ImportFromCsvApp {
 			data() {
 				return {
 					items: [],
+					csrfToken: csrfToken,
 					isTestMode: false,
 					status: 'ifcb-status-preparing',
 					urlStack: [],
@@ -117,13 +118,16 @@ class ImportFromCsvApp {
 						return;
 					}
 
-					url = url.replace('_isTestMode_', true === isTestMode ? 'true' : 'false');
+					const formData = new FormData();
+					formData.append('isTestMode', true === isTestMode ? 'true' : 'false');
+					formData.append('REQUEST_TOKEN', this.csrfToken);
 
 					fetch(url, {
-						method: "GET",
+						method: "POST",
 						headers: {
 							'x-requested-with': 'XMLHttpRequest'
 						},
+						body: formData,
 					}).then(response => {
 						if (response.status === 200) {
 							response.json().then(res => {
