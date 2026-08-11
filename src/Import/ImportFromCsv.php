@@ -516,7 +516,7 @@ class ImportFromCsv
         return '';
     }
 
-    public function addInsertException(\Exception $e): void
+    public function addInsertException(\Throwable $e): void
     {
         $this->insertExceptions[] = $e;
     }
