@@ -15,38 +15,30 @@ declare(strict_types=1);
 namespace Markocupic\ImportFromCsvBundle\Event;
 
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
-use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class PostImportBatchEvent extends Event
 {
-    public const string NAME = 'import_from_csv.post_import_batch';
-
     public function __construct(
-        private readonly ?ImportFromCsvModel $importModel,
-        private readonly array $logData,
-        private readonly string $taskId,
-        private readonly bool $isLastBatch,
+        private readonly ImportFromCsv $importInstance,
+        private readonly Request $request,
+        private readonly array $importData,
     ) {
     }
 
-    public function getImportModel(): ?ImportFromCsvModel
+    public function getImportInstance(): ImportFromCsv
     {
-        return $this->importModel;
+        return $this->importInstance;
     }
 
-    public function getLogData(): array
+    public function getRequest(): Request
     {
-        return $this->logData;
+        return $this->request;
     }
 
-    public function getTaskId(): string
+    public function getImportData(): array
     {
-        return $this->taskId;
-    }
-
-    public function isLastBatch(): bool
-    {
-        return $this->isLastBatch;
+        return $this->importData;
     }
 }

@@ -19,13 +19,11 @@ use Contao\CoreBundle\Exception\InvalidRequestTokenException;
 use Contao\CoreBundle\Exception\ResponseException;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FilesModel;
-use Markocupic\ImportFromCsvBundle\Event\PostImportBatchEvent;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvFactory;
 use Markocupic\ImportFromCsvBundle\Logger\ImportLogger;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -43,7 +41,6 @@ class ImportAjaxController extends AbstractController
         private readonly UriSigner $uriSigner,
         #[Autowire('%contao.csrf_token_name%')]
         private readonly string $csrfTokenName,
-        private readonly EventDispatcherInterface $eventDispatcher,
     ) {
     }
 
@@ -62,8 +59,6 @@ class ImportAjaxController extends AbstractController
         $limit = $request->query->get('limit');
         $isTestMode = !('false' === $request->request->get('isTestMode'));
         $taskId = $request->query->get('taskId');
-        $req_num = $request->query->get('req_num');
-        $req_total = $request->query->get('req_total');
 
         $this->importLogger->initialize($taskId);
 
@@ -83,9 +78,6 @@ class ImportAjaxController extends AbstractController
 
                     $response = new JsonResponse($arrData);
 
-                    $postImportBatchEvent = new PostImportBatchEvent($importModel, $arrData, $taskId, ($req_num === $req_total));
-                    $this->eventDispatcher->dispatch($postImportBatchEvent, PostImportBatchEvent::NAME);
-
                     throw new ResponseException($response);
                 }
             }
@@ -93,9 +85,6 @@ class ImportAjaxController extends AbstractController
 
         $arrData = [];
         $arrData['data'] = $this->importLogger->getLog($taskId);
-
-        $postImportBatchEvent = new PostImportBatchEvent(null, $arrData, $taskId, ($req_num === $req_total));
-        $this->eventDispatcher->dispatch($postImportBatchEvent, PostImportBatchEvent::NAME);
 
         $response = new JsonResponse($arrData);
 

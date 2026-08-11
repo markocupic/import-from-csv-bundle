@@ -31,6 +31,7 @@ use League\Csv\Statement;
 use League\Csv\SyntaxError;
 use League\Csv\UnavailableStream;
 use Markocupic\ImportFromCsvBundle\Event\ConfigImportEvent;
+use Markocupic\ImportFromCsvBundle\Event\PostImportBatchEvent;
 use Markocupic\ImportFromCsvBundle\Event\PostImportRowEvent;
 use Markocupic\ImportFromCsvBundle\Event\PreImportRowEvent;
 use Markocupic\ImportFromCsvBundle\Event\PreValidateWidgetEvent;
@@ -83,7 +84,11 @@ class ImportFromCsv
 
         $request = $this->requestStack->getCurrentRequest();
 
-        if (!$this->importLogger->hasInitialized($taskId) && $request) {
+        if (null === $request) {
+            throw new \Exception('No request found.');
+        }
+
+        if (!$this->importLogger->hasInitialized($taskId)) {
             $taskId = $this->importLogger->initialize($taskId);
         }
 
@@ -419,6 +424,9 @@ class ImportFromCsv
         if ($this->importLogger->hasInitialized($taskId)) {
             $this->importLogger->setSummaryData($this->config->taskId, $this->countProcessedRows, $this->countProcessedRows - $this->insertErrors, $this->insertErrors);
         }
+
+        $event = new PostImportBatchEvent($this, $request, $importData);
+        $this->eventDispatcher->dispatch($event);
     }
 
     public function getConfig(): ImportConfig|null
@@ -439,6 +447,11 @@ class ImportFromCsv
     public function getNumberOfProcessedRows(): int
     {
         return $this->countProcessedRows;
+    }
+
+    public function getLogger(): ImportLogger
+    {
+        return $this->importLogger;
     }
 
     /**
