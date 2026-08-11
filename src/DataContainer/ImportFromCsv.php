@@ -167,6 +167,6 @@ readonly class ImportFromCsv
             $headers = $newHeaders;
         }
 
-        return $headers ?? [];
+        return $headers;
     }
 }
