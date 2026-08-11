@@ -22,7 +22,7 @@ use Markocupic\ImportFromCsvBundle\Event\PostImportRowEvent;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
-#[AsEventListener(event: PostImportRowEvent::NAME, method: 'addPassword')]
+#[AsEventListener(method: 'addPassword')]
 final class AddPasswordListener
 {
     public function __construct(

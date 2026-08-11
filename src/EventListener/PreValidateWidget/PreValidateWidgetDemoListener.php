@@ -17,7 +17,7 @@ namespace Markocupic\ImportFromCsvBundle\EventListener\PreValidateWidget;
 use Markocupic\ImportFromCsvBundle\Event\PreValidateWidgetEvent;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
-#[AsEventListener(event: PreValidateWidgetEvent::NAME)]
+#[AsEventListener]
 class PreValidateWidgetDemoListener
 {
     private string|null $curlErrorMsg;

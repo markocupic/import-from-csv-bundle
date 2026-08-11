@@ -21,7 +21,7 @@ use Doctrine\DBAL\Connection;
 use Markocupic\ImportFromCsvBundle\Event\PostImportRowEvent;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
-#[AsEventListener(event: PostImportRowEvent::NAME, method: 'addNewsletterSubscription')]
+#[AsEventListener(method: 'addNewsletterSubscription')]
 final class AddNewsletterSubscriptionListener
 {
     private Adapter $stringUtil;
