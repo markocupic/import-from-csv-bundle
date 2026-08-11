@@ -19,7 +19,7 @@ use Contao\CoreBundle\Exception\InvalidRequestTokenException;
 use Contao\CoreBundle\Exception\ResponseException;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FilesModel;
-use Markocupic\ImportFromCsvBundle\Event\PostImportEvent;
+use Markocupic\ImportFromCsvBundle\Event\PostImportBatchEvent;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsvFactory;
 use Markocupic\ImportFromCsvBundle\Logger\ImportLogger;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
@@ -83,6 +83,9 @@ class ImportAjaxController extends AbstractController
 
                     $response = new JsonResponse($arrData);
 
+                    $postImportBatchEvent = new PostImportBatchEvent($importModel, $arrData, $taskId, ($req_num === $req_total));
+                    $this->eventDispatcher->dispatch($postImportBatchEvent, PostImportBatchEvent::NAME);
+
                     throw new ResponseException($response);
                 }
             }
@@ -91,8 +94,8 @@ class ImportAjaxController extends AbstractController
         $arrData = [];
         $arrData['data'] = $this->importLogger->getLog($taskId);
 
-        $postImportEvent = new PostImportEvent($importModel, $arrData, $taskId, ($req_num === $req_total));
-        $this->eventDispatcher->dispatch($postImportEvent, PostImportEvent::NAME);
+        $postImportBatchEvent = new PostImportBatchEvent(null, $arrData, $taskId, ($req_num === $req_total));
+        $this->eventDispatcher->dispatch($postImportBatchEvent, PostImportBatchEvent::NAME);
 
         $response = new JsonResponse($arrData);
 

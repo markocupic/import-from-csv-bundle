@@ -18,19 +18,19 @@ use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
 use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Contracts\EventDispatcher\Event;
 
-class PostImportEvent extends Event
+class PostImportBatchEvent extends Event
 {
-    public const string NAME = 'import_from_csv.post_import';
+    public const string NAME = 'import_from_csv.post_import_batch';
 
     public function __construct(
-        private readonly ImportFromCsvModel $importModel,
+        private readonly ?ImportFromCsvModel $importModel,
         private readonly array $logData,
-        private readonly int $taskId,
+        private readonly string $taskId,
         private readonly bool $isLastBatch,
     ) {
     }
 
-    public function getImportModel(): ImportFromCsvModel
+    public function getImportModel(): ?ImportFromCsvModel
     {
         return $this->importModel;
     }
@@ -40,7 +40,7 @@ class PostImportEvent extends Event
         return $this->logData;
     }
 
-    public function getTaskId(): int
+    public function getTaskId(): string
     {
         return $this->taskId;
     }
