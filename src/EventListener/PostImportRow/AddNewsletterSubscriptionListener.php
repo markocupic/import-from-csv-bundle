@@ -12,7 +12,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/import-from-csv-bundle
  */
 
-namespace Markocupic\ImportFromCsvBundle\EventListener\PostImport;
+namespace Markocupic\ImportFromCsvBundle\EventListener\PostImportRow;
 
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
