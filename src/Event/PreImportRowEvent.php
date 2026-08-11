@@ -19,8 +19,6 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class PreImportRowEvent extends Event
 {
-    public const string NAME = 'import_from_csv.pre_row_import';
-
     public function __construct(
         private readonly string $tableName,
         private array $dataRecord,

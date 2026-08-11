@@ -21,8 +21,6 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class PreValidateWidgetEvent extends Event
 {
-    public const string NAME = 'import_from_csv.pre_validate_widget';
-
     public function __construct(
         private readonly Widget $widget,
         private readonly array $csvRecord,

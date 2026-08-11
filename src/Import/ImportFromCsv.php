@@ -164,7 +164,7 @@ class ImportFromCsv
         );
 
         $configImportEvent = new ConfigImportEvent($tableName, $config, $this);
-        $this->eventDispatcher->dispatch($configImportEvent, ConfigImportEvent::NAME);
+        $this->eventDispatcher->dispatch($configImportEvent);
 
         $this->config = $configImportEvent->getConfig();
 
@@ -276,7 +276,7 @@ class ImportFromCsv
                 $widget = $this->widgetFactory->create(dca: $dca, columnName: $columnName, tableName: $this->config->tableName, value: $value);
 
                 $preValidateWidgetEvent = new PreValidateWidgetEvent($widget, $csvRecord, $this, $request);
-                $this->eventDispatcher->dispatch($preValidateWidgetEvent, PreValidateWidgetEvent::NAME);
+                $this->eventDispatcher->dispatch($preValidateWidgetEvent);
 
                 // Validate date, datim or time values
                 $this->importValidator->checkIsValidDate($widget, $dca);
@@ -353,7 +353,7 @@ class ImportFromCsv
 
             try {
                 $preImportRowEvent = new PreImportRowEvent($this->config->tableName, $set, $csvRecord, $this);
-                $this->eventDispatcher->dispatch($preImportRowEvent, PreImportRowEvent::NAME);
+                $this->eventDispatcher->dispatch($preImportRowEvent);
 
                 $id = $this->importPersister->upsert(
                     $this->config->tableName,
@@ -368,7 +368,7 @@ class ImportFromCsv
                 }
 
                 $postImportRowEvent = new PostImportRowEvent($this->config->tableName, $set, $id, $csvRecord, $this);
-                $this->eventDispatcher->dispatch($postImportRowEvent, PostImportRowEvent::NAME);
+                $this->eventDispatcher->dispatch($postImportRowEvent);
             } catch (\Throwable $e) {
                 $doNotSave = true;
                 $this->addInsertException($e);
