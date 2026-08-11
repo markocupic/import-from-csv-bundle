@@ -18,11 +18,11 @@ use Contao\BackendUser;
 use Contao\FrontendUser;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
-use Markocupic\ImportFromCsvBundle\Event\PostImportEvent;
+use Markocupic\ImportFromCsvBundle\Event\PostImportRowEvent;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
-#[AsEventListener(event: PostImportEvent::NAME, method: 'addPassword')]
+#[AsEventListener(event: PostImportRowEvent::NAME, method: 'addPassword')]
 final class AddPasswordListener
 {
     public function __construct(
@@ -34,7 +34,7 @@ final class AddPasswordListener
     /**
      * @throws Exception
      */
-    public function addPassword(PostImportEvent $event): void
+    public function addPassword(PostImportRowEvent $event): void
     {
         return;
 

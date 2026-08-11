@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\ImportFromCsvBundle\Event;
 
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
+use Markocupic\ImportFromCsvBundle\Model\ImportFromCsvModel;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class PostImportEvent extends Event
@@ -22,36 +23,30 @@ class PostImportEvent extends Event
     public const string NAME = 'import_from_csv.post_import';
 
     public function __construct(
-        private readonly string $tableName,
-        private readonly array $dataRecord,
-        private readonly int $insertId,
-        private readonly array $csvRecord,
-        private readonly ImportFromCsv $importInstance,
+        private readonly ImportFromCsvModel $importModel,
+        private readonly array $logData,
+        private readonly int $taskId,
+        private readonly bool $isLastBatch,
     ) {
     }
 
-    public function getTableName(): string
+    public function getImportModel(): ImportFromCsvModel
     {
-        return $this->tableName;
+        return $this->importModel;
     }
 
-    public function getDataRecord(): array
+    public function getLogData(): array
     {
-        return $this->dataRecord;
+        return $this->logData;
     }
 
-    public function getInsertId(): int
+    public function getTaskId(): int
     {
-        return $this->insertId;
+        return $this->taskId;
     }
 
-    public function getLineAsArray(): array
+    public function isLastBatch(): bool
     {
-        return $this->csvRecord;
-    }
-
-    public function getImportInstance(): ImportFromCsv
-    {
-        return $this->importInstance;
+        return $this->isLastBatch;
     }
 }

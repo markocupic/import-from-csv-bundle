@@ -18,10 +18,10 @@ use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\StringUtil;
 use Doctrine\DBAL\Connection;
-use Markocupic\ImportFromCsvBundle\Event\PostImportEvent;
+use Markocupic\ImportFromCsvBundle\Event\PostImportRowEvent;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
-#[AsEventListener(event: PostImportEvent::NAME, method: 'addNewsletterSubscription')]
+#[AsEventListener(event: PostImportRowEvent::NAME, method: 'addNewsletterSubscription')]
 final class AddNewsletterSubscriptionListener
 {
     private Adapter $stringUtil;
@@ -33,7 +33,7 @@ final class AddNewsletterSubscriptionListener
         $this->stringUtil = $this->framework->getAdapter(StringUtil::class);
     }
 
-    public function addNewsletterSubscription(PostImportEvent $event): void
+    public function addNewsletterSubscription(PostImportRowEvent $event): void
     {
         if ('tl_member' !== $event->getTableName()) {
             return;
@@ -50,7 +50,7 @@ final class AddNewsletterSubscriptionListener
         }
     }
 
-    private function addMemberToNewsletterRecipientList(array $row, PostImportEvent $event): void
+    private function addMemberToNewsletterRecipientList(array $row, PostImportRowEvent $event): void
     {
         $newsletters = $this->stringUtil->deserialize($row['newsletter'], true);
 

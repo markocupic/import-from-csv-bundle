@@ -31,8 +31,8 @@ use League\Csv\Statement;
 use League\Csv\SyntaxError;
 use League\Csv\UnavailableStream;
 use Markocupic\ImportFromCsvBundle\Event\ConfigImportEvent;
-use Markocupic\ImportFromCsvBundle\Event\PostImportEvent;
-use Markocupic\ImportFromCsvBundle\Event\PreImportEvent;
+use Markocupic\ImportFromCsvBundle\Event\PostImportRowEvent;
+use Markocupic\ImportFromCsvBundle\Event\PreImportRowEvent;
 use Markocupic\ImportFromCsvBundle\Event\PreValidateWidgetEvent;
 use Markocupic\ImportFromCsvBundle\Import\Field\Formatter;
 use Markocupic\ImportFromCsvBundle\Import\Field\ImportValidator;
@@ -347,13 +347,13 @@ class ImportFromCsv
             $this->connection->beginTransaction();
 
             try {
-                $preImportEvent = new PreImportEvent($this->config->tableName, $set, $csvRecord, $this);
-                $this->eventDispatcher->dispatch($preImportEvent, PreImportEvent::NAME);
+                $preImportRowEvent = new PreImportRowEvent($this->config->tableName, $set, $csvRecord, $this);
+                $this->eventDispatcher->dispatch($preImportRowEvent, PreImportRowEvent::NAME);
 
                 $id = $this->importPersister->upsert(
                     $this->config->tableName,
                     $this->config->primaryKey,
-                    $preImportEvent->getDataRecord(),
+                    $preImportRowEvent->getDataRecord(),
                 );
 
                 if (true !== $this->config->isTestMode) {
@@ -362,8 +362,8 @@ class ImportFromCsv
                     $this->connection->rollBack();
                 }
 
-                $postImportEvent = new PostImportEvent($this->config->tableName, $set, $id, $csvRecord, $this);
-                $this->eventDispatcher->dispatch($postImportEvent, PostImportEvent::NAME);
+                $postImportRowEvent = new PostImportRowEvent($this->config->tableName, $set, $id, $csvRecord, $this);
+                $this->eventDispatcher->dispatch($postImportRowEvent, PostImportRowEvent::NAME);
             } catch (\Throwable $e) {
                 $doNotSave = true;
                 $this->addInsertException($e);

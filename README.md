@@ -141,11 +141,12 @@ Hier der Aufbau einer möglichen [Event-Listener-Klasse](src/EventListener/PreVa
 
 ### Verfügbare Events
 
-| Eventname              | Beschreibung                                            |
-|------------------------|---------------------------------------------------------|
-| PreValidateWidgetEvent | Wird vor der Validierung eines Feldes ausgelöst.        |
-| PreImportEvent         | Wird vor dem Import eines Datensatzes ausgelöst.        |
-| PostImportEvent        | Wird nach dem Import eines Datensatzes ausgelöst.       |
-| ConfigImportEvent      | Wird nachdem die Konfiguration erzeugt wurde ausgelöst. |
+| Eventname                 | Beschreibung                                            |
+|---------------------------|---------------------------------------------------------|
+| PreValidateWidgetEvent    | Wird vor der Validierung eines Feldes ausgelöst.        |
+| PreImportRowEvent         | Wird vor dem Import eines Datensatzes ausgelöst.        |
+| PostImportRowEvent        | Wird nach dem Import eines Datensatzes ausgelöst.       |
+| PostImportEvent           | Wird nach dem Import eines Import-Requests ausgelöst.   |
+| ConfigImportEvent         | Wird nachdem die Konfiguration erzeugt wurde ausgelöst. |
 
 Viel Spass mit dem Import From CSV Bundle!

@@ -17,9 +17,9 @@ namespace Markocupic\ImportFromCsvBundle\Event;
 use Markocupic\ImportFromCsvBundle\Import\ImportFromCsv;
 use Symfony\Contracts\EventDispatcher\Event;
 
-class PreImportEvent extends Event
+class PreImportRowEvent extends Event
 {
-    public const string NAME = 'import_from_csv.pre_import';
+    public const string NAME = 'import_from_csv.pre_row_import';
 
     public function __construct(
         private readonly string $tableName,
