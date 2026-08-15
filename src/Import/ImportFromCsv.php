@@ -24,12 +24,8 @@ use Contao\System;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Type;
-use League\Csv\Exception;
-use League\Csv\InvalidArgument;
 use League\Csv\Reader;
 use League\Csv\Statement;
-use League\Csv\SyntaxError;
-use League\Csv\UnavailableStream;
 use Markocupic\ImportFromCsvBundle\Event\ConfigImportEvent;
 use Markocupic\ImportFromCsvBundle\Event\PostImportBatchEvent;
 use Markocupic\ImportFromCsvBundle\Event\PostImportRowEvent;
@@ -70,13 +66,6 @@ class ImportFromCsv
     ) {
     }
 
-    /**
-     * @throws Exception
-     * @throws InvalidArgument
-     * @throws SyntaxError
-     * @throws UnavailableStream
-     * @throws \Doctrine\DBAL\Exception
-     */
     public function importCsv(File $csvFile, string $tableName, string $importMode, array $selectedFields = [], array $mapValues = [], string $delimiter = ';', string $enclosure = '"', string $arrayDelimiter = '||', bool $isTestMode = false, array $skipValidationFields = [], int $offset = 0, int $limit = 0, string|null $taskId = null, string|null $matchBy = null): void
     {
         // Generate a task id if there is none.
@@ -136,7 +125,7 @@ class ImportFromCsv
         $primaryKey = $this->findPrimaryKey($tableName);
 
         if (null === $primaryKey) {
-            throw new \Exception('No primary key found in '.$tableName);
+            throw new \Exception(\sprintf('No primary key found in %s.', $tableName));
         }
 
         // Load language file
@@ -145,7 +134,7 @@ class ImportFromCsv
         $selectedFields = $this->normalizeSelectedFields($selectedFields);
 
         // Store the options in $this->config
-        $config = new ImportConfig(
+        $this->config = new ImportConfig(
             taskId: $taskId,
             csvFile: $csvFile,
             tableName: $tableName,
@@ -163,14 +152,13 @@ class ImportFromCsv
             limit: $limit,
         );
 
-        $configImportEvent = new ConfigImportEvent($tableName, $config, $this);
-        $this->eventDispatcher->dispatch($configImportEvent);
-
-        $this->config = $configImportEvent->getConfig();
+        $event = new ConfigImportEvent($tableName, $this->config, $this);
+        $this->eventDispatcher->dispatch($event);
+        $this->config = $event->getConfig();
 
         // Truncate table
         if ('truncate_table' === $this->config->importMode && false === $this->config->isTestMode) {
-            $this->connection->executeStatement('TRUNCATE TABLE '.$this->config->tableName);
+            $this->connection->executeStatement("TRUNCATE TABLE $this->config->tableName");
         }
 
         if (\count($this->config->selectedFields) < 1) {
@@ -198,8 +186,7 @@ class ImportFromCsv
             $this->config->selectedFields,
         );
 
-        // Get each line as an associative array -> ['columnName1' => 'value1',
-        // 'columnName2' => 'value2']
+        // Get each line as an associative array -> ['columnName1' => 'value1', 'columnName2' => 'value2']
         $csvLines = $stmt->process($reader, $headerFields);
 
         $existingPrimaryKeys = $this->findExistingPrimaryKeysByMatchField(
@@ -210,11 +197,10 @@ class ImportFromCsv
         );
 
         $importData = [];
-        // Process each row and filter/skip empty or not allowed values/columns
+        $arrReportValues = [];
         $doNotSave = false;
 
-        $arrReportValues = [];
-
+        // Process each line
         foreach ($csvLines as $csvLine) {
             $csvRecord = [];
 
@@ -249,6 +235,7 @@ class ImportFromCsv
 
             $set = [];
 
+            // Process each field in the current line
             foreach ($csvRecord as $columnName => $value) {
                 // Get the DCA of the current field
                 $dca = $this->getDca($columnName, $this->config->tableName);
@@ -273,19 +260,23 @@ class ImportFromCsv
                 $request->request->set($columnName, $value);
 
                 // Get the correct widget for input validation, etc.
-                $widget = $this->widgetFactory->create(dca: $dca, columnName: $columnName, tableName: $this->config->tableName, value: $value);
+                $widget = $this->widgetFactory->create(
+                    dca: $dca,
+                    columnName: $columnName,
+                    tableName: $this->config->tableName,
+                    value: $value,
+                );
 
-                $preValidateWidgetEvent = new PreValidateWidgetEvent($widget, $csvRecord, $this, $request);
-                $this->eventDispatcher->dispatch($preValidateWidgetEvent);
+                $event = new PreValidateWidgetEvent($widget, $csvRecord, $this, $request);
+                $this->eventDispatcher->dispatch($event);
 
                 // Validate date, datim or time values
                 $this->importValidator->checkIsValidDate($widget, $dca);
 
                 // Special treatment for password
                 if ('password' === $dca['inputType']) {
+                    // Later we will use a post-insert listener to set the correct password with the correct password hasher.
                     $this->framework->getAdapter(Input::class)->setPost('password_confirm', $widget->value);
-                    // Later we will use a post-insert listener to set the correct password with the
-                    // correct password hasher.
                 }
 
                 // Skip validation for selected fields
@@ -306,10 +297,7 @@ class ImportFromCsv
                 $widget->value = $this->formatter->strtotime($widget, $dca);
                 $widget->value = $this->formatter->replaceNewlineTags($widget->value);
 
-                if (
-                    $widget->strField !== $this->config->matchBy
-                    && $widget->hasErrors()
-                ) {
+                if ($widget->strField !== $this->config->matchBy && $widget->hasErrors()) {
                     $doNotSave = true;
                     $arrReportValues[$this->currentLine][$widget->strField] = \sprintf(
                         '"%s" => %s',
@@ -319,7 +307,7 @@ class ImportFromCsv
                 } else {
                     $set[$widget->strField] = \is_array($widget->value) ? serialize($widget->value) : $widget->value;
                 }
-            } // End foreach column
+            } // End process each field in the current line
 
             if (!empty($existingPrimaryKeys[$set[$this->config->matchBy]])) {
                 $set[$this->config->primaryKey] = $existingPrimaryKeys[$set[$this->config->matchBy]];
@@ -337,12 +325,14 @@ class ImportFromCsv
             if ($this->columnExists('dateAdded', $this->config->tableName)) {
                 if (!isset($set['dateAdded']) || '' === $set['dateAdded']) {
                     $set['dateAdded'] = time();
-                    $arrReportValues[$this->currentLine]['dateAdded'] = Date::parse($this->framework->getAdapter(Config::class)->get('dateFormat'), time());
+                    $dateAdapter = $this->framework->getAdapter(Date::class);
+                    $configAdapter = $this->framework->getAdapter(Config::class);
+                    $arrReportValues[$this->currentLine]['dateAdded'] = $dateAdapter->parse($configAdapter->get('dateFormat'), time());
                 }
             }
 
             $importData[$this->currentLine] = $set;
-        }// End for each data record
+        }// End process each line
 
         foreach ($importData as $currentLine => $set) {
             if ($doNotSave) {
@@ -352,13 +342,13 @@ class ImportFromCsv
             $this->connection->beginTransaction();
 
             try {
-                $preImportRowEvent = new PreImportRowEvent($this->config->tableName, $set, $csvRecord, $this);
-                $this->eventDispatcher->dispatch($preImportRowEvent);
+                $event = new PreImportRowEvent($this->config->tableName, $set, $csvRecord, $this);
+                $this->eventDispatcher->dispatch($event);
 
                 $id = $this->importPersister->upsert(
                     $this->config->tableName,
                     $this->config->primaryKey,
-                    $preImportRowEvent->getDataRecord(),
+                    $event->getDataRecord(),
                 );
 
                 if (true !== $this->config->isTestMode) {
@@ -367,17 +357,17 @@ class ImportFromCsv
                     $this->connection->rollBack();
                 }
 
-                $postImportRowEvent = new PostImportRowEvent($this->config->tableName, $set, $id, $csvRecord, $this);
-                $this->eventDispatcher->dispatch($postImportRowEvent);
+                $event = new PostImportRowEvent($this->config->tableName, $set, $id, $csvRecord, $this);
+                $this->eventDispatcher->dispatch($event);
             } catch (\Throwable $e) {
                 $doNotSave = true;
                 $this->addInsertException($e);
                 $this->connection->rollBack();
             }
 
-            // Collect data for the logger screen in the Contao backend The logger service
-            // requires a running session. Do not run the logger if there is no request (e.g.
-            // cron jobs)
+            // Collect data for the logger screen in the Contao backend.
+            // The logger service requires a running session.
+            // Do not run the logger if there is no request (e.g., cron jobs)
             if ($this->importLogger->hasInitialized($taskId)) {
                 $arrLog = [];
                 $arrLog['line'] = $currentLine;
@@ -422,7 +412,12 @@ class ImportFromCsv
         }
 
         if ($this->importLogger->hasInitialized($taskId)) {
-            $this->importLogger->setSummaryData($this->config->taskId, $this->countProcessedRows, $this->countProcessedRows - $this->insertErrors, $this->insertErrors);
+            $this->importLogger->setSummaryData(
+                taskId: $this->config->taskId,
+                intTotal: $this->countProcessedRows,
+                intSuccess: $this->countProcessedRows - $this->insertErrors,
+                intFailure: $this->insertErrors,
+            );
         }
 
         $event = new PostImportBatchEvent($this, $request, $importData);
@@ -454,9 +449,6 @@ class ImportFromCsv
         return $this->importLogger;
     }
 
-    /**
-     * @throws \Doctrine\DBAL\Exception
-     */
     public function findPrimaryKey(string $tableName): string|null
     {
         $stmt = $this->connection->executeQuery("SHOW INDEX FROM $tableName WHERE Key_name = 'PRIMARY'");
@@ -479,6 +471,7 @@ class ImportFromCsv
                 'inputType' => 'text',
             ];
         }
+
         if (\is_array($GLOBALS['TL_DCA'][$tableName]['fields'][$columnName])) {
             $dca = &$GLOBALS['TL_DCA'][$tableName]['fields'][$columnName];
 
@@ -494,9 +487,6 @@ class ImportFromCsv
         ];
     }
 
-    /**
-     * @throws \Doctrine\DBAL\Exception
-     */
     public function columnExists(string $columnName, string $tableName): bool
     {
         $schemaManager = $this->connection->createSchemaManager();
@@ -611,9 +601,6 @@ class ImportFromCsv
         return $csvHeaderFields;
     }
 
-    /**
-     * @throws Exception
-     */
     private function inferArrayParameterType(string $tableName, string $column): ArrayParameterType
     {
         $columns = $this->connection->createSchemaManager()->listTableColumns($tableName);
