@@ -601,7 +601,15 @@ class ImportFromCsv
         return $csvHeaderFields;
     }
 
-    private function inferArrayParameterType(string $tableName, string $column): ArrayParameterType
+    /**
+     * Infers the Doctrine DBAL array parameter type for the given column.
+     *
+     * The return type must allow both `ArrayParameterType` (DBAL ≥ 4, native PHP enum)
+     * and `int` (DBAL 3.x, string constants), because Doctrine changed the
+     * representation of parameter types between these major versions. Supporting both
+     * ensures full cross‑version compatibility.
+     */
+    private function inferArrayParameterType(string $tableName, string $column): ArrayParameterType|int
     {
         $columns = $this->connection->createSchemaManager()->listTableColumns($tableName);
 
