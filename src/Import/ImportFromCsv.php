@@ -489,15 +489,9 @@ class ImportFromCsv
 
     public function columnExists(string $columnName, string $tableName): bool
     {
-        $schemaManager = $this->connection->createSchemaManager();
+        $sm = $this->connection->createSchemaManager();
 
-        if (!$schemaManager->tablesExist([$tableName])) {
-            return false;
-        }
-
-        $columns = $schemaManager->listTableColumns($tableName);
-
-        return isset($columns[strtolower($columnName)]);
+        return $sm->tablesExist([$tableName]) && isset($sm->listTableColumns($tableName)[strtolower($columnName)]);
     }
 
     public function resetInsertExceptions(): void
@@ -595,6 +589,11 @@ class ImportFromCsv
     {
         foreach ($selectedFields as $tableFieldName => $csvFieldName) {
             $headerFieldIndex = array_search($csvFieldName, $csvHeaderFields, true);
+
+            if (false === $headerFieldIndex) {
+                throw new \Exception(\sprintf('Field "%s" not found in the header of the CSV file. Please check your import configuration', $csvFieldName));
+            }
+
             $csvHeaderFields[$headerFieldIndex] = $tableFieldName;
         }
 

@@ -41,6 +41,11 @@
                         <span class="ifcb-percentage"></span>
                     </div>
                 </div>
+                <div v-if="initializationErrors.length > 0">
+                    <template v-for="error in initializationErrors">
+                        <div class="tl_error">${ error }</div>
+                    </template>
+                </div>
                 <div class="ifcb-status-box tl_message">
                     <p v-if="status === 'ifcb-status-pending'" class="tl_info">{{ lang.tl_import_from_csv.import_process_started }}</p>
                     <p v-if="status === 'ifcb-status-error'" class="tl_error">{{ lang.tl_import_from_csv.exception_message }}</p>
@@ -80,7 +85,7 @@
                 </div>
             </div>
         </div>
-        <div class="tl_formbody_submit">
+        <div class="tl_formbody_submit" v-if="initializationErrors.length === 0">
             <div class="tl_submit_container">
                 <button v-on:click.prevent="importAction(true,true)" type="submit" id="btnTest" name="runImportTest" class="tl_submit ifcb-import-test-button" accesskey="p">
                     {{ lang.tl_import_from_csv.btnImportTest }}

@@ -77,3 +77,7 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['import_process_completed_with_errors'
 $GLOBALS['TL_LANG']['tl_import_from_csv']['import_process_started'] = 'Importvorgang gestartet. Bitte diese Seite nicht verlassen, bevor der Import nicht abgeschlossen ist.';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['loading_application'] = 'lade App';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['could_not_load_file'] = 'Konnte Datei "%s" nicht laden.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['exception.csv_file_not_found'] = 'Die CSV-Import-Datei konnte nicht gefunden werden.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['exception.table_not_found'] = 'Die Importtabelle "%s" konnte nicht gefunden werden.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['exception.column_not_found_in_table'] = 'Der Spaltenname "%s" wurde in der Tabelle "%s" nicht gefunden.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['exception.invalid_field_mapping'] = 'Ungültige Feldzuordnung. Der Faldname "%s" wurde im Header der CSV-Datein nicht gefunden. Bitte überprüfen Sie Ihre Importkonfiguration.';

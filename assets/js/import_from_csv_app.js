@@ -24,6 +24,7 @@ class ImportFromCsvApp {
 					urlStack: [],
 					requestsDone: 0,
 					requestsNeeded: 0,
+					initializationErrors: [],
 					model: {
 						urls: [],
 						count: 0,
@@ -80,11 +81,21 @@ class ImportFromCsvApp {
 						}).then(response => {
 						if (response.status === 200) {
 							response.json().then(res => {
-								Object.keys(res.data.model).forEach(key => {
-									this.model[key] = res.data.model[key];
-								});
-								this.urlStack = res.data.urlStack;
-								this.requestsNeeded = this.urlStack.length;
+
+								if (res.data.error) {
+									this.initializationErrors.push(res.data.error);
+								}
+
+								if (res.data.model) {
+									Object.keys(res.data.model).forEach(key => {
+										this.model[key] = res.data.model[key];
+									});
+								}
+
+								if (res.data.urlStack) {
+									this.urlStack = res.data.urlStack;
+									this.requestsNeeded = this.urlStack.length;
+								}
 							});
 						}
 						return response;
