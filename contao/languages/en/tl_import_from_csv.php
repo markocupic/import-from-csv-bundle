@@ -79,5 +79,5 @@ $GLOBALS['TL_LANG']['tl_import_from_csv']['loading_application'] = 'loading appl
 $GLOBALS['TL_LANG']['tl_import_from_csv']['could_not_load_file'] = 'Could not load file "%s".';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['exception.csv_file_not_found'] = 'The CSV import file could not be found.';
 $GLOBALS['TL_LANG']['tl_import_from_csv']['exception.table_not_found'] = 'The import table "%s" could not be found.';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['exception.column_not_found_in_table'] = 'The column name "%s" was not found in the table "%s".';
-$GLOBALS['TL_LANG']['tl_import_from_csv']['exception.invalid_field_mapping'] = 'Invalid field mapping. The field name "%s" was not found in the header of the CSV file. Please check your import configuration.';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['exception.column_not_found_in_table'] = 'The column name "%s" was not found in the database table "%s".';
+$GLOBALS['TL_LANG']['tl_import_from_csv']['exception.invalid_field_mapping'] = 'Invalid field mapping. The field name "%s" was not found in the CSV file header. Please check your import configuration.';
