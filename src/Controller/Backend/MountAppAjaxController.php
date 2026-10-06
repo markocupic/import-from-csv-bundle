@@ -91,6 +91,8 @@ class MountAppAjaxController extends AbstractController
 
         $count = 0;
         $offset = (int) $importModel->offset;
+        $delimiter = $importModel->fieldSeparator ?? ';';
+        $enclosure = $importModel->fieldEnclosure ?? '"';
         $limit = (int) $importModel->limit;
 
         try {
@@ -105,6 +107,8 @@ class MountAppAjaxController extends AbstractController
                 ->from(Path::join($this->projectDir, $file->path), 'r')
             ;
             $reader->setHeaderOffset(0);
+            $reader->setDelimiter($delimiter);
+            $reader->setEnclosure($enclosure);
             $count = (int) $reader->count();
 
             // Validate the table name
