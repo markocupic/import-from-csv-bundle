@@ -115,7 +115,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
         'fieldSeparator'       => [
             'inputType' => 'text',
             'default'   => ';',
-            'eval'      => ['mandatory' => true, 'maxlength' => 1],
+            'eval'      => ['mandatory' => true, 'useRawRequestData' => true, 'maxlength' => 1],
             'sql'       => "varchar(255) NOT NULL default ';'",
         ],
         'fieldEnclosure'       => [
@@ -164,18 +164,18 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
                 'field_name' => [
                     'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['field_name'],
                     'inputType' => 'select',
-                    'options_callback' => [ImportFromCSV::class, 'optionsCbGetTableColumns'],
+                    'options_callback' => [ImportFromCsv::class, 'optionsCbGetTableColumns'],
                     'eval' => ['style' => 'width: 300px', 'chosen' => true, 'includeBlankOption' => true],
                 ],
                 'csv_field_value' => [
                     'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['csv_field_value'],
                     'inputType' => 'text',
-                    'eval' => [],
+                    'eval' => ['decodeEntities' => true],
                 ],
                 'transform_to' => [
                     'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['transform_to'],
                     'inputType' => 'text',
-                    'eval' => [],
+                    'eval' => ['decodeEntities' => true],
                 ],
                 'lowercase' => [
                     'label' => &$GLOBALS['TL_LANG']['tl_import_from_csv']['mapValues_fields']['lowercase'],

@@ -91,8 +91,8 @@ class MountAppAjaxController extends AbstractController
 
         $count = 0;
         $offset = (int) $importModel->offset;
-        $delimiter = $importModel->fieldSeparator ?? ';';
-        $enclosure = $importModel->fieldEnclosure ?? '"';
+        $delimiter = $stringUtil->decodeEntities((string) $importModel->fieldSeparator) ?: ';';
+        $enclosure = $stringUtil->decodeEntities((string) $importModel->fieldEnclosure) ?: '"';
         $limit = (int) $importModel->limit;
 
         try {

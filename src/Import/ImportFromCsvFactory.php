@@ -51,9 +51,9 @@ readonly class ImportFromCsvFactory
         $importMode = $model->importMode;
         $selectedFields = $stringUtil->deserialize($model->selectedFields, true);
         $mapValues = $stringUtil->deserialize($model->mapValues, true);
-        $delimiter = $model->fieldSeparator;
+        $delimiter = $stringUtil->decodeEntities((string) $model->fieldSeparator) ?: ';';
         $matchBy = $model->matchBy;
-        $enclosure = $model->fieldEnclosure;
+        $enclosure = $stringUtil->decodeEntities((string) $model->fieldEnclosure) ?: '"';
         $offset = (int) $model->offset;
         $limit = (int) $model->limit;
         $skipValidationFields = $stringUtil->deserialize($model->skipValidationFields, true);
