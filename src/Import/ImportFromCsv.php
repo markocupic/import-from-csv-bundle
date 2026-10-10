@@ -20,6 +20,7 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\Date;
 use Contao\File;
 use Contao\Input;
+use Contao\StringUtil;
 use Contao\System;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
@@ -630,29 +631,32 @@ class ImportFromCsv
     private function mapValues(string $columnName, mixed $value): string
     {
         if (empty($this->config->mapValues) || empty($value)) {
-            return $value;
+            return (string) $value;
         }
 
         foreach ($this->config->mapValues as $mapping) {
-            if ($mapping['field_name'] !== $columnName) {
+            if (($mapping['field_name'] ?? null) !== $columnName) {
                 continue;
             }
 
-            if ($mapping['lowercase']) {
-                $value = strtolower($value);
+            if (!empty($mapping['lowercase'])) {
+                $value = mb_strtolower((string) $value);
             }
 
-            if ($mapping['uppercase']) {
-                $value = strtoupper($value);
+            if (!empty($mapping['uppercase'])) {
+                $value = mb_strtoupper((string) $value);
             }
 
-            if (empty($mapping['csv_field_value']) || strtolower($mapping['csv_field_value']) !== strtolower($value)) {
+            // Contao 5 stores the backend input HTML encoded (e.g. "&amp;" instead of "&")
+            $csvFieldValue = StringUtil::decodeEntities((string) ($mapping['csv_field_value'] ?? ''));
+
+            if ('' === $csvFieldValue || mb_strtolower($csvFieldValue) !== mb_strtolower((string) $value)) {
                 continue;
             }
 
-            return $mapping['transform_to'];
+            return StringUtil::decodeEntities((string) ($mapping['transform_to'] ?? ''));
         }
 
-        return $value;
+        return (string) $value;
     }
 }

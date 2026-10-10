@@ -19,6 +19,7 @@ use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\DataContainer;
 use Contao\FilesModel;
+use Contao\StringUtil;
 use Doctrine\DBAL\Connection;
 use League\Csv\Reader;
 use Markocupic\ImportFromCsvBundle\Reader\CsvLineReader;
@@ -122,13 +123,13 @@ readonly class ImportFromCsv
         $arrOptions = [];
 
         foreach ($lowerCaseFields as $field) {
-            $sql = $dcaFields[$field->getName()]['sql'] ?? '';
-            $sql = \is_array($sql) ? json_encode($sql) : $sql;
-            $sql = !empty($sql) ? \sprintf(' <span class="ifcb-sql-descr">[%s]</span>', $sql) : '';
+            $sql = $this->formatSqlDefinition($dcaFields[$field->getName()]['sql'] ?? null);
 
             // If exists, take the column name from the DCA
             $fieldName = $dcaFields[$field->getName()]['fieldName'] ?? $field->getName();
-            $arrOptions[$fieldName] = $fieldName.$sql;
+
+            // Option labels are plain text (Contao escapes them), so do not add any HTML here
+            $arrOptions[$fieldName] = '' !== $sql ? \sprintf('%s [%s]', $fieldName, $sql) : $fieldName;
         }
 
         return $arrOptions;
@@ -153,7 +154,8 @@ readonly class ImportFromCsv
                 ->from(Path::join($this->projectDir, $fileModel->path), 'r')
             ;
             $reader->setHeaderOffset(0);
-            $reader->setDelimiter($dc->getCurrentRecord()['fieldSeparator'] ?: ';');
+            $reader->setDelimiter(StringUtil::decodeEntities((string) ($dc->getCurrentRecord()['fieldSeparator'] ?? '')) ?: ';');
+            $reader->setEnclosure(StringUtil::decodeEntities((string) ($dc->getCurrentRecord()['fieldEnclosure'] ?? '')) ?: '"');
             $headers = $reader->getHeader();
         }
 
@@ -168,5 +170,43 @@ readonly class ImportFromCsv
         }
 
         return $headers;
+    }
+
+    /**
+     * Returns a short, human-readable description of the SQL definition of a DCA field,
+     * e.g. "varchar(255) NOT NULL default ''" or "integer, unsigned, default: 0".
+     */
+    private function formatSqlDefinition(mixed $sql): string
+    {
+        if (\is_string($sql)) {
+            return trim($sql);
+        }
+
+        if (!\is_array($sql)) {
+            return '';
+        }
+
+        $parts = [];
+
+        if (isset($sql['type'])) {
+            $parts[] = isset($sql['length']) ? \sprintf('%s(%s)', $sql['type'], $sql['length']) : (string) $sql['type'];
+        }
+
+        foreach (['unsigned', 'autoincrement', 'fixed'] as $flag) {
+            if (!empty($sql[$flag])) {
+                $parts[] = $flag;
+            }
+        }
+
+        if (\array_key_exists('notnull', $sql) && false === $sql['notnull']) {
+            $parts[] = 'nullable';
+        }
+
+        if (\array_key_exists('default', $sql) && null !== $sql['default'] && !\is_array($sql['default'])) {
+            $default = \is_bool($sql['default']) ? var_export($sql['default'], true) : (string) $sql['default'];
+            $parts[] = \sprintf("default: '%s'", $default);
+        }
+
+        return implode(', ', $parts);
     }
 }

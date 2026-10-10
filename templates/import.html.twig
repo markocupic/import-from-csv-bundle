@@ -91,7 +91,7 @@
                     {{ lang.tl_import_from_csv.btnImportTest }}
                 </button>
                 &nbsp;
-                <button v-on:click.prevent="importAction(false,true)" type="submit" id="btnImport" name="runImport" class="tl_submit ifcb-import-button" accesskey="s" onclick="return confirm('{{ lang.tl_import_from_csv.confirm_start_import }}')">
+                <button v-on:click.prevent="importAction(false,true)" type="submit" id="btnImport" name="runImport" class="tl_submit ifcb-import-button" accesskey="s" onclick="return confirm('{{ lang.tl_import_from_csv.confirm_start_import|e('js') }}')">
                     {{ lang.tl_import_from_csv.btnImport }}
                 </button>
             </div>
@@ -100,5 +100,5 @@
 </div>
 
 <script>
-    new ImportFromCsvApp('#ifcbImportFromCsvApp', '{{ appMountUrl|raw }}', '{{ csrfToken }}');
+    new ImportFromCsvApp('#ifcbImportFromCsvApp', '{{ appMountUrl|e('js') }}', '{{ csrfToken|e('js') }}');
 </script>
