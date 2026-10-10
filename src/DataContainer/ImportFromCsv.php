@@ -135,6 +135,7 @@ readonly class ImportFromCsv
         return $arrOptions;
     }
 
+    #[AsCallback(table: 'tl_import_from_csv', target: 'fields.csv_field_name.options', priority: 100)]
     public function optionsCbGetCsvColumns(DataContainer|null $dc = null, bool $includeCustomFields = false): array
     {
         if (null === $dc || null === $dc->id) {

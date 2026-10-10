@@ -76,7 +76,7 @@ $GLOBALS['TL_DCA']['tl_import_from_csv'] = [
         'default'      => '
             {title_legend},title;
             {docs_legend},explanation;
-            {settings_legend},importTable,matchBy,selectedFields,mapValues,fieldSeparator,fieldEnclosure,importMode,fileSRC,listLines,skipValidationFields;
+            {settings_legend},importTable,matchBy,fieldSeparator,fieldEnclosure,selectedFields,mapValues,importMode,fileSRC,listLines,skipValidationFields;
             {limitAndOffset_legend},offset,limit;
             {cron_legend},enableCron
         ',
