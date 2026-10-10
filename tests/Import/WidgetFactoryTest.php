@@ -99,7 +99,7 @@ class WidgetFactoryTest extends ContaoTestCase
 
     public function testDcTableIsCreatedOnceAndCachedWithRequest(): void
     {
-        $dcTable = $this->createMock(DC_Table::class);
+        $dcTable = $this->createStub(DC_Table::class);
 
         $framework = $this->createMock(ContaoFramework::class);
         $framework
@@ -130,7 +130,7 @@ class WidgetFactoryTest extends ContaoTestCase
 
     private function mockFrameworkWithoutRequest(): ContaoFramework
     {
-        $framework = $this->createMock(ContaoFramework::class);
+        $framework = $this->createStub(ContaoFramework::class);
         $framework
             ->method('getAdapter')
             ->willReturnCallback(static fn (string $class): Adapter => new Adapter($class))

@@ -1,2 +1,7 @@
-.phpunit.result.cache
-node_modules
+/vendor/
+/composer.lock
+/tools/*/vendor/
+/tools/*/composer.lock
+/.phpunit.result.cache
+/.phpunit.cache/
+/node_modules/

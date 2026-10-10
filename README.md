@@ -6,6 +6,11 @@ Mit diesem Modul lassen sich über eine CSV-Datei in einem Rutsch grosse Mengen 
 
 https://user-images.githubusercontent.com/1525166/150694067-e4438409-d6b0-42c7-853b-1b273a2f5064.mp4
 
+## Voraussetzungen
+
+- PHP 8.3 oder höher
+- Contao 5.7 oder Contao 6
+
 ## Warnung!
 
 > [!CAUTION]
