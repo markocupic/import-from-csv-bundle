@@ -201,6 +201,11 @@ class ImportFromCsv
         $arrReportValues = [];
         $doNotSave = false;
 
+        // Keep the CSV data of each line, keyed by the same line number as $importData,
+        // so that the row events receive the data of the row being imported.
+        $csvRecordsPerLine = [];
+        $rawCsvLinesPerLine = [];
+
         // Process each line
         foreach ($csvLines as $csvLine) {
             $csvRecord = [];
@@ -230,6 +235,9 @@ class ImportFromCsv
 
             // Update current line (CSV)
             ++$this->currentLine;
+
+            $csvRecordsPerLine[$this->currentLine] = $csvRecord;
+            $rawCsvLinesPerLine[$this->currentLine] = $csvLine;
 
             // Update processed rows counter
             ++$this->countProcessedRows;
@@ -343,7 +351,13 @@ class ImportFromCsv
             $this->connection->beginTransaction();
 
             try {
-                $event = new PreImportRowEvent($this->config->tableName, $set, $csvRecord, $this);
+                $event = new PreImportRowEvent(
+                    $this->config->tableName,
+                    $set,
+                    $csvRecordsPerLine[$currentLine],
+                    $this,
+                    $rawCsvLinesPerLine[$currentLine],
+                );
                 $this->eventDispatcher->dispatch($event);
 
                 $id = $this->importPersister->upsert(
@@ -358,7 +372,14 @@ class ImportFromCsv
                     $this->connection->rollBack();
                 }
 
-                $event = new PostImportRowEvent($this->config->tableName, $set, $id, $csvRecord, $this);
+                $event = new PostImportRowEvent(
+                    $this->config->tableName,
+                    $set,
+                    $id,
+                    $csvRecordsPerLine[$currentLine],
+                    $this,
+                    $rawCsvLinesPerLine[$currentLine],
+                );
                 $this->eventDispatcher->dispatch($event);
             } catch (\Throwable $e) {
                 $doNotSave = true;
