@@ -200,10 +200,12 @@ class ImportFromCsv
         $importData = [];
         $arrReportValues = [];
         $doNotSave = false;
+        $csvRecordsPerLine = [];
 
         // Process each line
-        foreach ($csvLines as $csvLine) {
+        foreach ($csvLines as $line => $csvLine) {
             $csvRecord = [];
+            $csvRecordsPerLine[$line] = $csvLine;
 
             foreach ($csvLine as $columnName => $value) {
                 $value = trim((string) $value);
@@ -343,7 +345,7 @@ class ImportFromCsv
             $this->connection->beginTransaction();
 
             try {
-                $event = new PreImportRowEvent($this->config->tableName, $set, $csvRecord, $this);
+                $event = new PreImportRowEvent($this->config->tableName, $set, $csvRecordsPerLine[$currentLine], $this);
                 $this->eventDispatcher->dispatch($event);
 
                 $id = $this->importPersister->upsert(
@@ -358,7 +360,7 @@ class ImportFromCsv
                     $this->connection->rollBack();
                 }
 
-                $event = new PostImportRowEvent($this->config->tableName, $set, $id, $csvRecord, $this);
+                $event = new PostImportRowEvent($this->config->tableName, $set, $id, $csvRecordsPerLine[$currentLine], $this);
                 $this->eventDispatcher->dispatch($event);
             } catch (\Throwable $e) {
                 $doNotSave = true;
