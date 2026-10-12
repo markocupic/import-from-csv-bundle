@@ -25,6 +25,7 @@ class PostImportRowEvent extends Event
         private readonly int $insertId,
         private readonly array $csvRecord,
         private readonly ImportFromCsv $importInstance,
+        private readonly array $rawCsvLine = [],
     ) {
     }
 
@@ -46,6 +47,15 @@ class PostImportRowEvent extends Event
     public function getLineAsArray(): array
     {
         return $this->csvRecord;
+    }
+
+    /**
+     * Returns the unprocessed CSV line with all columns, including those
+     * that are not selected for import (values are neither trimmed nor mapped).
+     */
+    public function getRawLineAsArray(): array
+    {
+        return $this->rawCsvLine;
     }
 
     public function getImportInstance(): ImportFromCsv
