@@ -203,7 +203,7 @@ class ImportFromCsv
         $csvRecordsPerLine = [];
 
         // Process each line
-        foreach ($csvLines as $csvLine) {
+        foreach ($csvLines as $line => $csvLine) {
             $csvRecord = [];
             $csvRecordsPerLine[$line] = $csvLine;
 
